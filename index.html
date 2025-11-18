@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0058)file:///Users/divsesh/Desktop/Nexus-crm-project/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Tax Filing - Customer Relationship Management</title>
     
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./index_files/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./index_files/all.min.css">
     
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./index_files/chart.js"></script>
     <!-- SheetJS for Excel parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="./index_files/xlsx.full.min.js"></script>
     
     
     <!-- Custom Styles -->
@@ -2866,7 +2866,7 @@
     
     <!-- API Configuration -->
     <script>
-        const API_BASE_URL = 'http://localhost:3000/api';
+        const API_BASE_URL = 'http://nexus-crm-project-production.up.railway.app/api';
         
         // Dark Mode Toggle Function
         function toggleDarkMode() {
@@ -2912,13 +2912,13 @@
 </head>
 <body>
     <!-- Login Page -->
-    <div id="loginPage">
+    <div id="loginPage" style="display: flex;">
         <div class="login-container">
             <div class="login-header">
                 <div class="login-logo-container">
                     <div class="login-logo-wrapper">
                         <div class="login-logo-graphic">
-                            <img src="Logo.png" alt="Nexus Tax Filing Logo" />
+                            <img src="./index_files/Logo.png" alt="Nexus Tax Filing Logo">
                         </div>
                     </div>
                 </div>
@@ -2926,11 +2926,11 @@
             <form id="loginForm">
                 <div class="mb-3">
                     <label class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required="">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required="">
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
@@ -2947,13 +2947,13 @@
             <div class="logo">
                 <div class="nexus-logo">
                     <div class="nexus-logo-graphic">
-                        <img src="Logo.png" alt="Nexus Tax Filing Logo" />
+                        <img src="./index_files/Logo.png" alt="Nexus Tax Filing Logo">
                     </div>
                 </div>
             </div>
             <div class="nav-right-group">
                 <ul class="nav-menu">
-                    <li><a href="#" class="nav-link active"><i class="fas fa-user"></i> <span>My Information</span></a></li>
+                    <li><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" class="nav-link active"><i class="fas fa-user"></i> <span>My Information</span></a></li>
                 </ul>
                 <div class="user-section">
                     <div class="dropdown">
@@ -2961,7 +2961,7 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="customerUserAvatar">
                             <li><h6 class="dropdown-header">My Account</h6></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="customerLogout()">
+                            <li><a class="dropdown-item" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="customerLogout()">
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </a></li>
                         </ul>
@@ -2981,24 +2981,24 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">First Name</label>
-                        <input type="text" id="customerFirstName" class="form-control" placeholder="Enter first name" required>
+                        <input type="text" id="customerFirstName" class="form-control" placeholder="Enter first name" required="">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Last Name</label>
-                        <input type="text" id="customerLastName" class="form-control" placeholder="Enter last name" required>
+                        <input type="text" id="customerLastName" class="form-control" placeholder="Enter last name" required="">
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Phone Number</label>
-                    <input type="tel" id="customerPhone" class="form-control" placeholder="Enter phone number" required>
+                    <input type="tel" id="customerPhone" class="form-control" placeholder="Enter phone number" required="">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email Address</label>
-                    <input type="email" id="customerEmail" class="form-control" placeholder="Enter email address" required>
+                    <input type="email" id="customerEmail" class="form-control" placeholder="Enter email address" required="">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Address Line 1</label>
-                    <input type="text" id="customerAddress1" class="form-control" placeholder="Enter address line 1" required>
+                    <input type="text" id="customerAddress1" class="form-control" placeholder="Enter address line 1" required="">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Address Line 2</label>
@@ -3007,11 +3007,11 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">City</label>
-                        <input type="text" id="customerCity" class="form-control" placeholder="Enter city" required>
+                        <input type="text" id="customerCity" class="form-control" placeholder="Enter city" required="">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">State</label>
-                        <select id="customerState" class="form-control" required>
+                        <select id="customerState" class="form-control" required="">
                             <option value="">Select State</option>
                             <option value="AL">AL</option>
                             <option value="AK">AK</option>
@@ -3067,14 +3067,14 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Zip Code</label>
-                        <input type="text" id="customerZipCode" class="form-control" placeholder="Zip" required>
+                        <input type="text" id="customerZipCode" class="form-control" placeholder="Zip" required="">
                     </div>
                 </div>
                 
                 <!-- File Upload Section -->
                 <div class="mb-3">
                     <label class="form-label">Upload Documents (PDF, JPEG, PNG)</label>
-                    <input type="file" id="customerFiles" class="form-control" accept=".pdf,.jpeg,.jpg,.png" multiple>
+                    <input type="file" id="customerFiles" class="form-control" accept=".pdf,.jpeg,.jpg,.png" multiple="">
                     <small class="text-muted">You can upload multiple files. Accepted formats: PDF, JPEG, PNG</small>
                     <div id="uploadedFilesList" class="mt-2"></div>
                 </div>
@@ -3083,7 +3083,7 @@
                 <div class="mb-3">
                     <label class="form-label">Refund Status</label>
                     <div class="refund-status-display">
-                        <select id="customerRefundStatus" class="form-control" disabled>
+                        <select id="customerRefundStatus" class="form-control" disabled="">
                             <option value="in_discussions">In Discussions</option>
                             <option value="received_w2">Received W2</option>
                             <option value="preparing_quote">Preparing Quote</option>
@@ -3115,22 +3115,22 @@
     <div id="dashboardPage" style="display: none;">
         <!-- Horizontal Navigation Bar -->
         <nav class="navbar">
-            <div class="logo" onclick="showTab('dashboard')">
+            <div class="logo" onclick="showTab(&#39;dashboard&#39;)">
                 <div class="nexus-logo">
                     <div class="nexus-logo-graphic">
-                        <img src="Logo.png" alt="Nexus Tax Filing Logo" />
+                        <img src="./index_files/Logo.png" alt="Nexus Tax Filing Logo">
                     </div>
                 </div>
             </div>
             <div class="nav-right-group">
                 <ul class="nav-menu">
-                    <li><a href="#" onclick="showTab('dashboard', this)" class="nav-link active" data-tab="dashboard"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
-                    <li id="assignedWorkLi"><a href="#" onclick="showTab('assignedWork', this)" class="nav-link" data-tab="assignedWork"><i class="fas fa-tasks"></i> <span>Assigned Work</span></a></li>
-                    <li id="uploadLi"><a href="#" onclick="showTab('upload', this)" class="nav-link" data-tab="upload"><i class="fas fa-file-upload"></i> <span>File Upload</span></a></li>
-                    <li id="assignWorkLi"><a href="#" onclick="showTab('assignWork', this)" class="nav-link" data-tab="assignWork"><i class="fas fa-tasks"></i> <span>Assign Work</span></a></li>
-                    <li id="progressLi"><a href="#" onclick="showTab('progress', this)" class="nav-link" data-tab="progress"><i class="fas fa-chart-pie"></i> <span>Progress</span></a></li>
-                    <li id="reportsLi"><a href="#" onclick="showTab('reports', this)" class="nav-link" data-tab="reports"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-                    <li id="userManagementLi"><a href="#" onclick="showTab('userManagement', this)" class="nav-link" data-tab="userManagement"><i class="fas fa-users-cog"></i> <span>User Management</span></a></li>
+                    <li><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;dashboard&#39;, this)" class="nav-link active" data-tab="dashboard"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+                    <li id="assignedWorkLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;assignedWork&#39;, this)" class="nav-link" data-tab="assignedWork"><i class="fas fa-tasks"></i> <span>Assigned Work</span></a></li>
+                    <li id="uploadLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;upload&#39;, this)" class="nav-link" data-tab="upload"><i class="fas fa-file-upload"></i> <span>File Upload</span></a></li>
+                    <li id="assignWorkLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;assignWork&#39;, this)" class="nav-link" data-tab="assignWork"><i class="fas fa-tasks"></i> <span>Assign Work</span></a></li>
+                    <li id="progressLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;progress&#39;, this)" class="nav-link" data-tab="progress"><i class="fas fa-chart-pie"></i> <span>Progress</span></a></li>
+                    <li id="reportsLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;reports&#39;, this)" class="nav-link" data-tab="reports"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+                    <li id="userManagementLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;userManagement&#39;, this)" class="nav-link" data-tab="userManagement"><i class="fas fa-users-cog"></i> <span>User Management</span></a></li>
                 </ul>
                 <div class="user-section">
                     <span class="user-info" id="userNameDisplay">User</span>
@@ -3138,11 +3138,11 @@
                         <div class="user-avatar dropdown-toggle" id="userAvatar" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">A</div>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userAvatar">
                             <li><h6 class="dropdown-header">My Account</h6></li>
-                            <li><a class="dropdown-item" href="#" onclick="showMyProfileModal()">
+                            <li><a class="dropdown-item" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showMyProfileModal()">
                                 <i class="fas fa-user"></i> My Profile
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                            <li><a class="dropdown-item" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="logout()">
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </a></li>
                         </ul>
@@ -3183,7 +3183,7 @@
                                                 <div class="filter-dropdown-header">
                                                     <div class="filter-options">
                                                         <label class="filter-checkbox-item">
-                                                            <input type="checkbox" id="selectAllMonths" checked>
+                                                            <input type="checkbox" id="selectAllMonths" checked="">
                                                             <span class="checkmark"></span>
                                                             Select All
                                                         </label>
@@ -3191,62 +3191,62 @@
                                                 </div>
                                                 <div class="filter-dropdown-body">
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-jan" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-jan" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         January
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-feb" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-feb" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         February
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-mar" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-mar" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         March
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-apr" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-apr" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         April
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-may" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-may" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         May
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-jun" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-jun" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         June
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-jul" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-jul" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         July
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-aug" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-aug" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         August
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-sep" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-sep" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         September
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-oct" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-oct" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         October
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-nov" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-nov" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         November
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="month-dec" class="month-checkbox" checked>
+                                                        <input type="checkbox" id="month-dec" class="month-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         December
                                                     </label>
@@ -3296,12 +3296,12 @@
                                                         Call Back
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="status-not_in_service" class="status-checkbox" checked>
+                                                        <input type="checkbox" id="status-not_in_service" class="status-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         Not in Service
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="status-voice_mail" class="status-checkbox" checked>
+                                                        <input type="checkbox" id="status-voice_mail" class="status-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         Voice Mail
                                                     </label>
@@ -3316,12 +3316,12 @@
                                                         DND
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="status-interested" class="status-checkbox" checked>
+                                                        <input type="checkbox" id="status-interested" class="status-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         Interested
                                                     </label>
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="status-w2_received" class="status-checkbox" checked>
+                                                        <input type="checkbox" id="status-w2_received" class="status-checkbox" checked="">
                                                         <span class="checkmark"></span>
                                                         W2 Received
                                                     </label>
@@ -3417,7 +3417,7 @@
                         <p>Upload a CSV file to import multiple customers at once</p>
                     </div>
                     
-                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('csvFile').click()">
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById(&#39;csvFile&#39;).click()">
                         <div class="upload-icon">
                             <i class="fas fa-cloud-upload-alt"></i>
                         </div>
@@ -3508,11 +3508,11 @@
                                         <li><h6 class="dropdown-header">Select Employee</h6></li>
                                         <li id="employeeDropdownList"></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="assignToUnassigned()">
+                                        <li><a class="dropdown-item" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="assignToUnassigned()">
                                             <i class="fas fa-user-slash"></i> Mark as Unassigned
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="openDeleteAllModal()">
+                                        <li><a class="dropdown-item text-danger" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="openDeleteAllModal()">
                                             <i class="fas fa-trash-alt"></i> Delete All
                                         </a></li>
                                     </ul>
@@ -3533,21 +3533,21 @@
                                             <div class="filter-dropdown-header">
                                                 <div class="filter-options">
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="selectAllDeleteStatuses" checked>
+                                                        <input type="checkbox" id="selectAllDeleteStatuses" checked="">
                                                         <span class="checkmark"></span>
                                                         Select All
                                                     </label>
                                                 </div>
                                             </div>
                                             <div class="filter-dropdown-body">
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="follow_up" checked><span class="checkmark"></span>Follow-Up</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="call_back" checked><span class="checkmark"></span>Call Back</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="not_in_service" checked><span class="checkmark"></span>Not in Service</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="voice_mail" checked><span class="checkmark"></span>Voice Mail</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="citizen" checked><span class="checkmark"></span>Citizen</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="dnd" checked><span class="checkmark"></span>DND</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="interested" checked><span class="checkmark"></span>Interested</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="pending" checked><span class="checkmark"></span>Pending</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="follow_up" checked=""><span class="checkmark"></span>Follow-Up</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="call_back" checked=""><span class="checkmark"></span>Call Back</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="not_in_service" checked=""><span class="checkmark"></span>Not in Service</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="voice_mail" checked=""><span class="checkmark"></span>Voice Mail</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="citizen" checked=""><span class="checkmark"></span>Citizen</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="dnd" checked=""><span class="checkmark"></span>DND</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="interested" checked=""><span class="checkmark"></span>Interested</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="pending" checked=""><span class="checkmark"></span>Pending</label>
                                             </div>
                                             <div class="filter-dropdown-footer">
                                                 <button class="btn btn-sm btn-outline-secondary" onclick="toggleDeleteStatusFilter(false)">Cancel</button>
@@ -3578,14 +3578,14 @@
                                                         <div class="filter-dropdown-header">
                                                             <div class="filter-options">
                                                                 <label class="filter-checkbox-item">
-                                                                    <input type="checkbox" id="assignStatusSelectAll" checked>
+                                                                    <input type="checkbox" id="assignStatusSelectAll" checked="">
                                                                     <span class="checkmark"></span>
                                                                     Show All
                                                                 </label>
                                                             </div>
                                                         </div>
                                                         <div class="filter-dropdown-body">
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="pending" checked><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="pending" checked=""><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
                                                             <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="interested"><span class="checkmark"></span><div><span class="badge bg-success">Interested</span><small class="text-muted d-block" style="font-size:11px;">interested</small></div></label>
                                                             <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="voice_mail"><span class="checkmark"></span><div><span class="badge bg-secondary">Voice Mail</span><small class="text-muted d-block" style="font-size:11px;">voice_mail</small></div></label>
                                                             <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="w2_received"><span class="checkmark"></span><div><span class="badge bg-success">W2 Received</span><small class="text-muted d-block" style="font-size:11px;">w2_received</small></div></label>
@@ -3633,10 +3633,10 @@
                                 </div>
                             </div>
                             <div class="chart-controls">
-                                <button class="chart-toggle-btn active" onclick="toggleChartType('status', 'bar')" id="statusBarBtn">
+                                <button class="chart-toggle-btn active" onclick="toggleChartType(&#39;status&#39;, &#39;bar&#39;)" id="statusBarBtn">
                                     <i class="fas fa-chart-bar"></i> Bar
                                 </button>
-                                <button class="chart-toggle-btn" onclick="toggleChartType('status', 'pie')" id="statusPieBtn">
+                                <button class="chart-toggle-btn" onclick="toggleChartType(&#39;status&#39;, &#39;pie&#39;)" id="statusPieBtn">
                                     <i class="fas fa-chart-pie"></i> Pie
                                 </button>
                             </div>
@@ -3655,10 +3655,10 @@
                                 </div>
                             </div>
                             <div class="chart-controls">
-                                <button class="chart-toggle-btn active" onclick="toggleChartType('call', 'bar')" id="callBarBtn">
+                                <button class="chart-toggle-btn active" onclick="toggleChartType(&#39;call&#39;, &#39;bar&#39;)" id="callBarBtn">
                                     <i class="fas fa-chart-bar"></i> Bar
                                 </button>
-                                <button class="chart-toggle-btn" onclick="toggleChartType('call', 'pie')" id="callPieBtn">
+                                <button class="chart-toggle-btn" onclick="toggleChartType(&#39;call&#39;, &#39;pie&#39;)" id="callPieBtn">
                                     <i class="fas fa-chart-pie"></i> Pie
                                 </button>
                             </div>
@@ -3674,11 +3674,11 @@
                     <div class="col-md-12">
                         <div class="data-table">
                             <div class="p-4">
-                                <h5 class="mb-4"><i class="fas fa-file-alt"></i> Reports & Analytics</h5>
+                                <h5 class="mb-4"><i class="fas fa-file-alt"></i> Reports &amp; Analytics</h5>
                                 
                                 <div class="row">
                                     <div class="col-md-4">
-                                        <div class="stats-card" onclick="generateReport('customer')">
+                                        <div class="stats-card" onclick="generateReport(&#39;customer&#39;)">
                                             <div class="stats-icon" style="background: var(--primary-color);">
                                                 <i class="fas fa-users"></i>
                                             </div>
@@ -3687,7 +3687,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="stats-card" onclick="generateReport('call')">
+                                        <div class="stats-card" onclick="generateReport(&#39;call&#39;)">
                                             <div class="stats-icon" style="background: var(--success-color);">
                                                 <i class="fas fa-phone"></i>
                                             </div>
@@ -3696,7 +3696,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="stats-card" onclick="generateReport('performance')">
+                                        <div class="stats-card" onclick="generateReport(&#39;performance&#39;)">
                                             <div class="stats-icon" style="background: var(--warning-color);">
                                                 <i class="fas fa-chart-line"></i>
                                             </div>
@@ -3712,16 +3712,16 @@
                                             <div class="p-3">
                                                 <h6 class="mb-3">Quick Reports</h6>
                                                 <div class="list-group">
-                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('status')">
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport(&#39;status&#39;)">
                                                         <i class="fas fa-chart-pie"></i> Status Distribution
                                                     </button>
-                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('monthly')">
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport(&#39;monthly&#39;)">
                                                         <i class="fas fa-calendar-alt"></i> Monthly Summary
                                                     </button>
-                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('employee')">
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport(&#39;employee&#39;)">
                                                         <i class="fas fa-user-tie"></i> Employee Performance
                                                     </button>
-                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('export')">
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport(&#39;export&#39;)">
                                                         <i class="fas fa-download"></i> Export Data
                                                     </button>
                                                 </div>
@@ -3755,7 +3755,7 @@
                                                     <div class="mb-3">
                                                         <label class="form-label">Include Charts</label>
                                                         <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" checked>
+                                                            <input class="form-check-input" type="checkbox" checked="">
                                                             <label class="form-check-label">Include visual charts</label>
                                                         </div>
                                                     </div>
@@ -3830,14 +3830,14 @@
                                             <div class="filter-dropdown-header">
                                                 <div class="filter-options">
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="archiveStatusSelectAll" checked>
+                                                        <input type="checkbox" id="archiveStatusSelectAll" checked="">
                                                         <span class="checkmark"></span>
                                                         Show All
                                                     </label>
                                                 </div>
                                             </div>
                                             <div class="filter-dropdown-body">
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="pending" checked><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="pending" checked=""><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
                                                 <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="interested"><span class="checkmark"></span><div><span class="badge bg-success">Interested</span><small class="text-muted d-block" style="font-size:11px;">interested</small></div></label>
                                                 <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="voice_mail"><span class="checkmark"></span><div><span class="badge bg-secondary">Voice Mail</span><small class="text-muted d-block" style="font-size:11px;">voice_mail</small></div></label>
                                                 <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="w2_received"><span class="checkmark"></span><div><span class="badge bg-success">W2 Received</span><small class="text-muted d-block" style="font-size:11px;">w2_received</small></div></label>
@@ -3920,15 +3920,15 @@
                     <form id="newLeadForm">
                         <div class="mb-3">
                             <label class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="firstName" required>
+                            <input type="text" class="form-control" id="firstName" required="">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="lastName" required>
+                            <input type="text" class="form-control" id="lastName" required="">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Phone *</label>
-                            <input type="tel" class="form-control" id="phone" required>
+                            <input type="tel" class="form-control" id="phone" required="">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Email</label>
@@ -3963,7 +3963,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Customer Name</label>
-                                    <input type="text" class="form-control" id="updateCustomerName" readonly>
+                                    <input type="text" class="form-control" id="updateCustomerName" readonly="">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -3987,8 +3987,8 @@
                                 <div class="mb-3">
                                     <label class="form-label">Phone</label>
                                     <div class="field-with-edit">
-                                        <input type="text" class="form-control field-view-mode" id="updateCustomerPhone" readonly>
-                                        <i class="fas fa-edit field-edit-icon" id="editPhoneIcon" onclick="requestEditField('phone')"></i>
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerPhone" readonly="">
+                                        <i class="fas fa-edit field-edit-icon" id="editPhoneIcon" onclick="requestEditField(&#39;phone&#39;)"></i>
                                     </div>
                                 </div>
                             </div>
@@ -3996,8 +3996,8 @@
                                 <div class="mb-3">
                                     <label class="form-label">Email</label>
                                     <div class="field-with-edit">
-                                        <input type="email" class="form-control field-view-mode" id="updateCustomerEmail" readonly>
-                                        <i class="fas fa-edit field-edit-icon" id="editEmailIcon" onclick="requestEditField('email')"></i>
+                                        <input type="email" class="form-control field-view-mode" id="updateCustomerEmail" readonly="">
+                                        <i class="fas fa-edit field-edit-icon" id="editEmailIcon" onclick="requestEditField(&#39;email&#39;)"></i>
                                     </div>
                                 </div>
                             </div>
@@ -4007,8 +4007,8 @@
                                 <div class="mb-3">
                                     <label class="form-label">Address 1</label>
                                     <div class="field-with-edit">
-                                        <input type="text" class="form-control field-view-mode" id="updateCustomerAddress1" readonly>
-                                        <i class="fas fa-edit field-edit-icon" id="editAddress1Icon" onclick="requestEditField('address1')"></i>
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerAddress1" readonly="">
+                                        <i class="fas fa-edit field-edit-icon" id="editAddress1Icon" onclick="requestEditField(&#39;address1&#39;)"></i>
                                     </div>
                                 </div>
                             </div>
@@ -4016,8 +4016,8 @@
                                 <div class="mb-3">
                                     <label class="form-label">City</label>
                                     <div class="field-with-edit">
-                                        <input type="text" class="form-control field-view-mode" id="updateCustomerCity" readonly>
-                                        <i class="fas fa-edit field-edit-icon" id="editCityIcon" onclick="requestEditField('city')"></i>
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerCity" readonly="">
+                                        <i class="fas fa-edit field-edit-icon" id="editCityIcon" onclick="requestEditField(&#39;city&#39;)"></i>
                                     </div>
                                 </div>
                             </div>
@@ -4027,7 +4027,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">State</label>
                                     <div class="field-with-edit">
-                                        <select class="form-control field-view-mode" id="updateCustomerState" disabled>
+                                        <select class="form-control field-view-mode" id="updateCustomerState" disabled="">
                                             <option value="">Select State</option>
                                             <option value="AL">Alabama (AL)</option>
                                             <option value="AK">Alaska (AK)</option>
@@ -4080,7 +4080,7 @@
                                             <option value="WI">Wisconsin (WI)</option>
                                             <option value="WY">Wyoming (WY)</option>
                                         </select>
-                                        <i class="fas fa-edit field-edit-icon" id="editStateIcon" onclick="requestEditField('state')"></i>
+                                        <i class="fas fa-edit field-edit-icon" id="editStateIcon" onclick="requestEditField(&#39;state&#39;)"></i>
                                     </div>
                                 </div>
                             </div>
@@ -4088,8 +4088,8 @@
                                 <div class="mb-3">
                                     <label class="form-label">Zip Code</label>
                                     <div class="field-with-edit">
-                                        <input type="text" class="form-control field-view-mode" id="updateCustomerZipCode" readonly>
-                                        <i class="fas fa-edit field-edit-icon" id="editZipCodeIcon" onclick="requestEditField('zipCode')"></i>
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerZipCode" readonly="">
+                                        <i class="fas fa-edit field-edit-icon" id="editZipCodeIcon" onclick="requestEditField(&#39;zipCode&#39;)"></i>
                                     </div>
                                 </div>
                             </div>
@@ -4108,7 +4108,7 @@
                                     <div class="mb-3">
                                         <label class="form-label">Date</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control" id="followUpDate" placeholder="Select date" readonly onclick="openDatePicker()" style="cursor: pointer;">
+                                            <input type="text" class="form-control" id="followUpDate" placeholder="Select date" readonly="" onclick="openDatePicker()" style="cursor: pointer;">
                                             <button class="btn btn-outline-secondary" type="button" onclick="openDatePicker()">
                                                 <i class="fas fa-calendar-alt"></i>
                                             </button>
@@ -4119,9 +4119,9 @@
                                     <div class="mb-3">
                                         <label class="form-label">Time</label>
                                         <div class="input-group">
-                                            <input type="number" class="form-control time-hour" id="followUpTimeHour" placeholder="HH" min="1" max="12" value="" onchange="validateTimeInput('hour')">
+                                            <input type="number" class="form-control time-hour" id="followUpTimeHour" placeholder="HH" min="1" max="12" value="" onchange="validateTimeInput(&#39;hour&#39;)">
                                             <span class="input-group-text" style="border-left: 0; border-right: 0; padding: 0 8px; background: white;">:</span>
-                                            <input type="number" class="form-control time-minute" id="followUpTimeMinute" placeholder="MM" min="0" max="59" value="" onchange="validateTimeInput('minute')">
+                                            <input type="number" class="form-control time-minute" id="followUpTimeMinute" placeholder="MM" min="0" max="59" value="" onchange="validateTimeInput(&#39;minute&#39;)">
                                             <select class="form-control time-ampm" id="followUpTimeAMPM" style="border-left: 0; width: auto; min-width: 70px;">
                                                 <option value="AM">AM</option>
                                                 <option value="PM">PM</option>
@@ -4171,7 +4171,7 @@
                     <p>Please enter your admin password to edit this field:</p>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
-                        <input type="password" class="form-control" id="adminPasswordInput" placeholder="Enter admin password" onkeypress="if(event.key === 'Enter') verifyAdminPassword()">
+                        <input type="password" class="form-control" id="adminPasswordInput" placeholder="Enter admin password" onkeypress="if(event.key === &#39;Enter&#39;) verifyAdminPassword()">
                     </div>
                     <input type="hidden" id="pendingEditField">
                 </div>
@@ -4226,11 +4226,11 @@
                     <form id="addUserForm">
                         <div class="mb-3">
                             <label class="form-label">Username *</label>
-                            <input type="text" class="form-control" id="newUsername" required>
+                            <input type="text" class="form-control" id="newUsername" required="">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password *</label>
-                            <input type="password" class="form-control" id="newPassword" required>
+                            <input type="password" class="form-control" id="newPassword" required="">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Role *</label>
@@ -4264,7 +4264,7 @@
                             <div class="col-md-4 text-center">
                                 <div class="mb-3">
                                     <div class="profile-photo-container">
-                                        <img id="profilePhotoPreview" src="" alt="Profile Photo" class="profile-photo" style="display: none;">
+                                        <img id="profilePhotoPreview" src="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html" alt="Profile Photo" class="profile-photo" style="display: none;">
                                         <div id="profilePhotoPlaceholder" class="profile-photo-placeholder">
                                             <i class="fas fa-user fa-3x"></i>
                                         </div>
@@ -4276,11 +4276,11 @@
                             <div class="col-md-8">
                                 <div class="mb-3">
                                     <label class="form-label">First Name *</label>
-                                    <input type="text" class="form-control" id="profileFirstName" required>
+                                    <input type="text" class="form-control" id="profileFirstName" required="">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Last Name *</label>
-                                    <input type="text" class="form-control" id="profileLastName" required>
+                                    <input type="text" class="form-control" id="profileLastName" required="">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Phone Number</label>
@@ -4303,7 +4303,7 @@
     </div>
 
     <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./index_files/bootstrap.bundle.min.js"></script>
     
     
     <!-- Notification Container -->
@@ -4594,7 +4594,8 @@
             }
         })();
     </script>
-    <script src="crm.js"></script>
-</body>
-</html>
+    <script src="./index_files/crm.js"></script>
 
+
+
+</body></html>
