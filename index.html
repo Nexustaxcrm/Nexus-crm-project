@@ -1,0 +1,4600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Tax Filing - Customer Relationship Management</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            /* Fingcon Theme Colors */
+            --primary-color: #063232;
+            --secondary-color: #545454;
+            --success-color: #063232;
+            --warning-color: #fb6340;
+            --info-color: #11cdef;
+            --dark-color: #262626;
+            --navbar-height: 70px;
+            
+            /* Fingcon Light mode colors (default) */
+            --bg-color: #faf0e6;
+            --card-bg: #f8f9fa;
+            --text-color: #545454;
+            --text-secondary: #707070;
+            --border-color: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --shadow-hover: rgba(0, 0, 0, 0.15);
+        }
+        
+        [data-theme="dark"] {
+            /* Fingcon Dark mode colors */
+            --bg-color: #000000;
+            --card-bg: #1a1a1a;
+            --text-color: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #333333;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --shadow-hover: rgba(0, 0, 0, 0.7);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Horizontal Navigation Bar - Fingcon Style */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--navbar-height);
+            background: #EDE8D0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            /* Cross-browser compatibility */
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+        }
+        
+        [data-theme="dark"] .navbar {
+            background: #EDE8D0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Nexus Tax Filing Logo Styles */
+        .nexus-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .nexus-logo-graphic {
+            width: clamp(260px, 24vw, 360px);
+            max-width: 360px;
+            height: clamp(65px, 9vh, 70px);
+            max-height: 70px;
+            position: relative;
+            flex-shrink: 0;
+            border-radius: clamp(20px, 3vw, 30px);
+            overflow: hidden;
+            background: transparent !important;
+            background-color: transparent !important;
+            display: block;
+            margin-left: -30px;
+            /* Cross-browser compatibility */
+            -webkit-border-radius: clamp(20px, 3vw, 30px);
+            -moz-border-radius: clamp(20px, 3vw, 30px);
+            -ms-border-radius: clamp(20px, 3vw, 30px);
+        }
+
+        .nexus-logo-graphic img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center center;
+            display: block;
+            border-radius: clamp(20px, 3vw, 30px);
+            background: transparent !important;
+            background-color: transparent !important;
+            /* Cross-browser compatibility */
+            -webkit-border-radius: clamp(20px, 3vw, 30px);
+            -moz-border-radius: clamp(20px, 3vw, 30px);
+            -ms-border-radius: clamp(20px, 3vw, 30px);
+            -webkit-object-fit: contain;
+            -moz-object-fit: contain;
+            -ms-object-fit: contain;
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            margin-right: auto;
+            margin-left: -50px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            /* Cross-browser compatibility */
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+        }
+        
+        .navbar .logo:hover {
+            opacity: 0.9;
+        }
+        
+        .navbar .logo:active {
+            opacity: 0.8;
+        }
+
+        /* Login Page Logo Styles */
+        .login-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .login-logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .login-logo-graphic {
+            width: 400px;
+            height: auto;
+            position: relative;
+            flex-shrink: 0;
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .login-logo-graphic img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 25px;
+            overflow: hidden;
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .navbar .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            flex: 0 0 auto;
+            justify-content: flex-end;
+            align-items: center;
+            gap: clamp(6px, 1vw, 10px);
+            margin-right: clamp(8px, 1vw, 12px);
+            /* Cross-browser compatibility */
+            -webkit-box-pack: end;
+            -ms-flex-pack: end;
+        }
+
+        .navbar .nav-menu li {
+            margin: 0;
+        }
+
+        .navbar .nav-menu a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(12px, 1.2vh, 14px) clamp(28px, 3vw, 32px);
+            color: #545454;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: clamp(11px, 1.2vw, 13px);
+            font-weight: 500;
+            min-width: clamp(140px, 12vw, 160px);
+            width: auto;
+            height: clamp(55px, 6.5vh, 62px);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .navbar .nav-menu a:hover {
+            background: rgba(6, 50, 50, 0.15);
+            color: #063232;
+            transform: translateY(-2px);
+        }
+
+        .navbar .nav-menu a.active {
+            background: rgba(6, 50, 50, 0.2);
+            color: #063232;
+            border-bottom: 2px solid #063232;
+        }
+        
+        /* Dark mode navbar menu items */
+        [data-theme="dark"] .navbar .nav-menu a {
+            color: #000000;
+        }
+        
+        [data-theme="dark"] .navbar .nav-menu a:hover {
+            background: rgba(6, 50, 50, 0.15);
+            color: #063232;
+        }
+        
+        [data-theme="dark"] .navbar .nav-menu a.active {
+            background: rgba(6, 50, 50, 0.2);
+            color: #063232;
+        }
+
+        .navbar .nav-menu a i {
+            margin-bottom: 6px;
+            font-size: clamp(18px, 2vw, 22px);
+            width: auto;
+        }
+
+        .navbar .nav-menu a span {
+            font-size: clamp(10px, 1.1vw, 12px);
+            line-height: 1.2;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .navbar .user-section {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-shrink: 0;
+            /* Cross-browser compatibility */
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+        }
+        
+        /* Combine nav-menu and user-section into one group */
+        .navbar .nav-right-group {
+            display: flex;
+            align-items: center;
+            gap: clamp(5px, 0.8vw, 8px);
+            flex-shrink: 0;
+            margin-left: auto;
+            padding-left: clamp(20px, 3vw, 30px);
+            /* Cross-browser compatibility */
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+        }
+
+        .navbar .user-info {
+            display: none;
+        }
+
+        .navbar .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(6, 50, 50, 0.3);
+            box-shadow: 0 4px 15px rgba(6, 50, 50, 0.2);
+        }
+
+        .navbar .user-avatar:hover {
+            background: #042828;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(6, 50, 50, 0.4);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: var(--navbar-height);
+            padding: 48px 15px 15px 15px;
+            min-height: calc(100vh - var(--navbar-height));
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Ensure dashboard page doesn't overflow */
+        #dashboardPage {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+
+        /* Statistics Cards */
+        .stats-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-bottom: 15px;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px var(--shadow-hover);
+        }
+
+        .stats-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .stats-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 3px;
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        /* Table Styles */
+        .data-table {
+            background: var(--card-bg);
+            border-radius: 10px;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px var(--shadow);
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        /* Override Bootstrap table styles for dark mode */
+        [data-theme="dark"] .data-table .table,
+        [data-theme="dark"] .assign-work-table .table {
+            color: var(--text-color) !important;
+            background-color: var(--card-bg) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table thead,
+        [data-theme="dark"] .assign-work-table .table thead {
+            background-color: var(--card-bg) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table thead th,
+        [data-theme="dark"] .assign-work-table .table thead th {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table tbody,
+        [data-theme="dark"] .assign-work-table .table tbody {
+            background-color: var(--card-bg) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table tbody td,
+        [data-theme="dark"] .assign-work-table .table tbody td {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table tbody tr,
+        [data-theme="dark"] .assign-work-table .table tbody tr {
+            background-color: var(--card-bg) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table tbody tr:hover,
+        [data-theme="dark"] .assign-work-table .table tbody tr:hover {
+            background-color: var(--bg-color) !important;
+        }
+        
+        [data-theme="dark"] .data-table .table-hover tbody tr:hover,
+        [data-theme="dark"] .assign-work-table .table-hover tbody tr:hover {
+            background-color: var(--bg-color) !important;
+        }
+        
+        /* Ensure data-table container doesn't add extra padding */
+        .data-table .p-3 {
+            padding: 1rem !important;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        [data-theme="dark"] .data-table .p-3 {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        [data-theme="dark"] .data-table h6,
+        [data-theme="dark"] .assign-work-table h6 {
+            color: var(--text-color);
+        }
+        
+        [data-theme="dark"] .data-table .table-responsive {
+            background: var(--card-bg);
+        }
+        
+        /* Remove any extra margins that could cause blank space */
+        .data-table .table-responsive {
+            margin: 0;
+            padding: 0;
+        }
+
+        .table thead {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        [data-theme="dark"] .table thead {
+            background: var(--card-bg) !important;
+            color: var(--text-color) !important;
+        }
+        
+        [data-theme="dark"] .assign-work-table .table thead {
+            background: var(--card-bg) !important;
+            color: var(--text-color) !important;
+        }
+
+        .table thead th {
+            border: none;
+            padding: 12px 15px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        [data-theme="dark"] .table thead th {
+            background: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-bottom: 2px solid var(--border-color) !important;
+        }
+        
+        [data-theme="dark"] .assign-work-table .table thead th {
+            background: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-bottom: 2px solid var(--border-color) !important;
+        }
+
+        .table tbody td {
+            padding: 10px 15px;
+            vertical-align: middle;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--bg-color);
+        }
+        
+        .table thead th {
+            color: var(--text-color);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* Compact Assign Work Table */
+        .assign-work-table {
+            font-size: 13px;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .assign-work-table .table thead th {
+            padding: 8px 6px;
+            font-size: 13px;
+            font-weight: 600;
+            position: relative;
+            color: var(--text-color);
+            background-color: var(--card-bg);
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .assign-work-table .table tbody td {
+            padding: 6px 6px;
+            font-size: 13px;
+            overflow: hidden;
+            vertical-align: top;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .assign-work-table .table tbody tr:hover {
+            background-color: var(--bg-color);
+        }
+
+        /* Prevent text overflow - all cells should respect width */
+        .assign-work-table .table tbody td {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Name column (2) - strong tag */
+        .assign-work-table .table tbody td:nth-child(2) strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        /* Phone column (3) - link */
+        .assign-work-table .table tbody td:nth-child(3) a {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: var(--primary-color);
+        }
+
+        /* Email column (4) - link */
+        .assign-work-table .table tbody td:nth-child(4) a {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: var(--primary-color);
+        }
+
+        /* Address column (5) - small tag */
+        .assign-work-table .table tbody td:nth-child(5) small {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: var(--text-secondary);
+        }
+        
+        /* Dark mode styles for Phone, Email, Address, Assigned To, and Refund Status columns */
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(3) a,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) a {
+            color: #4fc3f7 !important; /* Light blue for links in dark mode */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(3) a:hover,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) a:hover {
+            color: #81d4fa !important; /* Lighter blue on hover */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(5) small {
+            color: #e0e0e0 !important; /* Light gray for address text */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(7) {
+            color: var(--text-color) !important;
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(7) .badge {
+            color: #fff !important;
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td.refund-status-column {
+            color: var(--text-color) !important;
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td.refund-status-column .badge {
+            color: #fff !important;
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(8) small,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(9) small {
+            color: #e0e0e0 !important; /* Light gray for comments text */
+        }
+        
+        /* Dark mode styles for text-muted elements */
+        [data-theme="dark"] .assign-work-table .table tbody td .text-muted {
+            color: #e0e0e0 !important; /* Light gray for muted text */
+        }
+        
+        /* Dark mode styles for Assigned Work table (employee/preparation) */
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(2) a,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(3) a {
+            color: #4fc3f7 !important; /* Light blue for phone/email links */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(2) a:hover,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(3) a:hover {
+            color: #81d4fa !important; /* Lighter blue on hover */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) small {
+            color: #e0e0e0 !important; /* Light gray for address text */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(7) small {
+            color: #e0e0e0 !important; /* Light gray for comments text */
+        }
+        
+        /* Dark mode for Assigned To column text (not just badge) */
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(7),
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(7) span:not(.badge) {
+            color: #e0e0e0 !important;
+        }
+        
+        /* Dark mode for Refund Status column text (not just badge) */
+        [data-theme="dark"] .assign-work-table .table tbody td.refund-status-column,
+        [data-theme="dark"] .assign-work-table .table tbody td.refund-status-column span:not(.badge) {
+            color: #e0e0e0 !important;
+        }
+
+        /* Status column (6) - badge */
+        .assign-work-table .table tbody td:nth-child(6) {
+            white-space: nowrap;
+        }
+
+        /* Assigned To column (7) - badge display */
+        .assign-work-table .table tbody td:nth-child(7) {
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(7) .badge {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+        
+        /* Refund Status column - hidden by default, shown for admin via JavaScript */
+        .assign-work-table .table td.refund-status-column {
+            display: none;
+        }
+        
+        /* Comments column (8) - small tag - allow wrapping but limit height */
+        .assign-work-table .table tbody td:nth-child(8) small {
+            display: block;
+            max-height: 60px;
+            overflow: hidden;
+            word-wrap: break-word;
+            white-space: normal;
+            color: var(--text-secondary);
+        }
+        
+        /* Name column strong tag */
+        .assign-work-table .table tbody td:nth-child(2) strong {
+            color: var(--text-color);
+        }
+
+        /* Reduce gaps between all columns */
+        .assign-work-table .table th,
+        .assign-work-table .table td {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+        
+        /* First column (checkbox) - minimal padding */
+        .assign-work-table .table th:first-child,
+        .assign-work-table .table td:first-child {
+            padding-left: 8px !important;
+            padding-right: 4px !important;
+        }
+        
+        /* Last column (action) - minimal padding */
+        .assign-work-table .table th:last-child,
+        .assign-work-table .table td:last-child {
+            padding-left: 4px !important;
+            padding-right: 8px !important;
+        }
+
+        .assign-work-table .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* Increase table height when viewing archived items */
+        .assign-work-table .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+            overflow-x: auto;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Ensure table fits container and removes extra space */
+        .assign-work-table .table {
+            width: max-content;
+            min-width: 100%;
+            table-layout: auto;
+            margin: 0;
+            border-collapse: collapse;
+        }
+        
+        /* Ensure columns maintain their widths */
+        .assign-work-table .table th,
+        .assign-work-table .table td {
+            box-sizing: border-box;
+        }
+        
+        /* Ensure Action column doesn't expand unnecessarily */
+        .assign-work-table .table th:last-child,
+        .assign-work-table .table td:last-child {
+            white-space: nowrap;
+            text-align: center;
+            width: auto;
+            min-width: 80px;
+        }
+        
+        /* Responsive table adjustments for different screen sizes */
+        @media (max-width: 1400px) {
+            .assign-work-table .table th,
+            .assign-work-table .table td {
+                font-size: 12px;
+                padding: 6px 5px !important;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .assign-work-table .table th,
+            .assign-work-table .table td {
+                font-size: 11px;
+                padding: 5px 4px !important;
+            }
+        }
+        
+        /* Cross-browser compatibility */
+        .assign-work-table .table-responsive {
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: -ms-autohiding-scrollbar;
+        }
+        
+        /* Firefox specific */
+        @-moz-document url-prefix() {
+            .assign-work-table .table-responsive {
+                overflow-x: auto;
+            }
+        }
+        
+        /* Internet Explorer / Edge specific */
+        @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+            .assign-work-table .table {
+                width: 100% !important;
+            }
+        }
+        
+        /* Ensure table container shows horizontal scroll when needed */
+        .assign-work-table .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .assign-work-table .table-responsive::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 4px;
+        }
+        
+        .assign-work-table .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .assign-work-table .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Column resize handle */
+        .assign-work-table .table {
+            table-layout: fixed;
+            width: auto;
+        }
+        .col-resizer {
+            position: absolute;
+            top: 0;
+            right: -3px;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            user-select: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .assign-work-table .table thead th:hover .col-resizer {
+            opacity: 1;
+        }
+
+        /* Date Picker Calendar Styles */
+        #datePickerCalendar {
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .calendar-container {
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+
+        .calendar-nav-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            color: var(--primary-color);
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-nav-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .calendar-month-year {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            padding: 8px;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.15s;
+            background-color: transparent;
+            color: #1a1a1a;
+        }
+
+        .calendar-day:hover {
+            background-color: #f3f3f3;
+            color: #1a1a1a;
+        }
+
+        .calendar-day.other-month {
+            color: #999;
+            opacity: 0.5;
+        }
+
+        .calendar-day.today {
+            background-color: #0067c0;
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.selected {
+            background-color: #0067c0;
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.today.selected {
+            background-color: #005a9e;
+        }
+
+        .calendar-day.disabled {
+            color: #ddd;
+            cursor: not-allowed;
+            background-color: #f9f9f9;
+        }
+
+        .calendar-day.disabled:hover {
+            background-color: #f9f9f9;
+            border-color: #e0e0e0;
+        }
+
+        /* Windows 11 Calendar Styles */
+        .win11-calendar-modal .modal-dialog {
+            max-width: 600px;
+        }
+
+        .win11-calendar-content {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .win11-calendar-wrapper {
+            display: flex;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .win11-calendar-main {
+            flex: 1;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .calendar-month-year {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .win11-panel-left {
+            width: 200px;
+            background-color: #fafafa;
+            border-right: 1px solid #e5e5e5;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 10;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .win11-panel-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e5e5;
+            background-color: var(--bg-color);
+        }
+
+        .win11-back-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            color: #666;
+            border-radius: 4px;
+            margin-right: 8px;
+            transition: all 0.2s;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .win11-back-btn:hover {
+            background-color: #f3f3f3;
+            color: #333;
+        }
+
+        #panelTitle {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .win11-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .month-grid, .year-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .month-item, .year-item {
+            padding: 12px 8px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 400;
+            color: #1a1a1a;
+            transition: all 0.15s;
+            background-color: transparent;
+        }
+
+        .month-item:hover, .year-item:hover {
+            background-color: #e8f4f8;
+            color: #0067c0;
+        }
+
+        .month-item.current-month, .year-item.current-year {
+            background-color: #0067c0;
+            color: white;
+            font-weight: 600;
+        }
+
+        .win11-calendar-footer {
+            border-top: 1px solid #e5e5e5;
+            padding: 12px 16px;
+            background-color: #fafafa;
+        }
+
+        /* Date Input and Calendar Icon Alignment */
+        #followUpFields .input-group {
+            display: flex;
+            align-items: stretch;
+        }
+
+        #followUpFields .input-group .form-control {
+            flex: 1;
+            height: 38px;
+        }
+
+        #followUpFields .input-group .btn {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            width: 38px;
+            border-left: 0;
+        }
+
+        #followUpFields .input-group .btn i {
+            font-size: 16px;
+            color: #666;
+        }
+
+        #followUpFields .input-group .btn:hover i {
+            color: #333;
+        }
+
+        /* Time Input Styling */
+        #followUpFields .col-md-6 {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #followUpFields .col-md-6 .input-group {
+            width: 100%;
+        }
+
+        #followUpFields .input-group .time-hour {
+            height: 38px;
+            text-align: center;
+            padding: 0 8px;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        #followUpFields .input-group .time-minute {
+            height: 38px;
+            text-align: center;
+            padding: 0 8px;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        #followUpFields .input-group .time-ampm {
+            height: 38px;
+            text-align: center;
+            padding: 0 8px;
+            cursor: pointer;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        #followUpFields .input-group-text {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #333;
+            background-color: var(--card-bg);
+            flex: 0 0 auto;
+            width: auto;
+        }
+
+        .assign-work-table .badge {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+
+        /* Progress Charts */
+        .progress-chart-container {
+            height: 380px;
+            position: relative;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            padding: 18px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: height 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-chart-container canvas {
+            max-height: 300px !important;
+            background: var(--card-bg);
+            border-radius: 4px;
+            transition: max-height 0.3s ease;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .chart-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .chart-subtitle {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .chart-toggle-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .chart-toggle-btn:hover {
+            background: var(--border-color);
+            border-color: var(--text-secondary);
+        }
+
+        .chart-toggle-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .monthly-comparison-container {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .monthly-comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .monthly-comparison-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .monthly-comparison-subtitle {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .monthly-chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .monthly-chart-container canvas {
+            max-height: 280px !important;
+        }
+
+        /* Excel-style Filter */
+        .excel-filter-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .excel-filter-btn {
+            background: var(--card-bg);
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #495057;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 150px;
+            transition: all 0.2s ease;
+        }
+
+        /* Assign Work toolbar unified sizing */
+        .assign-toolbar-btn {
+            height: 38px;
+            padding: 8px 16px !important;
+            border-radius: 8px !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .excel-filter-btn.assign-toolbar-btn {
+            min-width: auto;
+            border-radius: 8px;
+            height: 38px;
+        }
+
+        /* Keep filter button text on one line and centered */
+        #assignStatusFilterBtn {
+            min-width: 140px;
+        }
+        #assignStatusFilterBtn span { white-space: nowrap; }
+
+        .excel-filter-btn:hover {
+            border-color: #5e72e4;
+            background: #f8f9fa;
+        }
+
+        .excel-filter-btn:focus {
+            outline: none;
+            border-color: #5e72e4;
+            box-shadow: 0 0 0 0.2rem rgba(94, 114, 228, 0.25);
+        }
+
+        .excel-filter-btn i:first-child {
+            color: #5e72e4;
+        }
+
+        .excel-filter-btn i:last-child {
+            margin-left: auto;
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .excel-filter-btn.active i:last-child {
+            transform: rotate(180deg);
+        }
+
+        .excel-filter-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 200px;
+            max-height: 300px;
+            display: none;
+        }
+
+        /* Allow Status filter dropdown to expand more */
+        #assignStatusFilterDropdown {
+            min-width: 280px;
+            max-width: 320px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        #assignStatusFilterDropdown .filter-dropdown-body {
+            max-height: 400px;
+        }
+        #assignStatusFilterDropdown .filter-checkbox-item {
+            padding: 6px 12px;
+        }
+
+        /* Archive Modal - 95% of viewport */
+        .modal-80 {
+            width: 95vw;
+            max-width: 95vw;
+            height: 95vh;
+            max-height: 95vh;
+            margin: 2.5vh auto;
+        }
+        
+        /* Update Status Modal - 90% of viewport */
+        .modal-90 {
+            width: 90vw;
+            max-width: 90vw;
+            height: 90vh;
+            max-height: 90vh;
+            margin: 5vh auto;
+            /* Cross-browser compatibility */
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+        
+        .modal-90 .modal-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            /* Cross-browser compatibility */
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            -webkit-flex-direction: column;
+            -ms-flex-direction: column;
+        }
+        
+        .modal-90 .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            /* Cross-browser compatibility */
+            -webkit-flex: 1;
+            -ms-flex: 1;
+        }
+        
+        /* Responsive adjustments for modal-90 */
+        @media (max-width: 1024px) {
+            .modal-90 {
+                width: 92vw;
+                max-width: 92vw;
+                height: 92vh;
+                max-height: 92vh;
+                margin: 4vh auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .modal-90 {
+                width: 95vw;
+                max-width: 95vw;
+                height: 95vh;
+                max-height: 95vh;
+                margin: 2.5vh auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-90 {
+                width: 98vw;
+                max-width: 98vw;
+                height: 98vh;
+                max-height: 98vh;
+                margin: 1vh auto;
+            }
+        }
+        
+        /* Cross-browser scrollbar for modal body */
+        .modal-90 .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-90 .modal-body::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 4px;
+        }
+        
+        .modal-90 .modal-body::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .modal-90 .modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        
+        /* Field with edit icon container */
+        .field-with-edit {
+            position: relative;
+        }
+        
+        .field-edit-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 16px;
+            z-index: 10;
+            padding: 5px;
+            display: none;
+            background: var(--card-bg);
+            border-radius: 4px;
+            padding: 4px 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .field-with-edit:hover .field-edit-icon {
+            display: block;
+        }
+        
+        .field-edit-icon.show {
+            display: block !important;
+        }
+        
+        .field-edit-icon:hover {
+            color: var(--primary-color);
+            opacity: 0.8;
+        }
+        
+        .field-view-mode {
+            background-color: var(--bg-color) !important;
+            cursor: default;
+        }
+        
+        .field-edit-mode {
+            background-color: var(--card-bg) !important;
+        }
+        
+        /* Admin Password Modal Dark Mode */
+        #adminPasswordModal .modal-content {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        #adminPasswordModal .modal-header {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        #adminPasswordModal .form-label {
+            color: var(--text-color);
+        }
+        
+        #adminPasswordModal .form-control {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+        #adminPasswordModal .form-control:focus {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+        }
+        
+        #adminPasswordModal p {
+            color: var(--text-secondary);
+        }
+        .modal-80 .modal-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-80 .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-80 .modal-body .data-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .modal-80 .modal-body .data-table .p-3 {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .modal-80 .modal-body .data-table .table-responsive {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .modal-80 #archivePagination {
+            margin-top: auto;
+            flex-shrink: 0;
+            border-top: 1px solid #dee2e6;
+            padding-top: 12px;
+            padding-bottom: 12px;
+            background: #f8f9fa;
+        }
+
+        .excel-filter-dropdown.show {
+            display: block;
+        }
+
+        .filter-dropdown-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .filter-dropdown-body {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .filter-dropdown-footer {
+            padding: 8px 12px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .filter-checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #495057;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+
+        .filter-checkbox-item:hover {
+            background: #f8f9fa;
+        }
+
+        .filter-checkbox-item input[type="checkbox"] {
+            margin: 0;
+            margin-right: 8px;
+            opacity: 0;
+            position: absolute;
+        }
+
+        .checkmark {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 2px;
+            margin-right: 8px;
+            position: relative;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .filter-checkbox-item input[type="checkbox"]:checked + .checkmark {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .filter-checkbox-item input[type="checkbox"]:checked + .checkmark::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .filter-checkbox-item input[type="checkbox"]:focus + .checkmark {
+            box-shadow: 0 0 0 2px rgba(6, 50, 50, 0.25);
+        }
+
+        /* Profile Photo Styles */
+        .profile-photo-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+
+        .profile-photo-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            border: 3px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .user-avatar:hover {
+            background: #4d5fd0;
+            transform: scale(1.05);
+        }
+
+        /* Map styles removed - no longer needed */
+        
+
+        .traffic-summary {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow);
+            padding: 12px;
+            min-height: 360px;
+            max-height: 460px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .traffic-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            padding: 6px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .traffic-item:hover {
+            background-color: var(--bg-color);
+        }
+
+        .traffic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .traffic-state {
+            font-weight: 600;
+            color: var(--text-color);
+            min-width: 80px;
+            font-size: 12px;
+        }
+
+        .traffic-bar {
+            flex: 1;
+            height: 5px;
+            background: var(--border-color);
+            border-radius: 3px;
+            margin: 0 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .traffic-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .traffic-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .traffic-count {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .traffic-percentage {
+            font-weight: 600;
+            color: var(--text-secondary);
+            min-width: 32px;
+            text-align: right;
+            font-size: 11px;
+        }
+        
+        /* Traffic summary title */
+        .traffic-summary h5 {
+            color: var(--text-color);
+        }
+        
+        /* Traffic summary scrollbar */
+        .traffic-summary::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .traffic-summary::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 4px;
+        }
+        
+        .traffic-summary::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .traffic-summary::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+
+        .map-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .map-control-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .map-control-btn:hover {
+            background: #f8f9fa;
+            transform: scale(1.1);
+        }
+
+        /* Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+        }
+
+        .notification {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left-color: #2dce89;
+        }
+
+        .notification.error {
+            border-left-color: #f5365c;
+        }
+
+        .notification.info {
+            border-left-color: #11cdef;
+        }
+
+        .notification.warning {
+            border-left-color: #fb6340;
+        }
+
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .notification.success .notification-icon {
+            background: #2dce89;
+        }
+
+        .notification.error .notification-icon {
+            background: #f5365c;
+        }
+
+        .notification.info .notification-icon {
+            background: #11cdef;
+        }
+
+        .notification.warning .notification-icon {
+            background: #fb6340;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #172b4d;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .notification-message {
+            color: #8898aa;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: #8898aa;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .notification-close:hover {
+            background: #f8f9fa;
+            color: #172b4d;
+        }
+
+        /* Modern File Upload Styles */
+        .upload-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow);
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .upload-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-header h4 {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: var(--bg-color);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        [data-theme="dark"] .upload-area:hover {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.02);
+        }
+        
+        [data-theme="dark"] .upload-area.dragover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            margin-bottom: 20px;
+        }
+
+        .upload-text h5 {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .upload-text p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .upload-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-button:hover {
+            background: #4d5fd0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .file-meta {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-action-btn {
+            background: none;
+            border: 1px solid #e9ecef;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: #8898aa;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-action-btn:hover {
+            background: #f8f9fa;
+            border-color: #8898aa;
+        }
+
+        .file-action-btn.remove {
+            color: #f5365c;
+            border-color: #f5365c;
+        }
+
+        .file-action-btn.remove:hover {
+            background: #f5365c;
+            color: white;
+        }
+
+        .upload-progress {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .upload-progress.show {
+            display: block;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            border-radius: 6px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            background: var(--primary-color);
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #8898aa;
+            font-size: 12px;
+        }
+
+        .upload-instructions {
+            background: var(--bg-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .instructions-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .instructions-list li {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .instructions-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .csv-preview {
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .csv-preview.show {
+            display: block;
+        }
+
+        .preview-header {
+            background: var(--bg-color);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .preview-table {
+            width: 100%;
+            font-size: 13px;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preview-table th {
+            background: var(--bg-color);
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .preview-table td {
+            color: var(--text-secondary);
+            background: var(--card-bg);
+        }
+        
+        /* Dark mode for trafficContent (Top 20 States chart) */
+        #trafficContent {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        #trafficContent .data-table,
+        #trafficContent .chart-container,
+        #trafficContent .stats-card {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+        #trafficContent h5,
+        #trafficContent h6 {
+            color: var(--text-color);
+        }
+        
+        #trafficContent p,
+        #trafficContent small {
+            color: var(--text-secondary);
+        }
+        
+        #trafficContent canvas {
+            background: var(--card-bg) !important;
+        }
+        
+        /* Reports Tab Dark Mode Styles */
+        /* Quick Reports - List Group Container */
+        .list-group {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        
+        /* Quick Reports - List Group Items */
+        .list-group-item {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .list-group-item:hover,
+        .list-group-item:focus {
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .list-group-item-action {
+            cursor: pointer;
+        }
+        
+        .list-group-item-action:hover {
+            background-color: var(--bg-color) !important;
+        }
+        
+        .list-group-item-action i {
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+        
+        /* Report Settings - Form Select (Dropdowns) */
+        .form-select {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .form-select:focus {
+            background-color: var(--card-bg) !important;
+            color: var(--text-color) !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 0.25rem rgba(94, 114, 228, 0.25);
+        }
+        
+        .form-select option {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        /* Report Settings - Form Check (Checkbox) */
+        .form-check-label {
+            color: var(--text-color) !important;
+        }
+        
+        .form-check-input {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(94, 114, 228, 0.25);
+        }
+        
+        /* Reports Tab Headings */
+        #reportsTab h5,
+        #reportsTab h6 {
+            color: var(--text-color) !important;
+        }
+        
+        #reportsTab .form-label {
+            color: var(--text-color) !important;
+        }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #042828;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(6, 50, 50, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 10px 40px var(--shadow);
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .modal-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            border: none;
+        }
+        
+        .modal-body {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .modal-footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Modal form controls dark mode */
+        #updateStatusModal .form-control,
+        #updateStatusModal .form-select,
+        #updateStatusModal select {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+        #updateStatusModal .form-control:focus,
+        #updateStatusModal .form-select:focus,
+        #updateStatusModal select:focus {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+        }
+        
+        #updateStatusModal .form-control[readonly],
+        #updateStatusModal select[disabled] {
+            background: var(--bg-color);
+            color: var(--text-color);
+            cursor: default;
+        }
+        
+        #updateStatusModal select option {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        #updateStatusModal .form-label {
+            color: var(--text-color);
+        }
+        
+        #updateStatusModal textarea {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        
+        #updateStatusModal textarea:focus {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Login Page - Fingcon Style */
+        #loginPage {
+            background: #fbf0e6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: #fbf0e6;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8),
+                        0 0 40px rgba(0, 0, 0, 0.6),
+                        0 0 60px rgba(0, 0, 0, 0.4),
+                        inset 0 0 20px rgba(0, 0, 0, 0.1);
+            border: 3px solid #000000;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Customer Dashboard Form Styles */
+        #customerDashboardPage .form-control {
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        #customerDashboardPage .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(6, 50, 50, 0.25);
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        #customerDashboardPage .form-label {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        #customerDashboardPage .card {
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        /* File Upload */
+        #uploadedFilesList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .uploaded-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .uploaded-file-item .file-name {
+            flex: 1;
+            color: #000000;
+        }
+        
+        .uploaded-file-item .file-remove {
+            color: #dc3545;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .uploaded-file-item .file-remove:hover {
+            color: #c82333;
+        }
+        
+        /* Refund Status Display */
+        .refund-status-display select:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .form-control {
+            padding: 12px 15px;
+            border: 2px solid #000000;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(6, 50, 50, 0.25);
+            background: #ffffff;
+            color: #000000;
+        }
+        
+        /* Login page form labels - black color */
+        #loginPage .form-label {
+            color: #000000;
+            font-weight: 500;
+        }
+
+        /* Filter Active */
+        .filter-active {
+            background: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        /* Responsive - Automatic size adjustment based on screen size */
+        @media (max-width: 1920px) {
+            .navbar .nav-menu a {
+                min-width: clamp(140px, 11vw, 160px);
+                padding: clamp(10px, 1vh, 12px) clamp(26px, 2.5vw, 30px);
+                height: clamp(53px, 6vh, 60px);
+            }
+            
+            .navbar .nav-right-group {
+                padding-left: clamp(18px, 2.2vw, 28px);
+                gap: clamp(5px, 0.8vw, 8px);
+            }
+        }
+
+        @media (max-width: 1600px) {
+            .navbar .nav-menu a {
+                min-width: clamp(135px, 10vw, 155px);
+                padding: clamp(9px, 1vh, 11px) clamp(24px, 2.2vw, 28px);
+                height: clamp(51px, 5.5vh, 58px);
+            }
+            
+            .navbar .nav-menu a i {
+                font-size: clamp(17px, 1.8vw, 19px);
+            }
+            
+            .navbar .nav-right-group {
+                padding-left: clamp(15px, 2vw, 25px);
+                gap: clamp(5px, 0.8vw, 8px);
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .navbar .nav-menu a {
+                min-width: clamp(125px, 9.5vw, 145px);
+                padding: clamp(8px, 0.9vh, 10px) clamp(22px, 2vw, 26px);
+                height: clamp(49px, 5.2vh, 55px);
+            }
+            
+            .navbar .nav-menu a i {
+                font-size: clamp(16px, 1.7vw, 18px);
+            }
+            
+            .navbar .nav-right-group {
+                padding-left: clamp(12px, 1.8vw, 22px);
+                gap: clamp(5px, 0.8vw, 8px);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .navbar .nav-menu a {
+                min-width: clamp(115px, 8.5vw, 135px);
+                padding: clamp(7px, 0.8vh, 9px) clamp(20px, 1.8vw, 24px);
+                height: clamp(47px, 4.8vh, 53px);
+            }
+            
+            .navbar .nav-menu a i {
+                font-size: clamp(15px, 1.6vw, 17px);
+            }
+            
+            .navbar .nav-menu {
+                gap: clamp(6px, 0.8vw, 8px);
+            }
+            
+            .navbar .nav-right-group {
+                padding-left: clamp(10px, 1.5vw, 20px);
+                gap: clamp(5px, 0.8vw, 8px);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .navbar .nav-menu a {
+                min-width: clamp(105px, 8vw, 125px);
+                padding: clamp(6px, 0.7vh, 8px) clamp(18px, 1.6vw, 22px);
+                height: clamp(45px, 4.5vh, 50px);
+            }
+            
+            .navbar .nav-menu a i {
+                font-size: clamp(14px, 1.5vw, 16px);
+            }
+            
+            .navbar .nav-menu {
+                gap: clamp(5px, 0.7vw, 6px);
+                margin-right: clamp(12px, 1.5vw, 15px);
+            }
+            
+            .navbar .nav-right-group {
+                gap: clamp(5px, 0.8vw, 8px);
+                padding-left: clamp(8px, 1.2vw, 18px);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .navbar .nav-menu a {
+                min-width: clamp(95px, 7.5vw, 115px);
+                padding: clamp(6px, 0.6vh, 8px) clamp(16px, 1.4vw, 20px);
+                height: clamp(43px, 4.2vh, 48px);
+            }
+            
+            .navbar .nav-menu a i {
+                font-size: clamp(13px, 1.4vw, 15px);
+            }
+            
+            .navbar .nav-menu a span {
+                font-size: clamp(9px, 0.9vw, 10px);
+                font-weight: bold;
+            }
+            
+            .navbar .nav-right-group {
+                padding-left: clamp(5px, 1vw, 15px);
+                gap: clamp(4px, 0.6vw, 6px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar .nav-menu {
+                display: none;
+            }
+
+            .navbar .logo {
+                margin-right: 10px;
+                font-size: 16px;
+            }
+            
+            .nexus-logo-graphic {
+                width: clamp(210px, 31vw, 280px);
+                height: clamp(60px, 8vh, 70px);
+                border-radius: clamp(15px, 2.5vw, 25px);
+                -webkit-border-radius: clamp(15px, 2.5vw, 25px);
+                -moz-border-radius: clamp(15px, 2.5vw, 25px);
+                background: transparent !important;
+                background-color: transparent !important;
+                margin-left: -25px;
+            }
+            
+            .nexus-logo-graphic img {
+                border-radius: clamp(15px, 2.5vw, 25px);
+                -webkit-border-radius: clamp(15px, 2.5vw, 25px);
+                -moz-border-radius: clamp(15px, 2.5vw, 25px);
+                background: transparent !important;
+                background-color: transparent !important;
+            }
+
+            .navbar .user-section {
+                gap: 10px;
+            }
+
+            .navbar .user-info {
+                display: none;
+            }
+            
+            .navbar .nav-right-group {
+                gap: clamp(4px, 0.6vw, 6px);
+                padding-left: clamp(5px, 1vw, 12px);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nexus-logo-graphic {
+                width: clamp(180px, 36vw, 250px);
+                height: clamp(50px, 6.5vh, 65px);
+                border-radius: clamp(12px, 2vw, 20px);
+                -webkit-border-radius: clamp(12px, 2vw, 20px);
+                -moz-border-radius: clamp(12px, 2vw, 20px);
+                background: transparent !important;
+                background-color: transparent !important;
+                margin-left: -20px;
+            }
+            
+            .nexus-logo-graphic img {
+                border-radius: clamp(12px, 2vw, 20px);
+                -webkit-border-radius: clamp(12px, 2vw, 20px);
+                -moz-border-radius: clamp(12px, 2vw, 20px);
+                background: transparent !important;
+                background-color: transparent !important;
+            }
+        }
+        
+        @media (min-width: 1920px) {
+            .nexus-logo-graphic {
+                width: 360px;
+                height: 70px;
+                background: transparent !important;
+                background-color: transparent !important;
+                margin-left: -30px;
+            }
+        }
+        
+        /* Dark Mode Toggle Switch */
+        .dark-mode-toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            margin-top: 40px;
+        }
+        
+        .dark-mode-toggle-wrapper {
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .dark-mode-toggle-wrapper:hover {
+            box-shadow: 0 6px 20px var(--shadow-hover);
+        }
+        
+        .toggle-icon {
+            font-size: 18px;
+        }
+        
+        .toggle-text {
+            min-width: 80px;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .dark-mode-toggle-label {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+            cursor: pointer;
+        }
+        
+        .dark-mode-toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .dark-mode-toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            border-radius: 26px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark-mode-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dark-mode-toggle-input:checked + .dark-mode-toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        .dark-mode-toggle-input:checked + .dark-mode-toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        /* Cross-browser specific fixes */
+        /* Chrome/Safari */
+        @supports (-webkit-appearance: none) {
+            .navbar .nav-right-group {
+                display: flex;
+                align-items: center;
+                display: -webkit-flex;
+                -webkit-align-items: center;
+            }
+            
+            .nexus-logo-graphic {
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+                transform: translateZ(0);
+                -webkit-transform: translateZ(0);
+                background: transparent !important;
+                background-color: transparent !important;
+            }
+        }
+        
+        /* Firefox - modern versions use standard flexbox */
+        @-moz-document url-prefix() {
+            .navbar .nav-right-group {
+                display: flex;
+                align-items: center;
+            }
+        }
+        
+        /* Internet Explorer / Edge Legacy */
+        @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+            .navbar {
+                display: -ms-flexbox;
+                -ms-flex-align: center;
+            }
+            
+            .navbar .nav-right-group {
+                display: -ms-flexbox;
+                -ms-flex-align: center;
+                -ms-flex-pack: end;
+                margin-left: auto;
+            }
+            
+            .navbar .nav-menu {
+                display: -ms-flexbox;
+                -ms-flex-pack: end;
+            }
+        }
+    </style>
+    
+    <!-- API Configuration -->
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        
+        // Dark Mode Toggle Function
+        function toggleDarkMode() {
+            const toggle = document.getElementById('darkModeToggle');
+            const html = document.documentElement;
+            
+            if (toggle.checked) {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        // Load saved theme preference on page load
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const toggle = document.getElementById('darkModeToggle');
+            const html = document.documentElement;
+            
+            if (savedTheme === 'dark') {
+                html.setAttribute('data-theme', 'dark');
+                if (toggle) {
+                    toggle.checked = true;
+                }
+            } else {
+                html.removeAttribute('data-theme');
+                if (toggle) {
+                    toggle.checked = false;
+                }
+            }
+        }
+        
+        // Load theme when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+        });
+        
+        // Also load theme immediately (in case DOMContentLoaded already fired)
+        loadTheme();
+    </script>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-logo-container">
+                    <div class="login-logo-wrapper">
+                        <div class="login-logo-graphic">
+                            <img src="Logo.png" alt="Nexus Tax Filing Logo" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+            <div class="text-center mt-3">
+                <small class="text-muted">Demo: admin/123, employee/123, preparation/preparation, or customer/customer</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Dashboard Page -->
+    <div id="customerDashboardPage" style="display: none;">
+        <!-- Horizontal Navigation Bar -->
+        <nav class="navbar">
+            <div class="logo">
+                <div class="nexus-logo">
+                    <div class="nexus-logo-graphic">
+                        <img src="Logo.png" alt="Nexus Tax Filing Logo" />
+                    </div>
+                </div>
+            </div>
+            <div class="nav-right-group">
+                <ul class="nav-menu">
+                    <li><a href="#" class="nav-link active"><i class="fas fa-user"></i> <span>My Information</span></a></li>
+                </ul>
+                <div class="user-section">
+                    <div class="dropdown">
+                        <div class="user-avatar dropdown-toggle" id="customerUserAvatar" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">C</div>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="customerUserAvatar">
+                            <li><h6 class="dropdown-header">My Account</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="customerLogout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color);">Customer Information</h4>
+                            <form id="customerForm">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        <input type="text" id="customerFirstName" class="form-control" placeholder="Enter first name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" id="customerLastName" class="form-control" placeholder="Enter last name" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="customerPhone" class="form-control" placeholder="Enter phone number" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="customerEmail" class="form-control" placeholder="Enter email address" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" id="customerAddress1" class="form-control" placeholder="Enter address line 1" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Address Line 2</label>
+                    <input type="text" id="customerAddress2" class="form-control" placeholder="Enter address line 2 (optional)">
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">City</label>
+                        <input type="text" id="customerCity" class="form-control" placeholder="Enter city" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">State</label>
+                        <select id="customerState" class="form-control" required>
+                            <option value="">Select State</option>
+                            <option value="AL">AL</option>
+                            <option value="AK">AK</option>
+                            <option value="AZ">AZ</option>
+                            <option value="AR">AR</option>
+                            <option value="CA">CA</option>
+                            <option value="CO">CO</option>
+                            <option value="CT">CT</option>
+                            <option value="DE">DE</option>
+                            <option value="FL">FL</option>
+                            <option value="GA">GA</option>
+                            <option value="HI">HI</option>
+                            <option value="ID">ID</option>
+                            <option value="IL">IL</option>
+                            <option value="IN">IN</option>
+                            <option value="IA">IA</option>
+                            <option value="KS">KS</option>
+                            <option value="KY">KY</option>
+                            <option value="LA">LA</option>
+                            <option value="ME">ME</option>
+                            <option value="MD">MD</option>
+                            <option value="MA">MA</option>
+                            <option value="MI">MI</option>
+                            <option value="MN">MN</option>
+                            <option value="MS">MS</option>
+                            <option value="MO">MO</option>
+                            <option value="MT">MT</option>
+                            <option value="NE">NE</option>
+                            <option value="NV">NV</option>
+                            <option value="NH">NH</option>
+                            <option value="NJ">NJ</option>
+                            <option value="NM">NM</option>
+                            <option value="NY">NY</option>
+                            <option value="NC">NC</option>
+                            <option value="ND">ND</option>
+                            <option value="OH">OH</option>
+                            <option value="OK">OK</option>
+                            <option value="OR">OR</option>
+                            <option value="PA">PA</option>
+                            <option value="RI">RI</option>
+                            <option value="SC">SC</option>
+                            <option value="SD">SD</option>
+                            <option value="TN">TN</option>
+                            <option value="TX">TX</option>
+                            <option value="UT">UT</option>
+                            <option value="VT">VT</option>
+                            <option value="VA">VA</option>
+                            <option value="WA">WA</option>
+                            <option value="WV">WV</option>
+                            <option value="WI">WI</option>
+                            <option value="WY">WY</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Zip Code</label>
+                        <input type="text" id="customerZipCode" class="form-control" placeholder="Zip" required>
+                    </div>
+                </div>
+                
+                <!-- File Upload Section -->
+                <div class="mb-3">
+                    <label class="form-label">Upload Documents (PDF, JPEG, PNG)</label>
+                    <input type="file" id="customerFiles" class="form-control" accept=".pdf,.jpeg,.jpg,.png" multiple>
+                    <small class="text-muted">You can upload multiple files. Accepted formats: PDF, JPEG, PNG</small>
+                    <div id="uploadedFilesList" class="mt-2"></div>
+                </div>
+                
+                <!-- Refund Status Section -->
+                <div class="mb-3">
+                    <label class="form-label">Refund Status</label>
+                    <div class="refund-status-display">
+                        <select id="customerRefundStatus" class="form-control" disabled>
+                            <option value="in_discussions">In Discussions</option>
+                            <option value="received_w2">Received W2</option>
+                            <option value="preparing_quote">Preparing Quote</option>
+                            <option value="quote_sent">Quote Sent to Customer</option>
+                            <option value="customer_approved">Customer Approved for Filing Taxes</option>
+                            <option value="taxes_filed">Taxes Filed</option>
+                        </select>
+                        <small class="text-muted d-block mt-1">This status is managed by your tax advisor</small>
+                    </div>
+                </div>
+                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <button type="submit" class="btn btn-primary w-100">Save Information</button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-secondary w-100" onclick="customerLogout()">Logout</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" style="display: none;">
+        <!-- Horizontal Navigation Bar -->
+        <nav class="navbar">
+            <div class="logo" onclick="showTab('dashboard')">
+                <div class="nexus-logo">
+                    <div class="nexus-logo-graphic">
+                        <img src="Logo.png" alt="Nexus Tax Filing Logo" />
+                    </div>
+                </div>
+            </div>
+            <div class="nav-right-group">
+                <ul class="nav-menu">
+                    <li><a href="#" onclick="showTab('dashboard', this)" class="nav-link active" data-tab="dashboard"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+                    <li id="assignedWorkLi"><a href="#" onclick="showTab('assignedWork', this)" class="nav-link" data-tab="assignedWork"><i class="fas fa-tasks"></i> <span>Assigned Work</span></a></li>
+                    <li id="uploadLi"><a href="#" onclick="showTab('upload', this)" class="nav-link" data-tab="upload"><i class="fas fa-file-upload"></i> <span>File Upload</span></a></li>
+                    <li id="assignWorkLi"><a href="#" onclick="showTab('assignWork', this)" class="nav-link" data-tab="assignWork"><i class="fas fa-tasks"></i> <span>Assign Work</span></a></li>
+                    <li id="progressLi"><a href="#" onclick="showTab('progress', this)" class="nav-link" data-tab="progress"><i class="fas fa-chart-pie"></i> <span>Progress</span></a></li>
+                    <li id="reportsLi"><a href="#" onclick="showTab('reports', this)" class="nav-link" data-tab="reports"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+                    <li id="userManagementLi"><a href="#" onclick="showTab('userManagement', this)" class="nav-link" data-tab="userManagement"><i class="fas fa-users-cog"></i> <span>User Management</span></a></li>
+                </ul>
+                <div class="user-section">
+                    <span class="user-info" id="userNameDisplay">User</span>
+                    <div class="dropdown">
+                        <div class="user-avatar dropdown-toggle" id="userAvatar" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">A</div>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userAvatar">
+                            <li><h6 class="dropdown-header">My Account</h6></li>
+                            <li><a class="dropdown-item" href="#" onclick="showMyProfileModal()">
+                                <i class="fas fa-user"></i> My Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab">
+                <div class="row" id="statsCards"></div>
+                
+            <!-- Monthly Comparison Chart -->
+            <div class="monthly-comparison-container" id="monthlyContainer">
+                <div class="monthly-comparison-header">
+                    <div>
+                        <h5 class="monthly-comparison-title">Monthly Performance Comparison</h5>
+                        <p class="monthly-comparison-subtitle">Customer status distribution by month</p>
+                    </div>
+                    <div class="text-end">
+                        <!-- Month and Status Filter Controls -->
+                        <div class="monthly-filter-controls">
+                            <div class="row align-items-center">
+                                <div class="col-md-4">
+                                    <div class="filter-group">
+                                        <label class="filter-label">Month Filter:</label>
+                                        <div class="excel-filter-container">
+                                            <button class="excel-filter-btn" onclick="toggleMonthFilter()">
+                                                <i class="fas fa-filter"></i>
+                                                <span id="filterStatusText">All Months</span>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </button>
+                                            
+                                            <!-- Excel-style dropdown -->
+                                            <div class="excel-filter-dropdown" id="monthFilterDropdown">
+                                                <div class="filter-dropdown-header">
+                                                    <div class="filter-options">
+                                                        <label class="filter-checkbox-item">
+                                                            <input type="checkbox" id="selectAllMonths" checked>
+                                                            <span class="checkmark"></span>
+                                                            Select All
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="filter-dropdown-body">
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-jan" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        January
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-feb" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        February
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-mar" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        March
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-apr" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        April
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-may" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        May
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-jun" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        June
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-jul" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        July
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-aug" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        August
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-sep" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        September
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-oct" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        October
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-nov" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        November
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="month-dec" class="month-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        December
+                                                    </label>
+                                                </div>
+                                                <div class="filter-dropdown-footer">
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="resetMonthFilter()">
+                                                        Reset
+                                                    </button>
+                                                    <button class="btn btn-sm btn-primary" onclick="applyMonthFilter()">
+                                                        Apply
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="filter-group">
+                                        <label class="filter-label">Status Filter:</label>
+                                        <div class="excel-filter-container">
+                                            <button class="excel-filter-btn" id="statusFilterBtn" onclick="toggleStatusFilter()">
+                                                <i class="fas fa-filter"></i>
+                                                <span id="filterStatusStatusText">All Statuses</span>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </button>
+                                            
+                                            <!-- Excel-style dropdown -->
+                                            <div class="excel-filter-dropdown" id="statusFilterDropdown">
+                                                <div class="filter-dropdown-header">
+                                                    <div class="filter-options">
+                                                        <label class="filter-checkbox-item">
+                                                            <input type="checkbox" id="selectAllStatuses">
+                                                            <span class="checkmark"></span>
+                                                            Select All
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="filter-dropdown-body">
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-follow_up" class="status-checkbox">
+                                                        <span class="checkmark"></span>
+                                                        Follow-Up
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-call_back" class="status-checkbox">
+                                                        <span class="checkmark"></span>
+                                                        Call Back
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-not_in_service" class="status-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        Not in Service
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-voice_mail" class="status-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        Voice Mail
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-citizen" class="status-checkbox">
+                                                        <span class="checkmark"></span>
+                                                        Citizen
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-dnd" class="status-checkbox">
+                                                        <span class="checkmark"></span>
+                                                        DND
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-interested" class="status-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        Interested
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-w2_received" class="status-checkbox" checked>
+                                                        <span class="checkmark"></span>
+                                                        W2 Received
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-pending" class="status-checkbox">
+                                                        <span class="checkmark"></span>
+                                                        Pending
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="status-potential" class="status-checkbox">
+                                                        <span class="checkmark"></span>
+                                                        Potential
+                                                    </label>
+                                                </div>
+                                                <div class="filter-dropdown-footer">
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="resetStatusFilter()">
+                                                        Reset
+                                                    </button>
+                                                    <button class="btn btn-sm btn-primary" onclick="applyStatusFilter()">
+                                                        Apply
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="monthly-chart-container">
+                    <canvas id="monthlyComparisonChart"></canvas>
+                </div>
+            </div>
+            
+                <div class="row mt-4" id="trafficSection">
+                    <div class="col-md-12">
+                        <div id="trafficContent"></div>
+                    </div>
+                </div>
+                
+                <!-- Dark Mode Toggle Switch -->
+                <div class="dark-mode-toggle-container">
+                    <div class="dark-mode-toggle-wrapper">
+                        <span class="toggle-icon">🌙</span>
+                        <span class="toggle-text">Dark Mode</span>
+                        <label class="dark-mode-toggle-label">
+                            <input type="checkbox" id="darkModeToggle" class="dark-mode-toggle-input" onchange="toggleDarkMode()">
+                            <span class="dark-mode-toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assigned Work Tab (Employee Only) -->
+            <div id="assignedWorkTab" style="display: none;">
+                <div class="data-table assign-work-table">
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Your Assigned Customers</h6>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportAssignedCustomers()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
+                            <table class="table table-hover mb-0" style="table-layout: auto; width: max-content; min-width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 140px; min-width: 140px;">Name</th>
+                                        <th style="width: 120px; min-width: 120px;">Phone</th>
+                                        <th style="width: 180px; min-width: 180px;">Email</th>
+                                        <th style="width: 200px; min-width: 200px;">Address</th>
+                                        <th style="width: 130px; min-width: 130px;">Status</th>
+                                        <th style="width: 130px; min-width: 130px;">Call Status</th>
+                                        <th style="width: 180px; min-width: 180px;">Comments</th>
+                                        <th style="width: 80px; min-width: 80px; max-width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assignedWorkTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Upload Tab -->
+            <div id="uploadTab" style="display: none;">
+                <div class="upload-container">
+                    <div class="upload-header">
+                        <h4><i class="fas fa-cloud-upload-alt"></i> Import Customers</h4>
+                        <p>Upload a CSV file to import multiple customers at once</p>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('csvFile').click()">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">
+                            <h5>Drop your CSV file here</h5>
+                            <p>or click to browse files</p>
+                        </div>
+                        <button type="button" class="upload-button">
+                            <i class="fas fa-folder-open"></i> Choose File
+                        </button>
+                    </div>
+                    
+                    <input type="file" id="csvFile" class="file-input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect(this)">
+                    
+                    <div class="file-info" id="fileInfo">
+                        <div class="file-details">
+                            <div class="file-icon">
+                                <i class="fas fa-file-csv"></i>
+                            </div>
+                            <div class="file-meta">
+                                <div class="file-name" id="fileName"></div>
+                                <div class="file-size" id="fileSize"></div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="file-action-btn" onclick="previewFile()">
+                                    <i class="fas fa-eye"></i> Preview
+                                </button>
+                                <button class="file-action-btn" onclick="processFile()" style="background: var(--primary-color); color: white; border-color: var(--primary-color);">
+                                    <i class="fas fa-upload"></i> Import
+                                </button>
+                                <button class="file-action-btn remove" onclick="removeFile()">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="upload-progress" id="uploadProgress">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="progressBar"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">Processing...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="csv-preview" id="csvPreview">
+                        <div class="preview-header">
+                            <i class="fas fa-table"></i> CSV Preview
+                        </div>
+                        <div class="table-responsive">
+                            <table class="preview-table" id="previewTable">
+                                <!-- Preview content will be inserted here -->
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-instructions">
+                        <div class="instructions-title">
+                            <i class="fas fa-info-circle"></i>
+                            CSV Format Requirements
+                        </div>
+                        <ul class="instructions-list">
+                            <li>File must be in CSV format (.csv extension)</li>
+                            <li>First row should contain column headers</li>
+                            <li>Required columns: Name, Phone, Email, Address</li>
+                            <li>Optional columns: Status, Comments</li>
+                            <li>Maximum file size: 10MB</li>
+                            <li>Supported formats: UTF-8 encoding</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assign Work Tab -->
+            <div id="assignWorkTab" style="display: none;">
+                <div class="data-table assign-work-table">
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Customer List</h6>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary assign-toolbar-btn" onclick="exportCustomers()">
+                                    <i class="fas fa-download"></i> Export
+                                </button>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-primary dropdown-toggle assign-toolbar-btn" type="button" id="assignDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-users"></i> Assign Selected
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="assignDropdown">
+                                        <li><h6 class="dropdown-header">Select Employee</h6></li>
+                                        <li id="employeeDropdownList"></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="assignToUnassigned()">
+                                            <i class="fas fa-user-slash"></i> Mark as Unassigned
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="openDeleteAllModal()">
+                                            <i class="fas fa-trash-alt"></i> Delete All
+                                        </a></li>
+                                    </ul>
+                                </div>
+                                    <button id="archiveSelectedBtn" class="btn btn-sm btn-outline-secondary assign-toolbar-btn" style="display:none;" onclick="archiveSelected()">
+                                        <i class="fas fa-archive"></i> Move to Archive
+                                    </button>
+                                    <button id="restoreSelectedBtn" class="btn btn-sm btn-outline-success assign-toolbar-btn" style="display:none;" onclick="restoreFromArchiveSelected()">
+                                        <i class="fas fa-undo"></i> Restore to Assign Work
+                                    </button>
+                                    <div class="excel-filter-container" style="display: none;">
+                                        <button class="excel-filter-btn assign-toolbar-btn" id="deleteStatusFilterBtn" onclick="toggleDeleteStatusFilter()">
+                                            <i class="fas fa-filter"></i>
+                                            <span id="deleteFilterText">Select status to delete</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="excel-filter-dropdown" id="deleteStatusFilterDropdown">
+                                            <div class="filter-dropdown-header">
+                                                <div class="filter-options">
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="selectAllDeleteStatuses" checked>
+                                                        <span class="checkmark"></span>
+                                                        Select All
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="filter-dropdown-body">
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="follow_up" checked><span class="checkmark"></span>Follow-Up</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="call_back" checked><span class="checkmark"></span>Call Back</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="not_in_service" checked><span class="checkmark"></span>Not in Service</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="voice_mail" checked><span class="checkmark"></span>Voice Mail</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="citizen" checked><span class="checkmark"></span>Citizen</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="dnd" checked><span class="checkmark"></span>DND</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="interested" checked><span class="checkmark"></span>Interested</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="pending" checked><span class="checkmark"></span>Pending</label>
+                                            </div>
+                                            <div class="filter-dropdown-footer">
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleDeleteStatusFilter(false)">Cancel</button>
+                                                <button class="btn btn-sm btn-danger" onclick="applyDeleteStatusFilter()"><i class="fas fa-trash"></i> Apply Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
+                            <table class="table table-hover mb-0" style="table-layout: auto; width: max-content; min-width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45px; min-width: 45px; max-width: 45px;"><input type="checkbox" onchange="toggleAllSelection(this)"></th>
+                                        <th style="width: 140px; min-width: 140px;">Name</th>
+                                        <th style="width: 120px; min-width: 120px;">Phone</th>
+                                        <th style="width: 180px; min-width: 180px;">Email</th>
+                                        <th style="width: 200px; min-width: 200px;">Address</th>
+                                        <th style="width: 130px; min-width: 130px; text-align:center;">
+                                            <div class="d-flex justify-content-center">
+                                                <div class="excel-filter-container">
+                                                    <button class="excel-filter-btn assign-toolbar-btn" id="assignStatusFilterBtn" onclick="toggleAssignStatusFilter()" style="padding:4px 10px !important; height:28px;">
+                                                        <i class="fas fa-filter"></i>
+                                                        <span id="assignStatusFilterText">Status</span>
+                                                        <i class="fas fa-chevron-down"></i>
+                                                    </button>
+                                                    <div class="excel-filter-dropdown" id="assignStatusFilterDropdown">
+                                                        <div class="filter-dropdown-header">
+                                                            <div class="filter-options">
+                                                                <label class="filter-checkbox-item">
+                                                                    <input type="checkbox" id="assignStatusSelectAll" checked>
+                                                                    <span class="checkmark"></span>
+                                                                    Show All
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="filter-dropdown-body">
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="pending" checked><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="interested"><span class="checkmark"></span><div><span class="badge bg-success">Interested</span><small class="text-muted d-block" style="font-size:11px;">interested</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="voice_mail"><span class="checkmark"></span><div><span class="badge bg-secondary">Voice Mail</span><small class="text-muted d-block" style="font-size:11px;">voice_mail</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="w2_received"><span class="checkmark"></span><div><span class="badge bg-success">W2 Received</span><small class="text-muted d-block" style="font-size:11px;">w2_received</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="follow_up"><span class="checkmark"></span><div><span class="badge bg-primary">Follow-Up</span><small class="text-muted d-block" style="font-size:11px;">follow_up</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="call_back"><span class="checkmark"></span><div><span class="badge bg-info">Call Back</span><small class="text-muted d-block" style="font-size:11px;">call_back</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="not_in_service"><span class="checkmark"></span><div><span class="badge bg-danger">Not in Service</span><small class="text-muted d-block" style="font-size:11px;">not_in_service</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="citizen"><span class="checkmark"></span><div><span class="badge bg-success">Citizen</span><small class="text-muted d-block" style="font-size:11px;">citizen</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="dnd"><span class="checkmark"></span><div><span class="badge bg-warning">DND</span><small class="text-muted d-block" style="font-size:11px;">dnd</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="potential"><span class="checkmark"></span><div><span class="badge bg-info">Potential</span><small class="text-muted d-block" style="font-size:11px;">potential</small></div></label>
+                                                        </div>
+                                                        <div class="filter-dropdown-footer">
+                                                            <button class="btn btn-sm btn-outline-secondary" onclick="resetAssignStatusFilter()">Reset</button>
+                                                            <button class="btn btn-sm btn-primary" onclick="applyAssignStatusFilter()">Apply</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </th>
+                                        <th style="width: 130px; min-width: 130px;">Assigned To</th>
+                                        <th id="refundStatusHeader" class="refund-status-column" style="width: 130px; min-width: 130px; display: none;">Refund Status</th>
+                                        <th style="width: 180px; min-width: 180px;">Comments</th>
+                                        <th style="width: 80px; min-width: 80px; max-width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assignWorkTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="assignPagination" class="d-flex justify-content-between align-items-center mt-3 mb-3 px-3"></div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div id="progressTab" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="progress-chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h6 class="chart-title">Customer Status Distribution</h6>
+                                    <p class="chart-subtitle">Overview of customer statuses</p>
+                                </div>
+                                <div class="text-end">
+                                    <i class="fas fa-chart-bar text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="toggleChartType('status', 'bar')" id="statusBarBtn">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="toggleChartType('status', 'pie')" id="statusPieBtn">
+                                    <i class="fas fa-chart-pie"></i> Pie
+                                </button>
+                            </div>
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="progress-chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h6 class="chart-title">Call Status Distribution</h6>
+                                    <p class="chart-subtitle">Call activity breakdown</p>
+                                </div>
+                                <div class="text-end">
+                                    <i class="fas fa-phone text-success"></i>
+                                </div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="toggleChartType('call', 'bar')" id="callBarBtn">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="toggleChartType('call', 'pie')" id="callPieBtn">
+                                    <i class="fas fa-chart-pie"></i> Pie
+                                </button>
+                            </div>
+                            <canvas id="callStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reportsTab" style="display: none;">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="data-table">
+                            <div class="p-4">
+                                <h5 class="mb-4"><i class="fas fa-file-alt"></i> Reports & Analytics</h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="stats-card" onclick="generateReport('customer')">
+                                            <div class="stats-icon" style="background: var(--primary-color);">
+                                                <i class="fas fa-users"></i>
+                                            </div>
+                                            <div class="stats-number">Customer Report</div>
+                                            <div class="stats-label">Complete customer analysis</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stats-card" onclick="generateReport('call')">
+                                            <div class="stats-icon" style="background: var(--success-color);">
+                                                <i class="fas fa-phone"></i>
+                                            </div>
+                                            <div class="stats-number">Call Report</div>
+                                            <div class="stats-label">Call activity summary</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stats-card" onclick="generateReport('performance')">
+                                            <div class="stats-icon" style="background: var(--warning-color);">
+                                                <i class="fas fa-chart-line"></i>
+                                            </div>
+                                            <div class="stats-number">Performance Report</div>
+                                            <div class="stats-label">Team performance metrics</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="data-table">
+                                            <div class="p-3">
+                                                <h6 class="mb-3">Quick Reports</h6>
+                                                <div class="list-group">
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('status')">
+                                                        <i class="fas fa-chart-pie"></i> Status Distribution
+                                                    </button>
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('monthly')">
+                                                        <i class="fas fa-calendar-alt"></i> Monthly Summary
+                                                    </button>
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('employee')">
+                                                        <i class="fas fa-user-tie"></i> Employee Performance
+                                                    </button>
+                                                    <button class="list-group-item list-group-item-action" onclick="generateQuickReport('export')">
+                                                        <i class="fas fa-download"></i> Export Data
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="data-table">
+                                            <div class="p-3">
+                                                <h6 class="mb-3">Report Settings</h6>
+                                                <form>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Date Range</label>
+                                                        <select class="form-select">
+                                                            <option>Last 7 days</option>
+                                                            <option>Last 30 days</option>
+                                                            <option>Last 3 months</option>
+                                                            <option>Last 6 months</option>
+                                                            <option>Last year</option>
+                                                            <option>Custom range</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Report Format</label>
+                                                        <select class="form-select">
+                                                            <option>PDF</option>
+                                                            <option>Excel</option>
+                                                            <option>CSV</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Include Charts</label>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" checked>
+                                                            <label class="form-check-label">Include visual charts</label>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-primary" onclick="generateCustomReport()">
+                                                        <i class="fas fa-file-download"></i> Generate Report
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management Tab -->
+            <div id="userManagementTab" style="display: none;">
+                <div class="data-table">
+                    <div class="p-4">
+                        <h5 class="mb-4">Manage Users</h5>
+                        <button onclick="showAddUserModal()" class="btn btn-primary mb-4">
+                            <i class="fas fa-plus"></i> Add New User
+                        </button>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userManagementTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archive Customers Modal -->
+    <div class="modal fade" id="archiveModal" tabindex="-1">
+        <div class="modal-dialog modal-80">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-archive"></i> Archived Customers</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="data-table assign-work-table">
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Archived Customer List</h6>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary assign-toolbar-btn" onclick="exportArchivedCustomers()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                    <button id="restoreArchiveSelectedBtn" class="btn btn-sm btn-outline-success assign-toolbar-btn" onclick="restoreFromArchiveSelected()">
+                                        <i class="fas fa-undo"></i> Restore to Assign Work
+                                    </button>
+                                    <div class="excel-filter-container">
+                                        <button class="excel-filter-btn assign-toolbar-btn" id="archiveStatusFilterBtn" onclick="toggleArchiveStatusFilter()">
+                                            <i class="fas fa-filter"></i>
+                                            <span id="archiveStatusFilterText">Status</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="excel-filter-dropdown" id="archiveStatusFilterDropdown">
+                                            <div class="filter-dropdown-header">
+                                                <div class="filter-options">
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="checkbox" id="archiveStatusSelectAll" checked>
+                                                        <span class="checkmark"></span>
+                                                        Show All
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="filter-dropdown-body">
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="pending" checked><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="interested"><span class="checkmark"></span><div><span class="badge bg-success">Interested</span><small class="text-muted d-block" style="font-size:11px;">interested</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="voice_mail"><span class="checkmark"></span><div><span class="badge bg-secondary">Voice Mail</span><small class="text-muted d-block" style="font-size:11px;">voice_mail</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="w2_received"><span class="checkmark"></span><div><span class="badge bg-success">W2 Received</span><small class="text-muted d-block" style="font-size:11px;">w2_received</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="follow_up"><span class="checkmark"></span><div><span class="badge bg-primary">Follow-Up</span><small class="text-muted d-block" style="font-size:11px;">follow_up</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="call_back"><span class="checkmark"></span><div><span class="badge bg-info">Call Back</span><small class="text-muted d-block" style="font-size:11px;">call_back</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="not_in_service"><span class="checkmark"></span><div><span class="badge bg-danger">Not in Service</span><small class="text-muted d-block" style="font-size:11px;">not_in_service</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="citizen"><span class="checkmark"></span><div><span class="badge bg-success">Citizen</span><small class="text-muted d-block" style="font-size:11px;">citizen</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="dnd"><span class="checkmark"></span><div><span class="badge bg-warning">DND</span><small class="text-muted d-block" style="font-size:11px;">dnd</small></div></label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="archive-status-checkbox" value="potential"><span class="checkmark"></span><div><span class="badge bg-info">Potential</span><small class="text-muted d-block" style="font-size:11px;">potential</small></div></label>
+                                            </div>
+                                            <div class="filter-dropdown-footer">
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="resetArchiveStatusFilter()">Reset</button>
+                                                <button class="btn btn-sm btn-primary" onclick="applyArchiveStatusFilter()">Apply</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" style="table-layout: auto; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 45px; min-width: 45px;"><input type="checkbox" onchange="toggleAllArchiveSelection(this)"></th>
+                                            <th style="width: 12%; min-width: 120px;">Name</th>
+                                            <th style="width: 10%; min-width: 100px;">Phone</th>
+                                            <th style="width: 15%; min-width: 150px;">Email</th>
+                                            <th style="width: 18%; min-width: 180px;">Address</th>
+                                            <th style="width: 12%; min-width: 120px; text-align:center;">
+                                                <div class="d-flex justify-content-center">
+                                                    <span>Status</span>
+                                                </div>
+                                            </th>
+                                            <th style="width: 18%; min-width: 150px;">Comments</th>
+                                            <th style="width: 10%; min-width: 80px; max-width: 100px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="archiveTable"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="archivePagination" class="d-flex justify-content-between align-items-center mt-3 mb-3 px-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmDeleteText" class="mb-3"></p>
+                    <div class="mb-2">
+                        <label class="form-label">Enter your password to confirm</label>
+                        <input type="password" id="confirmDeletePassword" class="form-control" placeholder="Password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteByStatus()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Lead Modal -->
+    <div class="modal fade" id="newLeadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Customer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newLeadForm">
+                        <div class="mb-3">
+                            <label class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone *</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNewLead()">Save Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal fade" id="updateStatusModal" tabindex="-1">
+        <div class="modal-dialog modal-90">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Customer Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateStatusForm">
+                        <input type="hidden" id="updateCustomerId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Customer Name</label>
+                                    <input type="text" class="form-control" id="updateCustomerName" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-control" id="updateCustomerStatus" onchange="updateCommentsByStatus(); toggleFollowUpFields(); toggleInterestedField();">
+                                        <option value="">Select Status</option>
+                                        <option value="follow_up">Follow-Up</option>
+                                        <option value="call_back">Call Back</option>
+                                        <option value="not_in_service">Not in Service</option>
+                                        <option value="voice_mail">Voice Mail</option>
+                                        <option value="citizen">Citizen</option>
+                                        <option value="dnd">DND</option>
+                                        <option value="interested">Interested</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Phone</label>
+                                    <div class="field-with-edit">
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerPhone" readonly>
+                                        <i class="fas fa-edit field-edit-icon" id="editPhoneIcon" onclick="requestEditField('phone')"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <div class="field-with-edit">
+                                        <input type="email" class="form-control field-view-mode" id="updateCustomerEmail" readonly>
+                                        <i class="fas fa-edit field-edit-icon" id="editEmailIcon" onclick="requestEditField('email')"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Address 1</label>
+                                    <div class="field-with-edit">
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerAddress1" readonly>
+                                        <i class="fas fa-edit field-edit-icon" id="editAddress1Icon" onclick="requestEditField('address1')"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">City</label>
+                                    <div class="field-with-edit">
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerCity" readonly>
+                                        <i class="fas fa-edit field-edit-icon" id="editCityIcon" onclick="requestEditField('city')"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">State</label>
+                                    <div class="field-with-edit">
+                                        <select class="form-control field-view-mode" id="updateCustomerState" disabled>
+                                            <option value="">Select State</option>
+                                            <option value="AL">Alabama (AL)</option>
+                                            <option value="AK">Alaska (AK)</option>
+                                            <option value="AZ">Arizona (AZ)</option>
+                                            <option value="AR">Arkansas (AR)</option>
+                                            <option value="CA">California (CA)</option>
+                                            <option value="CO">Colorado (CO)</option>
+                                            <option value="CT">Connecticut (CT)</option>
+                                            <option value="DE">Delaware (DE)</option>
+                                            <option value="FL">Florida (FL)</option>
+                                            <option value="GA">Georgia (GA)</option>
+                                            <option value="HI">Hawaii (HI)</option>
+                                            <option value="ID">Idaho (ID)</option>
+                                            <option value="IL">Illinois (IL)</option>
+                                            <option value="IN">Indiana (IN)</option>
+                                            <option value="IA">Iowa (IA)</option>
+                                            <option value="KS">Kansas (KS)</option>
+                                            <option value="KY">Kentucky (KY)</option>
+                                            <option value="LA">Louisiana (LA)</option>
+                                            <option value="ME">Maine (ME)</option>
+                                            <option value="MD">Maryland (MD)</option>
+                                            <option value="MA">Massachusetts (MA)</option>
+                                            <option value="MI">Michigan (MI)</option>
+                                            <option value="MN">Minnesota (MN)</option>
+                                            <option value="MS">Mississippi (MS)</option>
+                                            <option value="MO">Missouri (MO)</option>
+                                            <option value="MT">Montana (MT)</option>
+                                            <option value="NE">Nebraska (NE)</option>
+                                            <option value="NV">Nevada (NV)</option>
+                                            <option value="NH">New Hampshire (NH)</option>
+                                            <option value="NJ">New Jersey (NJ)</option>
+                                            <option value="NM">New Mexico (NM)</option>
+                                            <option value="NY">New York (NY)</option>
+                                            <option value="NC">North Carolina (NC)</option>
+                                            <option value="ND">North Dakota (ND)</option>
+                                            <option value="OH">Ohio (OH)</option>
+                                            <option value="OK">Oklahoma (OK)</option>
+                                            <option value="OR">Oregon (OR)</option>
+                                            <option value="PA">Pennsylvania (PA)</option>
+                                            <option value="RI">Rhode Island (RI)</option>
+                                            <option value="SC">South Carolina (SC)</option>
+                                            <option value="SD">South Dakota (SD)</option>
+                                            <option value="TN">Tennessee (TN)</option>
+                                            <option value="TX">Texas (TX)</option>
+                                            <option value="UT">Utah (UT)</option>
+                                            <option value="VT">Vermont (VT)</option>
+                                            <option value="VA">Virginia (VA)</option>
+                                            <option value="WA">Washington (WA)</option>
+                                            <option value="WV">West Virginia (WV)</option>
+                                            <option value="WI">Wisconsin (WI)</option>
+                                            <option value="WY">Wyoming (WY)</option>
+                                        </select>
+                                        <i class="fas fa-edit field-edit-icon" id="editStateIcon" onclick="requestEditField('state')"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Zip Code</label>
+                                    <div class="field-with-edit">
+                                        <input type="text" class="form-control field-view-mode" id="updateCustomerZipCode" readonly>
+                                        <i class="fas fa-edit field-edit-icon" id="editZipCodeIcon" onclick="requestEditField('zipCode')"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="interestedField" class="mb-3" style="display: none;">
+                            <label class="form-label">Interested</label>
+                            <select class="form-control" id="updateInterested">
+                                <option value="">Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div id="followUpFields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Date</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="followUpDate" placeholder="Select date" readonly onclick="openDatePicker()" style="cursor: pointer;">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="openDatePicker()">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Time</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control time-hour" id="followUpTimeHour" placeholder="HH" min="1" max="12" value="" onchange="validateTimeInput('hour')">
+                                            <span class="input-group-text" style="border-left: 0; border-right: 0; padding: 0 8px; background: white;">:</span>
+                                            <input type="number" class="form-control time-minute" id="followUpTimeMinute" placeholder="MM" min="0" max="59" value="" onchange="validateTimeInput('minute')">
+                                            <select class="form-control time-ampm" id="followUpTimeAMPM" style="border-left: 0; width: auto; min-width: 70px;">
+                                                <option value="AM">AM</option>
+                                                <option value="PM">PM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Refund Status Field (for Preparation role only) -->
+                        <div id="refundStatusField" class="mb-3" style="display: none;">
+                            <label class="form-label">Refund Status</label>
+                            <select class="form-control" id="updateCustomerRefundStatus">
+                                <option value="">Select Refund Status</option>
+                                <option value="in_discussions">In Discussions</option>
+                                <option value="received_w2">Received W2</option>
+                                <option value="preparing_quote">Preparing Quote</option>
+                                <option value="quote_sent">Quote Sent to Customer</option>
+                                <option value="customer_approved">Customer Approved for Filing Taxes</option>
+                                <option value="taxes_filed">Taxes Filed</option>
+                            </select>
+                            <small class="text-muted d-block mt-1">This status will be visible to the customer</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comments</label>
+                            <textarea class="form-control" id="updateComments" rows="6" placeholder="Add comments..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveStatusUpdate()">Update Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Password Verification Modal -->
+    <div class="modal fade" id="adminPasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Admin Password Required</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please enter your admin password to edit this field:</p>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" id="adminPasswordInput" placeholder="Enter admin password" onkeypress="if(event.key === 'Enter') verifyAdminPassword()">
+                    </div>
+                    <input type="hidden" id="pendingEditField">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="verifyAdminPassword()">Verify</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Picker Modal -->
+    <div class="modal fade" id="datePickerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered win11-calendar-modal">
+            <div class="modal-content win11-calendar-content">
+                <div class="modal-body p-0">
+                    <div class="win11-calendar-wrapper">
+                        <!-- Month/Year Selection Panel (Left Side) -->
+                        <div id="monthYearPanel" class="win11-panel-left" style="display: none;">
+                            <div class="win11-panel-header">
+                                <button class="win11-back-btn" onclick="goBackToCalendar()">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <span id="panelTitle">Select Month</span>
+                            </div>
+                            <div id="monthYearPanelContent" class="win11-panel-content"></div>
+                        </div>
+                        
+                        <!-- Main Calendar View (Right Side) -->
+                        <div id="calendarMainView" class="win11-calendar-main">
+                            <div id="datePickerCalendar"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer win11-calendar-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmDateSelection()">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="newUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role *</label>
+                            <select class="form-control" id="newUserRole">
+                                <option value="admin">Admin</option>
+                                <option value="employee">Employee</option>
+                                <option value="preparation">Preparation</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNewUser()">Add User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Profile Modal -->
+    <div class="modal fade" id="myProfileModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">My Profile</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="myProfileForm">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    <div class="profile-photo-container">
+                                        <img id="profilePhotoPreview" src="" alt="Profile Photo" class="profile-photo" style="display: none;">
+                                        <div id="profilePhotoPlaceholder" class="profile-photo-placeholder">
+                                            <i class="fas fa-user fa-3x"></i>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="profilePhotoInput" accept="image/*" class="form-control mt-2" onchange="previewProfilePhoto(this)">
+                                    <small class="text-muted">Upload your profile photo</small>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" id="profileFirstName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" id="profileLastName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="profilePhone">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" id="profileAddress" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveMyProfile()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Application JavaScript -->
+    <script>
+        // Customer Login Functions
+        let uploadedFiles = [];
+        
+        // Handle file upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('customerFiles');
+            if (fileInput) {
+                fileInput.addEventListener('change', handleFileUpload);
+            }
+            
+            const customerForm = document.getElementById('customerForm');
+            if (customerForm) {
+                customerForm.addEventListener('submit', handleCustomerSubmit);
+            }
+            
+            // Check if customer is already logged in
+            checkCustomerLogin();
+        });
+        
+        // Check if customer is already logged in
+        function checkCustomerLogin() {
+            const isLoggedIn = localStorage.getItem('customerLoggedIn');
+            if (isLoggedIn === 'true') {
+                // Hide admin pages
+                const loginPage = document.getElementById('loginPage');
+                const dashboardPage = document.getElementById('dashboardPage');
+                if (loginPage) loginPage.style.display = 'none';
+                if (dashboardPage) dashboardPage.style.display = 'none';
+                
+                // Show customer dashboard
+                const customerDashboard = document.getElementById('customerDashboardPage');
+                if (customerDashboard) {
+                    customerDashboard.style.display = 'block';
+                    loadCustomerData();
+                }
+            }
+        }
+        
+        // Customer logout
+        function customerLogout() {
+            localStorage.removeItem('customerLoggedIn');
+            localStorage.removeItem('customerUsername');
+            
+            // Hide customer dashboard
+            const customerDashboard = document.getElementById('customerDashboardPage');
+            if (customerDashboard) {
+                customerDashboard.style.display = 'none';
+            }
+            
+            // Reset form
+            const customerForm = document.getElementById('customerForm');
+            if (customerForm) customerForm.reset();
+            
+            // Show admin login page
+            const loginPage = document.getElementById('loginPage');
+            if (loginPage) {
+                loginPage.style.display = 'flex';
+            }
+        }
+        
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            const uploadedFilesList = document.getElementById('uploadedFilesList');
+            uploadedFilesList.innerHTML = '';
+            
+            Array.from(files).forEach((file, index) => {
+                // Validate file type
+                const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const validExtensions = ['pdf', 'jpeg', 'jpg', 'png'];
+                
+                if (!validExtensions.includes(fileExtension)) {
+                    alert(`File "${file.name}" is not a valid format. Please upload PDF, JPEG, or PNG files only.`);
+                    return;
+                }
+                
+                // Add to uploaded files array
+                uploadedFiles.push({
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+                
+                // Display uploaded file
+                const fileItem = document.createElement('div');
+                fileItem.className = 'uploaded-file-item';
+                fileItem.innerHTML = `
+                    <span class="file-name">${file.name} (${formatFileSize(file.size)})</span>
+                    <span class="file-remove" onclick="removeFile(${uploadedFiles.length - 1})">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+                uploadedFilesList.appendChild(fileItem);
+            });
+        }
+        
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileList();
+        }
+        
+        function updateFileList() {
+            const uploadedFilesList = document.getElementById('uploadedFilesList');
+            uploadedFilesList.innerHTML = '';
+            
+            uploadedFiles.forEach((fileData, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'uploaded-file-item';
+                fileItem.innerHTML = `
+                    <span class="file-name">${fileData.name} (${formatFileSize(fileData.size)})</span>
+                    <span class="file-remove" onclick="removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+                uploadedFilesList.appendChild(fileItem);
+            });
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        // Handle customer form submission
+        async function handleCustomerSubmit(event) {
+            event.preventDefault();
+            
+            // Collect form data
+            const customerData = {
+                firstName: document.getElementById('customerFirstName').value,
+                lastName: document.getElementById('customerLastName').value,
+                phone: document.getElementById('customerPhone').value,
+                email: document.getElementById('customerEmail').value,
+                address1: document.getElementById('customerAddress1').value,
+                address2: document.getElementById('customerAddress2').value,
+                city: document.getElementById('customerCity').value,
+                state: document.getElementById('customerState').value,
+                zipCode: document.getElementById('customerZipCode').value,
+                refundStatus: document.getElementById('customerRefundStatus').value,
+                files: uploadedFiles.map(f => ({
+                    name: f.name,
+                    size: f.size,
+                    type: f.type
+                }))
+            };
+            
+            // Save customer data to localStorage
+            localStorage.setItem('customerData', JSON.stringify(customerData));
+            
+            // Save uploaded files (as base64 for demo purposes)
+            const filePromises = uploadedFiles.map(fileData => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        resolve({
+                            name: fileData.name,
+                            data: e.target.result,
+                            type: fileData.type
+                        });
+                    };
+                    reader.readAsDataURL(fileData.file);
+                });
+            });
+            
+            const fileDataArray = await Promise.all(filePromises);
+            localStorage.setItem('customerFiles', JSON.stringify(fileDataArray));
+            
+            // Show success message
+            alert('Your information has been submitted successfully! Your tax advisor will review your details and update your refund status.');
+            
+            // Reset form
+            document.getElementById('customerForm').reset();
+            uploadedFiles = [];
+            updateFileList();
+        }
+        
+        // Load customer data if exists
+        function loadCustomerData() {
+            const firstNameEl = document.getElementById('customerFirstName');
+            if (!firstNameEl) return; // Customer page not loaded yet
+            
+            const savedData = localStorage.getItem('customerData');
+            if (savedData) {
+                const customerData = JSON.parse(savedData);
+                
+                if (firstNameEl) firstNameEl.value = customerData.firstName || '';
+                const lastNameEl = document.getElementById('customerLastName');
+                if (lastNameEl) lastNameEl.value = customerData.lastName || '';
+                const phoneEl = document.getElementById('customerPhone');
+                if (phoneEl) phoneEl.value = customerData.phone || '';
+                const emailEl = document.getElementById('customerEmail');
+                if (emailEl) emailEl.value = customerData.email || '';
+                const address1El = document.getElementById('customerAddress1');
+                if (address1El) address1El.value = customerData.address1 || '';
+                const address2El = document.getElementById('customerAddress2');
+                if (address2El) address2El.value = customerData.address2 || '';
+                const cityEl = document.getElementById('customerCity');
+                if (cityEl) cityEl.value = customerData.city || '';
+                const stateEl = document.getElementById('customerState');
+                if (stateEl) stateEl.value = customerData.state || '';
+                const zipEl = document.getElementById('customerZipCode');
+                if (zipEl) zipEl.value = customerData.zipCode || '';
+                
+                const refundStatusEl = document.getElementById('customerRefundStatus');
+                if (refundStatusEl && customerData.refundStatus) {
+                    refundStatusEl.value = customerData.refundStatus;
+                }
+            }
+            
+            // Load refund status from preparation/admin updates (if any)
+            const refundStatusEl = document.getElementById('customerRefundStatus');
+            if (refundStatusEl) {
+                // First try to get status by customer email
+                const customerEmail = document.getElementById('customerEmail')?.value;
+                let refundStatus = null;
+                
+                if (customerEmail) {
+                    const refundStatusKey = `customerRefundStatus_${customerEmail}`;
+                    refundStatus = localStorage.getItem(refundStatusKey);
+                }
+                
+                // Fallback to global customerRefundStatus
+                if (!refundStatus) {
+                    refundStatus = localStorage.getItem('customerRefundStatus');
+                }
+                
+                if (refundStatus) {
+                    refundStatusEl.value = refundStatus;
+                }
+            }
+        }
+        
+        // Function to show customer dashboard (for URL parameter access)
+        function showCustomerLogin() {
+            // Hide admin pages
+            const loginPage = document.getElementById('loginPage');
+            const dashboardPage = document.getElementById('dashboardPage');
+            if (loginPage) loginPage.style.display = 'none';
+            if (dashboardPage) dashboardPage.style.display = 'none';
+            
+            // Show customer dashboard
+            const customerDashboard = document.getElementById('customerDashboardPage');
+            if (customerDashboard) {
+                customerDashboard.style.display = 'block';
+            }
+            checkCustomerLogin();
+        }
+        
+        // Check URL parameter for customer login
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('login') === 'customer') {
+                // Wait for DOM to be ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        showCustomerLogin();
+                    });
+                } else {
+                    showCustomerLogin();
+                }
+            }
+        })();
+        
+        // Run checkCustomerLogin immediately when script loads (before DOMContentLoaded)
+        (function() {
+            // Check if customer is logged in on page load
+            const customerLoggedIn = localStorage.getItem('customerLoggedIn');
+            if (customerLoggedIn === 'true') {
+                // Wait for DOM to be ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        checkCustomerLogin();
+                    });
+                } else {
+                    checkCustomerLogin();
+                }
+            }
+        })();
+    </script>
+    <script src="crm.js"></script>
+</body>
+</html>
+
