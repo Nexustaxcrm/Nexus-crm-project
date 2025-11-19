@@ -190,11 +190,14 @@ function setupEventListeners() {
 // Authentication Functions
 async function handleLogin(e) {
     e.preventDefault();
-    const username = document.getElementById('username').value;
+    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
-    // Check if customer login credentials first
-    if (username === 'customer' && password === 'customer') {
+    // Normalize username to lowercase for case-insensitive comparison
+    const usernameLower = username.toLowerCase();
+    
+    // Check if customer login credentials first (case-insensitive)
+    if (usernameLower === 'customer' && password === 'customer') {
         // Customer login - show customer dashboard
         sessionStorage.setItem('customerLoggedIn', 'true');
         sessionStorage.setItem('customerUsername', username);
@@ -222,8 +225,8 @@ async function handleLogin(e) {
         return;
     }
     
-    // Check if preparation login credentials
-    if (username === 'preparation' && password === 'preparation') {
+    // Check if preparation login credentials (case-insensitive)
+    if (usernameLower === 'preparation' && password === 'preparation') {
         // Preparation login - same dashboard as employee
         const mockUser = {
             id: 1,
@@ -252,7 +255,7 @@ async function handleLogin(e) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ username: usernameLower, password }),
             signal: controller.signal
         });
         

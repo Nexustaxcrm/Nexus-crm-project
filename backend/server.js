@@ -117,8 +117,8 @@ async function initializeDatabase() {
             console.log('Database tables created');
         }
 
-        // Check if admin user exists, create if not
-        const adminCheck = await pool.query('SELECT id FROM users WHERE username = $1', ['admin']);
+        // Check if admin user exists, create if not (case-insensitive check)
+        const adminCheck = await pool.query('SELECT id FROM users WHERE LOWER(username) = $1', ['admin']);
         
         if (adminCheck.rows.length === 0) {
             // Create default admin user

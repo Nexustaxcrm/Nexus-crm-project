@@ -50,12 +50,23 @@ router.post('/', authenticateToken, async (req, res) => {
         
         const { username, password, role } = req.body;
         
+        // Check if username already exists (case-insensitive)
+        const usernameLower = username.toLowerCase().trim();
+        const existingUser = await dbPool.query(
+            'SELECT id FROM users WHERE LOWER(username) = $1',
+            [usernameLower]
+        );
+        
+        if (existingUser.rows.length > 0) {
+            return res.status(400).json({ error: 'Username already exists' });
+        }
+        
         // Hash the password before storing
         const hashedPassword = await bcrypt.hash(password, 10);
         
         const result = await dbPool.query(
             'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role, locked',
-            [username, hashedPassword, role]
+            [username.trim(), hashedPassword, role]
         );
         res.json(result.rows[0]);
     } catch (error) {
@@ -79,15 +90,28 @@ router.put('/:id', authenticateToken, async (req, res) => {
         const { id } = req.params;
         const { username, password, role, locked } = req.body;
         
+        // Check if username already exists for another user (case-insensitive)
+        if (username) {
+            const usernameLower = username.toLowerCase().trim();
+            const existingUser = await dbPool.query(
+                'SELECT id FROM users WHERE LOWER(username) = $1 AND id != $2',
+                [usernameLower, id]
+            );
+            
+            if (existingUser.rows.length > 0) {
+                return res.status(400).json({ error: 'Username already exists' });
+            }
+        }
+        
         let query, params;
         if (password) {
             // Hash the password before updating
             const hashedPassword = await bcrypt.hash(password, 10);
             query = 'UPDATE users SET username=$1, password=$2, role=$3, locked=$4 WHERE id=$5 RETURNING id, username, role, locked';
-            params = [username, hashedPassword, role, locked, id];
+            params = [username ? username.trim() : null, hashedPassword, role, locked, id];
         } else {
             query = 'UPDATE users SET username=$1, role=$2, locked=$3 WHERE id=$4 RETURNING id, username, role, locked';
-            params = [username, role, locked, id];
+            params = [username ? username.trim() : null, role, locked, id];
         }
         
         const result = await dbPool.query(query, params);

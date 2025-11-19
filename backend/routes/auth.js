@@ -45,10 +45,13 @@ router.post('/login', async (req, res) => {
         
         const { username, password } = req.body;
         
-        // Find user in database
+        // Convert username to lowercase for case-insensitive comparison
+        const usernameLower = username.toLowerCase().trim();
+        
+        // Find user in database (case-insensitive username comparison)
         const result = await dbPool.query(
-            'SELECT * FROM users WHERE username = $1 AND locked = FALSE',
-            [username]
+            'SELECT * FROM users WHERE LOWER(username) = $1 AND locked = FALSE',
+            [usernameLower]
         );
         
         if (result.rows.length === 0) {
