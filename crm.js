@@ -2450,13 +2450,17 @@ async function renderAssignWorkPage() {
         const customersData = data.customers || data;
         const pagination = data.pagination || { totalRecords: customersData.length, totalPages: 1 };
         
-        // Debug logging
+        // Debug logging - CRITICAL for troubleshooting
+        console.log('=== ASSIGN WORK PAGE DEBUG ===');
         console.log('API Response:', {
             customersCount: customersData.length,
             pagination: pagination,
             currentPage: page,
-            pageSize: size
+            pageSize: size,
+            totalRecords: pagination.totalRecords,
+            totalPages: pagination.totalPages
         });
+        console.log('Full API Response:', data);
         
         // Transform database records to match frontend expectations
         const slice = customersData.map(customer => {
@@ -2592,36 +2596,32 @@ async function renderAssignWorkPage() {
         // Initialize column reordering for assigned work table
         initColumnReordering('assignedWorkTable');
 
-        // Always show pagination, even if pager element doesn't exist, create it
+        // Always show pagination - ensure element exists and is visible
         if (!pager) {
             console.warn('Pagination element not found! Creating it...');
             const assignWorkTab = document.getElementById('assignWorkTab');
             if (assignWorkTab) {
-                const tableContainer = assignWorkTab.querySelector('.data-table');
-                if (tableContainer) {
-                    const newPager = document.createElement('div');
-                    newPager.id = 'assignPagination';
-                    newPager.className = 'd-flex justify-content-between align-items-center mt-3 mb-3 px-3';
-                    tableContainer.appendChild(newPager);
-                    pager = newPager;
-                }
+                // Create pagination element INSIDE assignWorkTab
+                const newPager = document.createElement('div');
+                newPager.id = 'assignPagination';
+                newPager.className = 'd-flex justify-content-between align-items-center mt-3 mb-3 px-3';
+                newPager.style.cssText = 'display: flex !important; visibility: visible !important; background-color: #f8f9fa; border-top: 1px solid #dee2e6; padding: 15px !important;';
+                assignWorkTab.appendChild(newPager);
+                pager = newPager;
+                console.log('Created pagination element inside assignWorkTab');
+            } else {
+                console.error('assignWorkTab element not found!');
             }
         }
         
+        // Ensure pagination is always visible
         if (pager) {
             const pagesText = Math.max(1, pages);
             const displayStart = total === 0 ? 0 : (page - 1) * size + 1;
             const displayEnd = total === 0 ? 0 : Math.min(page * size, total);
             
-            // Ensure pagination is visible
-            pager.style.display = 'flex';
-            pager.style.justifyContent = 'space-between';
-            pager.style.alignItems = 'center';
-            pager.style.flexWrap = 'wrap';
-            pager.style.gap = '10px';
-            pager.style.padding = '15px';
-            pager.style.backgroundColor = '#f8f9fa';
-            pager.style.borderTop = '1px solid #dee2e6';
+            // Force visibility with inline styles (override any CSS that might hide it)
+            pager.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 10 !important; background-color: #f8f9fa !important; border-top: 1px solid #dee2e6 !important; padding: 15px !important; margin-top: 20px !important; justify-content: space-between !important; align-items: center !important; flex-wrap: wrap !important; gap: 10px !important;';
             
             // Show warning if total is 0 but we have data
             let totalDisplay = total.toLocaleString();
