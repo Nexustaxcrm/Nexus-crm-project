@@ -175,22 +175,23 @@ if (authRoutes.init) authRoutes.init(app);
 if (customerRoutes.init) customerRoutes.init(app);
 if (userRoutes.init) userRoutes.init(app);
 
-// Use routes
+// Use API routes (must come before static file serving)
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 
-// Health check route at root
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'Nexus CRM Backend API is running!',
-        status: 'ok',
-        endpoints: {
-            auth: '/api/auth/login',
-            customers: '/api/customers',
-            users: '/api/users'
-        }
-    });
+// Serve static files from parent directory (frontend)
+// This allows serving index.html and other frontend files
+const frontendPath = path.join(__dirname, '..');
+app.use(express.static(frontendPath));
+
+// Serve index.html for all non-API routes (SPA routing)
+// This catch-all must come AFTER API routes
+app.get('*', (req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(frontendPath, 'index.html'));
+    }
 });
 
 // Health check route at /api
