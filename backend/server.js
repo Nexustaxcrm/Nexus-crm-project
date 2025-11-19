@@ -36,23 +36,17 @@ const allowedOrigins = [
     'http://127.0.0.1:5500'
 ];
 
-app.use(cors({
+// CORS: Only apply to API routes, not static files
+// This allows the frontend HTML/CSS/JS to load without CORS checks
+const corsOptions = {
     origin: function (origin, callback) {
-        // In production, require origin (more secure)
-        // In development, allow requests with no origin (for Postman, curl, etc.)
-        const isDevelopment = process.env.NODE_ENV !== 'production';
-        
+        // Allow requests with no origin (same-origin requests, static files, direct browser access)
+        // These are safe because they're from the same domain
         if (!origin) {
-            if (isDevelopment) {
-                // Allow in development for testing tools
-                return callback(null, true);
-            } else {
-                // Block in production for security
-                console.warn('CORS blocked: Request with no origin in production');
-                return callback(new Error('Not allowed by CORS'));
-            }
+            return callback(null, true);
         }
         
+        // For cross-origin requests, check against allowed list
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -65,7 +59,10 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['Authorization']
-}));
+};
+
+// Apply CORS only to API routes (not to static file serving)
+app.use('/api/', cors(corsOptions));
 // Increased limits for large Excel file uploads (300k-500k rows)
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ extended: true, limit: '500mb' }));
