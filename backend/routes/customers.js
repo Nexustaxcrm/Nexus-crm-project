@@ -717,29 +717,43 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                 raw: false // Convert all values to strings
             });
             
-            // Find header row
+            // Find header row - improved detection
             let headerRowIndex = 0;
+            let hasHeaderRow = false;
+            
             const isLikelyHeader = (r) => {
-                const vals = (r || []).map(v => String(v || '').toLowerCase());
-                const joined = vals.join(' ');
-                const keywords = ['name', 'email', 'phone', 'address', 'first', 'last', 'assigned'];
+                const vals = (r || []).map(v => String(v || '').trim());
+                const valsLower = vals.map(v => v.toLowerCase());
+                const joined = valsLower.join(' ');
+                const keywords = ['name', 'email', 'phone', 'address', 'first', 'last', 'assigned', 'column', 'customer'];
                 const hits = keywords.filter(k => joined.includes(k)).length;
                 const nonEmpty = vals.filter(v => v.trim()).length;
-                return hits >= 1 && nonEmpty >= 2;
+                
+                // Header row should have keywords AND not look like data
+                // Data indicators: email addresses (@), phone numbers (digits with special chars), actual names (capitalized words)
+                const hasEmail = vals.some(v => v.includes('@') && v.includes('.'));
+                const hasPhonePattern = vals.some(v => /^\+?[\d\s\-\(\)]{7,}$/.test(v));
+                const looksLikeName = vals.some(v => /^[A-Z][a-z]+\s+[A-Z]/.test(v)); // "First Last" pattern
+                const looksLikeData = hasEmail || hasPhonePattern || looksLikeName;
+                
+                // Must have header keywords AND not look like actual data
+                return hits >= 1 && nonEmpty >= 2 && !looksLikeData;
             };
             
             for (let i = 0; i < Math.min(10, rows.length); i++) {
                 if (isLikelyHeader(rows[i])) { 
-                    headerRowIndex = i; 
+                    headerRowIndex = i;
+                    hasHeaderRow = true;
                     break; 
                 }
             }
 
             const headers = (rows[headerRowIndex] || []).map(h => String(h).trim());
-            const dataRows = rows.slice(headerRowIndex + 1);
+            const dataRows = hasHeaderRow ? rows.slice(headerRowIndex + 1) : rows; // If no header, use all rows as data
             totalRows = dataRows.length;
             
             console.log(`Found header row at index ${headerRowIndex}:`, headers);
+            console.log(`Has header row: ${hasHeaderRow}`);
             console.log(`Total data rows to process: ${totalRows}`);
             
             const normalize = (h) => h.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -757,26 +771,43 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                 assigned_to: -1
             };
 
-            headers.forEach((h, idx) => {
-                const n = normalize(h);
-                if (n === 'name') headerIndexByKey.name = idx;
-                if (n === 'email') headerIndexByKey.email = idx;
-                if (n === 'phone' || n === 'mobile' || n === 'contact') headerIndexByKey.phone = idx;
-                if (n === 'address') headerIndexByKey.address = idx;
-                if (n === 'first name' || (n.includes('first') && n.includes('name'))) headerIndexByKey.firstName = idx;
-                if (n === 'last name' || (n.includes('last') && n.includes('name'))) headerIndexByKey.lastName = idx;
-                if (n === 'assigned' || n === 'assigned to' || n === 'assigned_to') {
-                    headerIndexByKey.assigned = idx;
-                    headerIndexByKey.assignedTo = idx;
-                    headerIndexByKey.assigned_to = idx;
-                }
-            });
+            // If no header row detected, use positional mapping (common Excel format)
+            if (!hasHeaderRow) {
+                console.log('No header row detected - using positional mapping (Column 0=Name, Column 1=Email, Column 2=Phone)');
+                // Common format: Name, Email, Phone, Address (optional)
+                headerIndexByKey.name = 0;
+                headerIndexByKey.email = 1;
+                headerIndexByKey.phone = 2;
+                headerIndexByKey.address = 3; // Optional
+            } else {
+                // Parse headers normally
+                headers.forEach((h, idx) => {
+                    const n = normalize(h);
+                    if (n === 'name') headerIndexByKey.name = idx;
+                    if (n === 'email') headerIndexByKey.email = idx;
+                    if (n === 'phone' || n === 'mobile' || n === 'contact') headerIndexByKey.phone = idx;
+                    if (n === 'address') headerIndexByKey.address = idx;
+                    if (n === 'first name' || (n.includes('first') && n.includes('name'))) headerIndexByKey.firstName = idx;
+                    if (n === 'last name' || (n.includes('last') && n.includes('name'))) headerIndexByKey.lastName = idx;
+                    if (n === 'assigned' || n === 'assigned to' || n === 'assigned_to') {
+                        headerIndexByKey.assigned = idx;
+                        headerIndexByKey.assignedTo = idx;
+                        headerIndexByKey.assigned_to = idx;
+                    }
+                });
+            }
             
             console.log('Header mapping result:', JSON.stringify(headerIndexByKey));
             
             // Check if we found at least one required field
             if (headerIndexByKey.name === -1 && headerIndexByKey.firstName === -1 && headerIndexByKey.lastName === -1) {
-                console.warn('WARNING: No name, firstName, or lastName column found in Excel file!');
+                console.warn('WARNING: No name, firstName, or lastName column found! Using positional mapping.');
+                // Fallback to positional if still no mapping
+                if (!hasHeaderRow) {
+                    headerIndexByKey.name = 0;
+                    headerIndexByKey.email = 1;
+                    headerIndexByKey.phone = 2;
+                }
             }
 
             // Process rows in chunks and insert using COPY (much faster for bulk inserts)
