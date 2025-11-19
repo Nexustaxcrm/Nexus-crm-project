@@ -180,21 +180,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 
-// Serve static files from parent directory (frontend)
-// This allows serving index.html and other frontend files
-const frontendPath = path.join(__dirname, '..');
-app.use(express.static(frontendPath));
-
-// Serve index.html for all non-API routes (SPA routing)
-// This catch-all must come AFTER API routes
-app.get('*', (req, res) => {
-    // Only serve index.html for non-API routes
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(frontendPath, 'index.html'));
-    }
-});
-
-// Health check route at /api
+// Health check route at /api (must come before catch-all)
 app.get('/api', (req, res) => {
     res.json({ 
         message: 'Nexus CRM Backend API is working!',
@@ -206,6 +192,40 @@ app.get('/api', (req, res) => {
 // Simple test route
 app.get('/test', (req, res) => {
     res.json({ message: 'Server is working!' });
+});
+
+// Serve static files from parent directory (frontend)
+// This allows serving index.html and other frontend files
+// If Root Directory is project root, __dirname will be backend/, so go up one level
+const frontendPath = path.join(__dirname, '..');
+
+// Serve static files (CSS, JS, images, etc.)
+app.use(express.static(frontendPath));
+
+// Serve index.html for all non-API routes (SPA routing)
+// This catch-all MUST come AFTER all API routes
+app.get('*', (req, res) => {
+    // Skip API routes (shouldn't reach here, but safety check)
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    // Try to serve index.html from parent directory
+    const indexPath = path.join(frontendPath, 'index.html');
+    
+    // Check if file exists before sending
+    if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath, { root: frontendPath });
+    }
+    
+    // If index.html not found, return helpful error
+    res.status(404).send(`
+        <h1>Frontend Not Found</h1>
+        <p>index.html not found at: ${indexPath}</p>
+        <p>Current directory: ${__dirname}</p>
+        <p>Frontend path: ${frontendPath}</p>
+        <p>Please check Railway Root Directory setting.</p>
+    `);
 });
 
 // Check for required environment variables
