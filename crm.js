@@ -2629,28 +2629,53 @@ async function renderAssignWorkPage() {
                 totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
             }
             
-            pager.innerHTML = `
-                <div class="text-muted small">
-                    <strong>Showing ${displayStart.toLocaleString()}-${displayEnd.toLocaleString()} of ${totalDisplay} customers</strong>
-                    ${total > 0 ? `<br><span class="text-info">Page ${page} of ${pagesText} (${pagesText.toLocaleString()} total pages)</span>` : ''}
+            // Build pagination HTML with clear, visible controls
+            const paginationHTML = `
+                <div style="flex: 1; min-width: 200px;">
+                    <strong style="color: #333; font-size: 14px;">Showing ${displayStart.toLocaleString()}-${displayEnd.toLocaleString()} of ${totalDisplay} customers</strong>
+                    ${total > 0 ? `<div style="color: #0066cc; font-size: 12px; margin-top: 4px;">Page ${page} of ${pagesText.toLocaleString()} (${pagesText.toLocaleString()} total pages)</div>` : ''}
                 </div>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()" title="First page">⏮</button>
-                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=Math.max(1, window.assignCurrentPage-1); renderAssignWorkPage()" title="Previous page">‹</button>
-                    <span class="btn btn-sm btn-light disabled">Page ${page} / ${pagesText}</span>
-                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=Math.min(${pagesText}, window.assignCurrentPage+1); renderAssignWorkPage()" title="Next page">›</button>
-                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()" title="Last page">⏭</button>
+                <div class="btn-group" style="margin: 0 15px;">
+                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()" title="First page" style="min-width: 40px;">⏮</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=Math.max(1, window.assignCurrentPage-1); renderAssignWorkPage()" title="Previous page" style="min-width: 40px;">‹</button>
+                    <span class="btn btn-sm btn-light disabled" style="min-width: 100px;">Page ${page} / ${pagesText}</span>
+                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=Math.min(${pagesText}, window.assignCurrentPage+1); renderAssignWorkPage()" title="Next page" style="min-width: 40px;">›</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()" title="Last page" style="min-width: 40px;">⏭</button>
                 </div>
-                <div>
-                    <label class="text-muted small me-2">Per page:</label>
-                    <select class="form-select form-select-sm d-inline-block" style="width:auto" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="color: #666; font-size: 13px; margin: 0; white-space: nowrap;">Per page:</label>
+                    <select class="form-select form-select-sm" style="width: 80px !important; min-width: 80px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                         <option ${size===100?'selected':''} value="100">100</option>
                         <option ${size===200?'selected':''} value="200">200</option>
                         <option ${size===300?'selected':''} value="300">300</option>
                         <option ${size===400?'selected':''} value="400">400</option>
                         <option ${size===500?'selected':''} value="500">500</option>
                     </select>
-                </div>`;
+                </div>
+            `;
+            
+            pager.innerHTML = paginationHTML;
+            // Force visibility one more time after setting innerHTML
+            pager.style.cssText = 'display: flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 10 !important; background-color: #f8f9fa !important; border-top: 2px solid #dee2e6 !important; padding: 20px !important; margin-top: 20px !important; min-height: 60px !important; justify-content: space-between !important; align-items: center !important; flex-wrap: wrap !important; gap: 10px !important;';
+            
+            console.log('✅ PAGINATION RENDERED!', {
+                element: pager,
+                elementVisible: pager.offsetHeight > 0,
+                elementDisplay: window.getComputedStyle(pager).display,
+                total: total,
+                page: page,
+                pages: pagesText,
+                size: size,
+                htmlLength: paginationHTML.length
+            });
+            
+            // Double-check it's visible by scrolling to it
+            setTimeout(() => {
+                if (pager && pager.offsetHeight === 0) {
+                    console.error('❌ Pagination element has 0 height! It may be hidden.');
+                    pager.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+            }, 100);
         } else {
             console.error('Could not find or create pagination element!');
         }
