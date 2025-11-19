@@ -180,6 +180,28 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 
+// Health check route at root
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Nexus CRM Backend API is running!',
+        status: 'ok',
+        endpoints: {
+            auth: '/api/auth/login',
+            customers: '/api/customers',
+            users: '/api/users'
+        }
+    });
+});
+
+// Health check route at /api
+app.get('/api', (req, res) => {
+    res.json({ 
+        message: 'Nexus CRM Backend API is working!',
+        status: 'ok',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Simple test route
 app.get('/test', (req, res) => {
     res.json({ message: 'Server is working!' });

@@ -272,6 +272,27 @@ async function handleLogin(e) {
             showNotification('error', 'Login Failed', data.error || 'Invalid credentials');
         }
     } catch (error) {
+        console.error('Login error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            apiUrl: API_BASE_URL + '/auth/login'
+        });
+        
+        // Provide detailed error message
+        let errorMessage = 'Connection error. ';
+        
+        if (error.name === 'AbortError') {
+            errorMessage += 'Request timed out. The server may be slow or unreachable.';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage += `Cannot reach server at ${API_BASE_URL}. `;
+            errorMessage += 'Please check: 1) Is Railway backend deployed? 2) Is the URL correct? 3) Check browser console for CORS errors.';
+        } else if (error.message.includes('CORS')) {
+            errorMessage += 'CORS error. Backend may not be configured correctly.';
+        } else {
+            errorMessage += error.message || 'Unknown error occurred.';
+        }
+        
         // Server is not available - use development mode if enabled
         if (DEV_MODE && (error.name === 'AbortError' || error.message.includes('Failed to fetch'))) {
             console.warn('Server not available - using development mode');
@@ -295,10 +316,9 @@ async function handleLogin(e) {
             sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
             currentUser = mockUser;
             showDashboard();
-            showNotification('info', 'Development Mode', 'Server not connected - using offline mode');
+            showNotification('info', 'Development Mode', 'Server not connected - using offline mode. Check console for details.');
         } else {
-            console.error('Login error:', error);
-            showNotification('error', 'Login Failed', 'Connection error. Is the server running?');
+            showNotification('error', 'Login Failed', errorMessage);
         }
     }
 }
