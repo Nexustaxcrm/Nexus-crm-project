@@ -2450,6 +2450,14 @@ async function renderAssignWorkPage() {
         const customersData = data.customers || data;
         const pagination = data.pagination || { totalRecords: customersData.length, totalPages: 1 };
         
+        // Debug logging
+        console.log('API Response:', {
+            customersCount: customersData.length,
+            pagination: pagination,
+            currentPage: page,
+            pageSize: size
+        });
+        
         // Transform database records to match frontend expectations
         const slice = customersData.map(customer => {
             let firstName = customer.firstName || '';
@@ -2493,9 +2501,41 @@ async function renderAssignWorkPage() {
         // Filter out archived customers (should already be filtered by API, but double-check)
         filteredSlice = filteredSlice.filter(c => !c.archived && c.status !== 'archived');
         
-        // Use pagination info from API
-        const total = pagination.totalRecords || filteredSlice.length;
-        const pages = pagination.totalPages || Math.max(1, Math.ceil(total / size));
+        // Use pagination info from API - CRITICAL: Use totalRecords from API, not filteredSlice.length
+        // filteredSlice.length is only the current page's data (e.g., 100), not the total
+        // If API doesn't provide totalRecords, we need to fetch it separately
+        let total = pagination.totalRecords || 0;
+        let pages = pagination.totalPages || Math.max(1, Math.ceil(total / size));
+        
+        // If total is 0 but we have data, it means API didn't return pagination info
+        // This shouldn't happen, but let's handle it gracefully
+        if (total === 0 && customersData.length > 0) {
+            console.warn('API did not return totalRecords. Fetching total count...');
+            // Try to get total from a separate count query
+            try {
+                const countResponse = await fetch(API_BASE_URL + '/customers?limit=1&page=1', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (countResponse.ok) {
+                    const countData = await countResponse.json();
+                    if (countData.pagination && countData.pagination.totalRecords) {
+                        total = countData.pagination.totalRecords;
+                        pages = Math.max(1, Math.ceil(total / size));
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch total count:', e);
+            }
+        }
+        
+        console.log('Pagination calculation:', {
+            total: total,
+            pages: pages,
+            currentPage: page,
+            pageSize: size,
+            filteredSliceLength: filteredSlice.length,
+            apiPagination: pagination
+        });
         
         // For display, use the slice directly (already paginated by API)
         const displaySlice = filteredSlice;
@@ -2552,21 +2592,58 @@ async function renderAssignWorkPage() {
         // Initialize column reordering for assigned work table
         initColumnReordering('assignedWorkTable');
 
+        // Always show pagination, even if pager element doesn't exist, create it
+        if (!pager) {
+            console.warn('Pagination element not found! Creating it...');
+            const assignWorkTab = document.getElementById('assignWorkTab');
+            if (assignWorkTab) {
+                const tableContainer = assignWorkTab.querySelector('.data-table');
+                if (tableContainer) {
+                    const newPager = document.createElement('div');
+                    newPager.id = 'assignPagination';
+                    newPager.className = 'd-flex justify-content-between align-items-center mt-3 mb-3 px-3';
+                    tableContainer.appendChild(newPager);
+                    pager = newPager;
+                }
+            }
+        }
+        
         if (pager) {
             const pagesText = Math.max(1, pages);
             const displayStart = total === 0 ? 0 : (page - 1) * size + 1;
             const displayEnd = total === 0 ? 0 : Math.min(page * size, total);
+            
+            // Ensure pagination is visible
+            pager.style.display = 'flex';
+            pager.style.justifyContent = 'space-between';
+            pager.style.alignItems = 'center';
+            pager.style.flexWrap = 'wrap';
+            pager.style.gap = '10px';
+            pager.style.padding = '15px';
+            pager.style.backgroundColor = '#f8f9fa';
+            pager.style.borderTop = '1px solid #dee2e6';
+            
+            // Show warning if total is 0 but we have data
+            let totalDisplay = total.toLocaleString();
+            if (total === 0 && displaySlice.length > 0) {
+                totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
+            }
+            
             pager.innerHTML = `
-                <div class="text-muted small">Showing ${displayStart}-${displayEnd} of ${total}</div>
+                <div class="text-muted small">
+                    <strong>Showing ${displayStart.toLocaleString()}-${displayEnd.toLocaleString()} of ${totalDisplay} customers</strong>
+                    ${total > 0 ? `<br><span class="text-info">Page ${page} of ${pagesText} (${pagesText.toLocaleString()} total pages)</span>` : ''}
+                </div>
                 <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">⏮</button>
-                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage--; renderAssignWorkPage()">‹</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()" title="First page">⏮</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=Math.max(1, window.assignCurrentPage-1); renderAssignWorkPage()" title="Previous page">‹</button>
                     <span class="btn btn-sm btn-light disabled">Page ${page} / ${pagesText}</span>
-                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage++; renderAssignWorkPage()">›</button>
-                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">⏭</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=Math.min(${pagesText}, window.assignCurrentPage+1); renderAssignWorkPage()" title="Next page">›</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()" title="Last page">⏭</button>
                 </div>
                 <div>
-                    <select class="form-select form-select-sm" style="width:auto" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                    <label class="text-muted small me-2">Per page:</label>
+                    <select class="form-select form-select-sm d-inline-block" style="width:auto" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                         <option ${size===100?'selected':''} value="100">100</option>
                         <option ${size===200?'selected':''} value="200">200</option>
                         <option ${size===300?'selected':''} value="300">300</option>
@@ -2574,6 +2651,8 @@ async function renderAssignWorkPage() {
                         <option ${size===500?'selected':''} value="500">500</option>
                     </select>
                 </div>`;
+        } else {
+            console.error('Could not find or create pagination element!');
         }
 
         // Initialize column resizing once per render
