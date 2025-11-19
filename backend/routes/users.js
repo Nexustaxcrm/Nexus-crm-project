@@ -5,14 +5,27 @@ require('dotenv').config();
 
 // Get shared pool from app.locals (set in server.js)
 let pool = null;
+let verifyToken = null;
 
-// Initialize pool from app (called from server.js)
+// Initialize pool and auth from app (called from server.js)
 router.init = function(app) {
     pool = app.locals.pool;
+    // Import verifyToken from auth routes
+    const authRoutes = require('./auth');
+    verifyToken = authRoutes.verifyToken;
 };
 
-// Get all users
-router.get('/', async (req, res) => {
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
+    if (verifyToken) {
+        return verifyToken(req, res, next);
+    }
+    // Fallback if verifyToken not initialized
+    return res.status(500).json({ error: 'Authentication not initialized' });
+};
+
+// Get all users (requires authentication)
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -27,8 +40,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Create user
-router.post('/', async (req, res) => {
+// Create user (requires authentication - only admins should create users)
+router.post('/', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -55,8 +68,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Update user
-router.put('/:id', async (req, res) => {
+// Update user (requires authentication)
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -89,8 +102,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Delete user
-router.delete('/:id', async (req, res) => {
+// Delete user (requires authentication)
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {

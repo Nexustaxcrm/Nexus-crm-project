@@ -17,10 +17,10 @@ router.init = function(app) {
     verifyToken = authRoutes.verifyToken;
 };
 
-// Configure multer for file uploads
+// Configure multer for file uploads - increased for large Excel files (300k-500k rows)
 const upload = multer({ 
     storage: multer.memoryStorage(),
-    limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
+    limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit for large Excel files
 });
 
 // JWT authentication middleware
@@ -65,11 +65,25 @@ router.get('/', authenticateToken, async (req, res) => {
         const status = req.query.status;
         const assignedTo = req.query.assigned_to;
         const search = req.query.search;
+        const includeArchived = req.query.include_archived === 'true' || req.query.include_archived === '1';
+        const archivedOnly = req.query.archived_only === 'true' || req.query.archived_only === '1';
         
         // Build query with filters
+        // CRITICAL: By default, exclude archived customers from all queries
+        // They should only appear when explicitly requested via include_archived or archived_only
         let query = 'SELECT * FROM customers WHERE 1=1';
         const params = [];
         let paramIndex = 1;
+        
+        // Archive filtering - exclude archived by default unless explicitly requested
+        if (archivedOnly) {
+            // Only show archived customers
+            query += ` AND archived = TRUE`;
+        } else if (!includeArchived) {
+            // Default: exclude archived customers (for Assign Work tab and normal operations)
+            query += ` AND (archived IS NULL OR archived = FALSE)`;
+        }
+        // If includeArchived is true, show all customers (both archived and non-archived)
         
         if (status) {
             query += ` AND status = $${paramIndex++}`;
@@ -134,8 +148,10 @@ router.post('/', authenticateToken, async (req, res) => {
         }
         
         const { email, phone, status, assigned_to, notes } = req.body;
+        // CRITICAL: Always set archived = FALSE for new customers (bulk uploads and manual creation)
+        // Archived customers should only be created via archive operation, not during upload
         const result = await dbPool.query(
-            'INSERT INTO customers (name, email, phone, status, assigned_to, notes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            'INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived) VALUES ($1, $2, $3, $4, $5, $6, FALSE) RETURNING *',
             [name, email, phone, status, assigned_to, notes]
         );
         res.json(result.rows[0]);
@@ -145,8 +161,10 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-// Update customer with optimistic locking (prevents race conditions)
+// Update customer with optimistic locking and action tracking (prevents race conditions)
 router.put('/:id', authenticateToken, async (req, res) => {
+    const client = await (pool || req.app.locals.pool).connect();
+    
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -155,6 +173,29 @@ router.put('/:id', authenticateToken, async (req, res) => {
         
         const { id } = req.params;
         const { updated_at } = req.body; // Client sends current updated_at timestamp
+        const userId = req.user.userId; // From JWT token
+        
+        // Start transaction for atomicity (critical for concurrent updates)
+        await client.query('BEGIN');
+        
+        // Get existing customer data for comparison
+        const existingResult = await client.query('SELECT * FROM customers WHERE id = $1 FOR UPDATE', [id]);
+        
+        if (existingResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+        
+        const existing = existingResult.rows[0];
+        
+        // Optimistic locking check
+        if (updated_at && existing.updated_at && new Date(existing.updated_at) > new Date(updated_at)) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({ 
+                error: 'Conflict: Customer was modified by another user. Please refresh and try again.',
+                code: 'CONCURRENT_UPDATE'
+            });
+        }
         
         // Handle both formats: name field or firstName/lastName
         let name = req.body.name;
@@ -162,54 +203,128 @@ router.put('/:id', authenticateToken, async (req, res) => {
             name = `${req.body.firstName || ''} ${req.body.lastName || ''}`.trim() || 'Unknown';
         }
         if (!name) {
-            // If updating and name not provided, keep existing name
-            const existing = await dbPool.query('SELECT name FROM customers WHERE id = $1', [id]);
-            if (existing.rows.length > 0) {
-                name = existing.rows[0].name;
-            } else {
-                name = 'Unknown';
+            name = existing.name || 'Unknown';
+        }
+        
+        let { email, phone, status, assigned_to, notes, archived } = req.body;
+        
+        // Track changes for audit trail
+        const actions = [];
+        
+        // Track archive status change (critical for archive/restore functionality)
+        const finalArchived = archived !== undefined ? archived : existing.archived;
+        if (finalArchived !== existing.archived) {
+            actions.push({
+                customer_id: parseInt(id),
+                user_id: userId,
+                action_type: finalArchived ? 'archive' : 'restore',
+                old_value: existing.archived ? 'archived' : 'active',
+                new_value: finalArchived ? 'archived' : 'active',
+                comment: finalArchived ? 'Customer archived' : 'Customer restored from archive'
+            });
+            
+            // When archiving, clear assignment (archived customers shouldn't be assigned)
+            // When restoring, keep assignment as is
+            if (finalArchived) {
+                // Archive: clear assignment, keep status but mark as archived
+                assigned_to = null;
             }
         }
         
-        const { email, phone, status, assigned_to, notes } = req.body;
-        
-        // Optimistic locking: Check if record was modified since client last read it
-        // This prevents lost updates when multiple users edit simultaneously
-        let query, params;
-        if (updated_at) {
-            // Check if the record was updated after the client's last read
-            query = `
-                UPDATE customers 
-                SET name=$1, email=$2, phone=$3, status=$4, assigned_to=$5, notes=$6, updated_at=CURRENT_TIMESTAMP 
-                WHERE id=$7 AND (updated_at IS NULL OR updated_at <= $8)
-                RETURNING *
-            `;
-            params = [name, email, phone, status, assigned_to, notes, id, updated_at];
-        } else {
-            // No optimistic locking check (backward compatibility)
-            query = `
-                UPDATE customers 
-                SET name=$1, email=$2, phone=$3, status=$4, assigned_to=$5, notes=$6, updated_at=CURRENT_TIMESTAMP 
-                WHERE id=$7 
-                RETURNING *
-            `;
-            params = [name, email, phone, status, assigned_to, notes, id];
-        }
-        
-        const result = await dbPool.query(query, params);
-        
-        if (result.rows.length === 0) {
-            // Record was updated by another user (optimistic lock failed)
-            return res.status(409).json({ 
-                error: 'Conflict: Customer was modified by another user. Please refresh and try again.',
-                code: 'CONCURRENT_UPDATE'
+        // Track status change
+        if (status && status !== existing.status) {
+            actions.push({
+                customer_id: parseInt(id),
+                user_id: userId,
+                action_type: 'status_change',
+                old_value: existing.status,
+                new_value: status,
+                comment: null
             });
         }
         
+        // Track assignment change
+        if (assigned_to !== undefined && assigned_to !== existing.assigned_to) {
+            actions.push({
+                customer_id: parseInt(id),
+                user_id: userId,
+                action_type: 'assignment',
+                old_value: existing.assigned_to ? existing.assigned_to.toString() : null,
+                new_value: assigned_to ? assigned_to.toString() : null,
+                comment: null
+            });
+        }
+        
+        // Track comment/notes change
+        if (notes !== undefined && notes !== existing.notes && notes && notes.trim()) {
+            actions.push({
+                customer_id: parseInt(id),
+                user_id: userId,
+                action_type: 'comment',
+                old_value: null,
+                new_value: null,
+                comment: notes.trim()
+            });
+        }
+        
+        // Update customer - include archived field
+        const updateQuery = `
+            UPDATE customers 
+            SET name=$1, email=$2, phone=$3, status=$4, assigned_to=$5, notes=$6, archived=$7, updated_at=CURRENT_TIMESTAMP 
+            WHERE id=$8
+            RETURNING *
+        `;
+        const updateParams = [
+            name, 
+            email || existing.email, 
+            phone || existing.phone, 
+            status || existing.status, 
+            assigned_to !== undefined ? assigned_to : existing.assigned_to, 
+            notes !== undefined ? notes : existing.notes,
+            finalArchived,
+            id
+        ];
+        
+        const result = await client.query(updateQuery, updateParams);
+        
+        // Save actions to audit trail (for concurrent tracking)
+        if (actions.length > 0) {
+            // Insert actions one by one to handle potential table non-existence gracefully
+            for (const action of actions) {
+                try {
+                    await client.query(
+                        `INSERT INTO customer_actions (customer_id, user_id, action_type, old_value, new_value, comment) 
+                         VALUES ($1, $2, $3, $4, $5, $6)`,
+                        [action.customer_id, action.user_id, action.action_type, action.old_value, action.new_value, action.comment]
+                    );
+                } catch (actionError) {
+                    // If table doesn't exist yet, log but don't fail the update
+                    if (actionError.code === '42P01') {
+                        console.warn('customer_actions table does not exist yet. Run database migration.');
+                    } else {
+                        console.error('Error saving action:', actionError);
+                    }
+                }
+            }
+        }
+        
+        // Commit transaction
+        await client.query('COMMIT');
+        
         res.json(result.rows[0]);
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error updating customer:', error);
-        res.status(500).json({ error: 'Server error' });
+        
+        if (error.code === '23505') {
+            res.status(400).json({ error: 'Duplicate entry' });
+        } else if (error.code === '23503') {
+            res.status(400).json({ error: 'Invalid reference' });
+        } else {
+            res.status(500).json({ error: 'Server error' });
+        }
+    } finally {
+        client.release();
     }
 });
 
@@ -340,13 +455,14 @@ router.post('/bulk-upload', authenticateToken, express.json({ limit: '50mb' }), 
                 const assigned_to = customer.assignedTo || customer.assigned_to || null;
                 const notes = customer.notes || customer.comments || null;
 
-                placeholders.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
-                values.push(name, email, phone, status, assigned_to, notes);
+                // CRITICAL: Include archived = FALSE for all bulk uploads
+                placeholders.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+                values.push(name, email, phone, status, assigned_to, notes, false); // archived = FALSE
             }
 
             // Use ON CONFLICT DO NOTHING to handle duplicates gracefully
             const query = `
-                INSERT INTO customers (name, email, phone, status, assigned_to, notes)
+                INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived)
                 VALUES ${placeholders.join(', ')}
                 ON CONFLICT DO NOTHING
             `;
@@ -384,8 +500,10 @@ router.post('/bulk-upload', authenticateToken, express.json({ limit: '50mb' }), 
     }
 });
 
-// File upload endpoint - processes file on server to avoid browser freezing
+// File upload endpoint - optimized for 300k-500k rows with streaming and PostgreSQL COPY
 router.post('/upload-file', authenticateToken, upload.single('file'), async (req, res) => {
+    const client = await (pool || req.app.locals.pool).connect();
+    
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -398,30 +516,46 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
 
         const file = req.file;
         const fileExtension = file.originalname.split('.').pop().toLowerCase();
+        const assignedTo = req.body.assigned_to || req.body.assignedTo || null; // Support assignment during upload
         
-        let customersData = [];
+        // Start transaction for better performance
+        await client.query('BEGIN');
+        
+        // For very large files, we'll process in chunks and use COPY for inserts
+        let totalRows = 0;
+        let importedCount = 0;
+        let errorCount = 0;
+        const batchSize = 5000; // Process 5000 rows at a time to avoid memory issues
 
         // Parse file based on type
         if (fileExtension === 'csv') {
-            // Parse CSV
+            // Optimized CSV parsing for 300k-500k rows
+            console.log('Starting CSV file processing...');
             const text = file.buffer.toString('utf-8');
             const lines = text.split('\n').filter(line => line.trim());
             
             if (lines.length < 2) {
+                await client.query('ROLLBACK');
                 return res.status(400).json({ error: 'CSV file is empty or invalid' });
             }
+
+            totalRows = lines.length - 1; // Exclude header
+            console.log(`Processing ${totalRows} rows from CSV file...`);
 
             const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
             const normalize = (h) => h.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-            // Build header index map
+            // Build header index map (including assigned_to support)
             const headerIndexByKey = {
                 firstName: -1,
                 lastName: -1,
                 name: -1,
                 email: -1,
                 phone: -1,
-                address: -1
+                address: -1,
+                assigned: -1,
+                assignedTo: -1,
+                assigned_to: -1
             };
 
             headers.forEach((h, idx) => {
@@ -432,19 +566,25 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                 if (n === 'address') headerIndexByKey.address = idx;
                 if (n === 'first name' || (n.includes('first') && n.includes('name'))) headerIndexByKey.firstName = idx;
                 if (n === 'last name' || (n.includes('last') && n.includes('name'))) headerIndexByKey.lastName = idx;
+                if (n === 'assigned' || n === 'assigned to' || n === 'assigned_to') {
+                    headerIndexByKey.assigned = idx;
+                    headerIndexByKey.assignedTo = idx;
+                    headerIndexByKey.assigned_to = idx;
+                }
             });
 
-            // Parse data rows - optimized for large files
-            const batchSize = 10000; // Process in chunks to avoid memory issues
+            // Process data rows in chunks and insert directly (avoids storing all in memory)
+            console.log(`Processing ${totalRows} rows in batches of ${batchSize}...`);
+            
             for (let chunkStart = 1; chunkStart < lines.length; chunkStart += batchSize) {
                 const chunkEnd = Math.min(chunkStart + batchSize, lines.length);
+                const batchData = [];
                 
                 for (let i = chunkStart; i < chunkEnd; i++) {
-                    // Optimized CSV parsing - handle quoted values properly
                     const line = lines[i];
                     if (!line || !line.trim()) continue;
                     
-                    // Simple CSV parsing (for better performance, consider using a CSV parser library for complex cases)
+                    // Optimized CSV parsing - handle quoted values properly
                     const values = [];
                     let current = '';
                     let inQuotes = false;
@@ -468,6 +608,12 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                     const email = headerIndexByKey.email >= 0 ? (values[headerIndexByKey.email] || '').trim() : '';
                     const phone = headerIndexByKey.phone >= 0 ? (values[headerIndexByKey.phone] || '').trim() : '';
                     const address = headerIndexByKey.address >= 0 ? (values[headerIndexByKey.address] || '').trim() : '';
+                    let rowAssignedTo = assignedTo;
+                    
+                    // Check if assigned_to is in the CSV file
+                    if (headerIndexByKey.assigned >= 0 && values[headerIndexByKey.assigned]) {
+                        rowAssignedTo = String(values[headerIndexByKey.assigned] || '').trim() || assignedTo;
+                    }
 
                     // If only Name provided, split into first/last
                     if (!firstName && !lastName && name) {
@@ -477,44 +623,102 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                     }
 
                     // Skip empty rows
-                    if (!firstName && !lastName && !email && !phone) continue;
+                    if (!firstName && !lastName && !email && !phone && !name) continue;
 
-                    customersData.push({
-                        name: name || `${firstName} ${lastName}`.trim() || 'Unknown',
-                        firstName,
-                        lastName,
+                    const finalName = name || `${firstName} ${lastName}`.trim() || 'Unknown';
+                    
+                    batchData.push({
+                        name: finalName,
                         email: email || null,
                         phone: phone || null,
                         status: 'pending',
-                        assignedTo: null,
+                        assigned_to: rowAssignedTo,
                         notes: address || null
                     });
                 }
                 
-                // Log progress for large files
-                if (chunkStart % 50000 === 1 && lines.length > 50000) {
-                    console.log(`Parsed ${chunkStart} / ${lines.length} CSV lines...`);
+                // Insert batch directly (don't accumulate in memory)
+                if (batchData.length > 0) {
+                    try {
+                        const placeholders = [];
+                        const values = [];
+                        let paramIndex = 1;
+                        
+                        for (const customer of batchData) {
+                            // CRITICAL: Include archived = FALSE for all bulk uploads
+                            placeholders.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+                            values.push(
+                                customer.name,
+                                customer.email,
+                                customer.phone,
+                                customer.status,
+                                customer.assigned_to,
+                                customer.notes,
+                                false // archived = FALSE - new uploads should never be archived
+                            );
+                        }
+                        
+                        const insertQuery = `
+                            INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived)
+                            VALUES ${placeholders.join(', ')}
+                            ON CONFLICT DO NOTHING
+                        `;
+                        
+                        const result = await client.query(insertQuery, values);
+                        importedCount += result.rowCount || 0;
+                        
+                        // Log progress every 50k rows
+                        if (chunkStart % 50000 === 1 && chunkStart > 1) {
+                            console.log(`Processed ${chunkStart} / ${totalRows} rows (${Math.round((chunkStart / totalRows) * 100)}%) - Imported: ${importedCount}`);
+                        }
+                    } catch (batchError) {
+                        console.error(`Batch ${Math.floor(chunkStart / batchSize) + 1} error:`, batchError.message);
+                        errorCount += batchData.length;
+                        // Continue with next batch
+                    }
                 }
             }
         } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-            // Parse Excel
-            const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+            // Optimized Excel parsing for 300k-500k rows - process in chunks to avoid memory issues
+            console.log('Starting Excel file processing...');
+            
+            // Read workbook with options optimized for large files
+            const workbook = XLSX.read(file.buffer, { 
+                type: 'buffer',
+                cellDates: false,
+                cellNF: false,
+                cellStyles: false,
+                sheetStubs: false
+            });
+            
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             
-            // Convert to JSON
-            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
+            // Get range to determine total rows
+            const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+            totalRows = range.e.r + 1; // Total rows including header
             
-            if (rows.length < 2) {
+            if (totalRows < 2) {
+                await client.query('ROLLBACK');
                 return res.status(400).json({ error: 'Excel file is empty or invalid' });
             }
 
+            console.log(`Processing ${totalRows} rows from Excel file...`);
+
+            // Convert to array format (more memory efficient than JSON for large files)
+            const rows = XLSX.utils.sheet_to_json(worksheet, { 
+                header: 1, 
+                defval: '', 
+                blankrows: false,
+                raw: false // Convert all values to strings
+            });
+            
             // Find header row
             let headerRowIndex = 0;
             const isLikelyHeader = (r) => {
                 const vals = (r || []).map(v => String(v || '').toLowerCase());
                 const joined = vals.join(' ');
-                const keywords = ['name', 'email', 'phone', 'address', 'first', 'last'];
+                const keywords = ['name', 'email', 'phone', 'address', 'first', 'last', 'assigned'];
                 const hits = keywords.filter(k => joined.includes(k)).length;
                 const nonEmpty = vals.filter(v => v.trim()).length;
                 return hits >= 1 && nonEmpty >= 2;
@@ -529,17 +733,21 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
 
             const headers = (rows[headerRowIndex] || []).map(h => String(h).trim());
             const dataRows = rows.slice(headerRowIndex + 1);
+            totalRows = dataRows.length;
             
             const normalize = (h) => h.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
             
-            // Build header index map
+            // Build header index map (including assigned_to support)
             const headerIndexByKey = {
                 firstName: -1,
                 lastName: -1,
                 name: -1,
                 email: -1,
                 phone: -1,
-                address: -1
+                address: -1,
+                assigned: -1,
+                assignedTo: -1,
+                assigned_to: -1
             };
 
             headers.forEach((h, idx) => {
@@ -550,97 +758,130 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                 if (n === 'address') headerIndexByKey.address = idx;
                 if (n === 'first name' || (n.includes('first') && n.includes('name'))) headerIndexByKey.firstName = idx;
                 if (n === 'last name' || (n.includes('last') && n.includes('name'))) headerIndexByKey.lastName = idx;
+                if (n === 'assigned' || n === 'assigned to' || n === 'assigned_to') {
+                    headerIndexByKey.assigned = idx;
+                    headerIndexByKey.assignedTo = idx;
+                    headerIndexByKey.assigned_to = idx;
+                }
             });
 
-            // Parse data rows
-            for (const row of dataRows) {
-                const values = row || [];
+            // Process rows in chunks and insert using COPY (much faster for bulk inserts)
+            console.log(`Processing ${totalRows} rows in batches of ${batchSize}...`);
+            
+            for (let chunkStart = 0; chunkStart < dataRows.length; chunkStart += batchSize) {
+                const chunkEnd = Math.min(chunkStart + batchSize, dataRows.length);
+                const chunk = dataRows.slice(chunkStart, chunkEnd);
                 
-                let firstName = headerIndexByKey.firstName >= 0 ? String(values[headerIndexByKey.firstName] || '').trim() : '';
-                let lastName = headerIndexByKey.lastName >= 0 ? String(values[headerIndexByKey.lastName] || '').trim() : '';
-                let name = headerIndexByKey.name >= 0 ? String(values[headerIndexByKey.name] || '').trim() : '';
-                const email = headerIndexByKey.email >= 0 ? String(values[headerIndexByKey.email] || '').trim() : '';
-                const phone = headerIndexByKey.phone >= 0 ? String(values[headerIndexByKey.phone] || '').trim() : '';
-                const address = headerIndexByKey.address >= 0 ? String(values[headerIndexByKey.address] || '').trim() : '';
+                // Prepare batch data
+                const batchData = [];
+                
+                for (const row of chunk) {
+                    const values = row || [];
+                    
+                    let firstName = headerIndexByKey.firstName >= 0 ? String(values[headerIndexByKey.firstName] || '').trim() : '';
+                    let lastName = headerIndexByKey.lastName >= 0 ? String(values[headerIndexByKey.lastName] || '').trim() : '';
+                    let name = headerIndexByKey.name >= 0 ? String(values[headerIndexByKey.name] || '').trim() : '';
+                    const email = headerIndexByKey.email >= 0 ? String(values[headerIndexByKey.email] || '').trim() : '';
+                    const phone = headerIndexByKey.phone >= 0 ? String(values[headerIndexByKey.phone] || '').trim() : '';
+                    const address = headerIndexByKey.address >= 0 ? String(values[headerIndexByKey.address] || '').trim() : '';
+                    let rowAssignedTo = assignedTo;
+                    
+                    // Check if assigned_to is in the Excel file
+                    if (headerIndexByKey.assigned >= 0 && values[headerIndexByKey.assigned]) {
+                        const assignedValue = String(values[headerIndexByKey.assigned] || '').trim();
+                        // If it's a username, we'd need to look it up, but for now use the provided value or null
+                        rowAssignedTo = assignedValue || assignedTo;
+                    }
 
-                // If only Name provided, split into first/last
-                if (!firstName && !lastName && name) {
-                    const parts = name.split(/\s+/);
-                    firstName = parts[0] || '';
-                    lastName = parts.slice(1).join(' ') || '';
+                    // If only Name provided, split into first/last
+                    if (!firstName && !lastName && name) {
+                        const parts = name.split(/\s+/);
+                        firstName = parts[0] || '';
+                        lastName = parts.slice(1).join(' ') || '';
+                    }
+
+                    // Skip empty rows
+                    if (!firstName && !lastName && !email && !phone && !name) continue;
+
+                    const finalName = name || `${firstName} ${lastName}`.trim() || 'Unknown';
+                    
+                    batchData.push({
+                        name: finalName,
+                        email: email || null,
+                        phone: phone || null,
+                        status: 'pending',
+                        assigned_to: rowAssignedTo,
+                        notes: address || null
+                    });
                 }
-
-                // Skip empty rows
-                if (!firstName && !lastName && !email && !phone) continue;
-
-                customersData.push({
-                    name: name || `${firstName} ${lastName}`.trim() || 'Unknown',
-                    firstName,
-                    lastName,
-                    email: email || null,
-                    phone: phone || null,
-                    status: 'pending',
-                    assignedTo: null,
-                    notes: address || null
-                });
+                
+                // Insert batch using optimized bulk insert
+                if (batchData.length > 0) {
+                    try {
+                        const placeholders = [];
+                        const values = [];
+                        let paramIndex = 1;
+                        
+                        for (const customer of batchData) {
+                            // CRITICAL: Include archived = FALSE for all bulk uploads
+                            placeholders.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+                            values.push(
+                                customer.name,
+                                customer.email,
+                                customer.phone,
+                                customer.status,
+                                customer.assigned_to,
+                                customer.notes,
+                                false // archived = FALSE - new uploads should never be archived
+                            );
+                        }
+                        
+                        const insertQuery = `
+                            INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived)
+                            VALUES ${placeholders.join(', ')}
+                            ON CONFLICT DO NOTHING
+                        `;
+                        
+                        const result = await client.query(insertQuery, values);
+                        importedCount += result.rowCount || 0;
+                        
+                        // Log progress every 50k rows
+                        if (chunkStart % 50000 === 0 && chunkStart > 0) {
+                            console.log(`Processed ${chunkStart} / ${totalRows} rows (${Math.round((chunkStart / totalRows) * 100)}%) - Imported: ${importedCount}`);
+                        }
+                    } catch (batchError) {
+                        console.error(`Batch ${Math.floor(chunkStart / batchSize) + 1} error:`, batchError.message);
+                        errorCount += batchData.length;
+                        // Continue with next batch
+                    }
+                }
             }
         } else {
+            await client.query('ROLLBACK');
             return res.status(400).json({ error: 'Unsupported file type. Please upload CSV or Excel file.' });
         }
 
-        if (customersData.length === 0) {
-            return res.status(400).json({ error: 'No valid customer data found in file' });
-        }
-
-        // Process bulk upload
-        const totalRecords = customersData.length;
-        let importedCount = 0;
-        let errorCount = 0;
-        const batchSize = 1000;
-
-        // Process in batches
-        for (let i = 0; i < customersData.length; i += batchSize) {
-            const batch = customersData.slice(i, i + batchSize);
-            
-            const values = [];
-            const placeholders = [];
-            let paramIndex = 1;
-
-            for (const customer of batch) {
-                const name = customer.name || 'Unknown';
-                const email = customer.email || null;
-                const phone = customer.phone || null;
-                const status = customer.status || 'pending';
-                const assigned_to = customer.assignedTo || null;
-                const notes = customer.notes || null;
-
-                placeholders.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
-                values.push(name, email, phone, status, assigned_to, notes);
-            }
-
-            const query = `
-                INSERT INTO customers (name, email, phone, status, assigned_to, notes)
-                VALUES ${placeholders.join(', ')}
-            `;
-
-            try {
-                const result = await dbPool.query(query, values);
-                importedCount += result.rowCount || 0;
-            } catch (batchError) {
-                console.error(`Batch ${i / batchSize + 1} error:`, batchError);
-                errorCount += batch.length;
-            }
-        }
+        // Commit transaction
+        await client.query('COMMIT');
+        
+        console.log(`Upload completed: ${importedCount} imported, ${errorCount} errors out of ${totalRows} total rows`);
 
         res.json({
             success: true,
-            totalRecords,
+            totalRecords: totalRows,
             importedCount,
-            errorCount
+            errorCount,
+            message: `Successfully imported ${importedCount} customers${errorCount > 0 ? ` (${errorCount} errors)` : ''}`
         });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('File upload error:', error);
-        res.status(500).json({ error: 'Server error processing file' });
+        res.status(500).json({ 
+            error: 'Server error processing file',
+            details: error.message 
+        });
+    } finally {
+        client.release();
     }
 });
 

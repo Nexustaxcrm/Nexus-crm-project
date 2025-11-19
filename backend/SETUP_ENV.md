@@ -19,6 +19,11 @@ DB_PORT=5432
 # This is a randomly generated secret - keep it secure!
 JWT_SECRET=f2f29caa222b383f706be3489b98359ba1cae0d3d9debaa1b250a4f43eda5d42
 
+# Admin User Password (optional, defaults to 'admin123')
+# This is the password for the default admin user created on first startup
+# IMPORTANT: Change this password after first login!
+ADMIN_PASSWORD=admin123
+
 # Server Port (optional, defaults to 3000)
 PORT=3000
 ```
@@ -51,10 +56,49 @@ If you want to generate a new JWT_SECRET, run:
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
+## Automatic Database Initialization
+
+The server automatically:
+- Creates database tables if they don't exist
+- Creates a default admin user if one doesn't exist
+
+**Default Admin Credentials:**
+- Username: `admin`
+- Password: `admin123` (or the value set in `ADMIN_PASSWORD` environment variable)
+
+⚠️ **IMPORTANT:** Change the admin password immediately after first login!
+
+## Railway Deployment
+
+When deploying to Railway, make sure to set these environment variables in your Railway project settings:
+
+1. **Database Variables** (usually auto-configured by Railway PostgreSQL service):
+   - `DB_USER`
+   - `DB_HOST`
+   - `DB_NAME`
+   - `DB_PASSWORD`
+   - `DB_PORT`
+
+2. **Required Application Variables**:
+   - `JWT_SECRET` - Generate a secure random string
+   - `ADMIN_PASSWORD` (optional) - Default admin password
+   - `PORT` - Usually set automatically by Railway
+
+3. **Generate JWT_SECRET for Railway:**
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+4. **After deployment:**
+   - The database tables will be created automatically
+   - The admin user will be created automatically
+   - Log in with the default credentials and change the password
+
 ## Important Notes
 
 - **Never commit the `.env` file to Git** - it contains sensitive information
 - The `.env` file is already in `.gitignore` to protect it
 - Keep your `JWT_SECRET` secure - it's used to sign authentication tokens
 - If you change `JWT_SECRET`, all existing login sessions will be invalidated
+- The admin user is only created if it doesn't already exist
 

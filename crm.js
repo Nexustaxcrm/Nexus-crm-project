@@ -149,15 +149,15 @@ function handleDrop(e) {
 }
 
 function initializeApp() {
-    // Load users from localStorage
+    // Load users from database
     loadUsers();
-    // Load customers from localStorage
+    // Load customers from database
     loadCustomers();
-    // Load user profiles from localStorage
+    // Load user profiles from sessionStorage
     loadUserProfiles();
     
     // Check if customer is logged in first - if so, don't initialize admin app
-    const customerLoggedIn = localStorage.getItem('customerLoggedIn');
+    const customerLoggedIn = sessionStorage.getItem('customerLoggedIn');
     if (customerLoggedIn === 'true') {
         // Customer is logged in, hide everything and let customer script handle it
         const loginPage = document.getElementById('loginPage');
@@ -196,8 +196,8 @@ async function handleLogin(e) {
     // Check if customer login credentials first
     if (username === 'customer' && password === 'customer') {
         // Customer login - show customer dashboard
-        localStorage.setItem('customerLoggedIn', 'true');
-        localStorage.setItem('customerUsername', username);
+        sessionStorage.setItem('customerLoggedIn', 'true');
+        sessionStorage.setItem('customerUsername', username);
         
         // Hide all admin pages
         const loginPage = document.getElementById('loginPage');
@@ -231,8 +231,8 @@ async function handleLogin(e) {
             role: 'preparation'
         };
         
-        localStorage.setItem('authToken', 'dev-token-' + Date.now());
-        localStorage.setItem('currentUser', JSON.stringify(mockUser));
+        sessionStorage.setItem('authToken', 'dev-token-' + Date.now());
+        sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
         currentUser = mockUser;
         showDashboard();
         showNotification('success', 'Login Successful', 'Welcome back!');
@@ -262,8 +262,8 @@ async function handleLogin(e) {
         
         if (response.ok) {
             // Login successful - save token and user info
-            localStorage.setItem('authToken', data.token);
-            localStorage.setItem('currentUser', JSON.stringify(data.user));
+            sessionStorage.setItem('authToken', data.token);
+            sessionStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
             showDashboard();
             showNotification('success', 'Login Successful', 'Welcome back!');
@@ -290,9 +290,9 @@ async function handleLogin(e) {
                 role: userRole
             };
             
-            // Save mock user for development
-            localStorage.setItem('authToken', 'dev-token-' + Date.now());
-            localStorage.setItem('currentUser', JSON.stringify(mockUser));
+            // Save mock user for development (using sessionStorage - clears when browser closes)
+            sessionStorage.setItem('authToken', 'dev-token-' + Date.now());
+            sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
             currentUser = mockUser;
             showDashboard();
             showNotification('info', 'Development Mode', 'Server not connected - using offline mode');
@@ -304,8 +304,8 @@ async function handleLogin(e) {
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('authToken');
     currentUser = null;
     showLogin();
 }
@@ -1422,41 +1422,63 @@ function showNewLeadModal() {
     modal.show();
 }
 
-function saveNewLead() {
+async function saveNewLead() {
     const firstName = document.getElementById('firstName').value;
     const lastName = document.getElementById('lastName').value;
     const phone = document.getElementById('phone').value;
     const email = document.getElementById('email').value;
     const address = document.getElementById('address').value;
     
-    const newCustomer = {
-        id: Date.now(),
-        firstName,
-        lastName,
-        phone,
-        email,
-        address,
-        status: 'pending',
-        callStatus: 'not_called',
-        comments: '',
-        createdAt: new Date().toISOString(),
-        assignedTo: currentUser.role === 'employee' ? currentUser.username : ''
-    };
-    
-    customers.push(newCustomer);
-    saveCustomers();
-    
-    // Hide modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('newLeadModal'));
-    modal.hide();
-    
-    // Reset form
-    document.getElementById('newLeadForm').reset();
-    
-    // Reload dashboard
-    loadDashboard();
-    
-    showNotification('success', 'Customer Added', 'New customer has been added successfully!');
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to add customers');
+            return;
+        }
+        
+        // Create customer directly via API
+        const customerData = {
+            name: `${firstName} ${lastName}`.trim() || 'Unknown',
+            email: email || null,
+            phone: phone || null,
+            status: 'pending',
+            assigned_to: currentUser.role === 'employee' ? currentUser.username : null,
+            notes: null
+        };
+        
+        const response = await fetch(API_BASE_URL + '/customers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(customerData)
+        });
+        
+        if (response.ok) {
+            const newCustomer = await response.json();
+            // Add to local array for immediate UI update
+            customers.push(newCustomer);
+            
+            // Hide modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newLeadModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('newLeadForm').reset();
+            
+            // Reload dashboard
+            loadDashboard();
+            
+            showNotification('success', 'Customer Added', 'New customer has been added successfully!');
+        } else {
+            const error = await response.json();
+            showNotification('error', 'Error', error.error || 'Failed to add customer');
+        }
+    } catch (error) {
+        console.error('Error creating customer:', error);
+        showNotification('error', 'Error', 'Failed to add customer. Please try again.');
+    }
 }
 
 // Modern File Upload Functions
@@ -1568,7 +1590,7 @@ async function processFile() {
         return;
     }
 
-    const token = localStorage.getItem('authToken');
+    const token = sessionStorage.getItem('authToken');
     if (!token) {
         showNotification('error', 'Upload Failed', 'You must be logged in to upload files');
         return;
@@ -1738,14 +1760,8 @@ async function importTabularData(headers, dataRows) {
         importedCount++;
     }
 
-    // Use bulk upload API for large files
-    if (customersData.length > 100) {
-        await bulkUploadCustomers(customersData);
-    } else {
-        // For small files, add to local array and save normally
-        customers.push(...customersData);
-        await saveCustomers();
-    }
+    // Always use bulk upload API (optimized for any size)
+    await bulkUploadCustomers(customersData);
     
     showNotification('success', 'Import Complete', `Successfully imported ${importedCount} customers!`);
     document.getElementById('csvFile').value = '';
@@ -1826,7 +1842,7 @@ function processCSV() {
     reader.readAsText(selectedFile);
 }
 
-function parseCSVData(csvText) {
+async function parseCSVData(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim());
     if (lines.length < 2) {
         showNotification('error', 'Invalid CSV', 'CSV file is empty or invalid.');
@@ -1836,6 +1852,7 @@ function parseCSVData(csvText) {
     // Parse CSV (assuming format: Name, Phone, Email, Address or First Name, Last Name, Phone, Email, Address)
     const headers = lines[0].split(',').map(h => h.trim());
     
+    const customersData = [];
     let importedCount = 0;
     
     for (let i = 1; i < lines.length; i++) {
@@ -1862,25 +1879,26 @@ function parseCSVData(csvText) {
             }
             
             const newCustomer = {
-                id: Date.now() + i,
+                name: `${firstName} ${lastName}`.trim() || 'Unknown',
                 firstName,
                 lastName,
-                phone,
-                email: email || '',
+                phone: phone || null,
+                email: email || null,
                 address: address || '',
                 status: 'pending',
-                callStatus: 'not_called',
-                comments: '',
-                createdAt: new Date().toISOString(),
-                assignedTo: ''
+                assignedTo: null,
+                notes: null
             };
             
-            customers.push(newCustomer);
+            customersData.push(newCustomer);
             importedCount++;
         }
     }
     
-    saveCustomers();
+    // Use bulk upload API for CSV imports
+    if (customersData.length > 0) {
+        await bulkUploadCustomers(customersData);
+    }
     showNotification('success', 'Import Complete', `Successfully imported ${importedCount} customers!`);
     
     // Clear file input
@@ -2018,7 +2036,7 @@ function getSelectedCustomerIds() {
     return Array.from(checkboxes).map(cb => parseInt(cb.getAttribute('data-id')));
 }
 
-function archiveSelected() {
+async function archiveSelected() {
     if (!currentUser || currentUser.role !== 'admin') {
         showNotification('error', 'Not allowed', 'Only admin can archive customers.');
         return;
@@ -2028,18 +2046,60 @@ function archiveSelected() {
         showNotification('info', 'No Selection', 'Select customers to move to Archive.');
         return;
     }
-    customers = customers.map(c => ids.includes(c.id)
-        ? { ...c, previousStatus: c.status || 'pending', status: 'archived', archived: true, assignedTo: '' }
-        : c);
-    saveCustomers();
-    renderAssignWorkPage();
-    // Refresh archive modal if it's open
-    const archiveModalEl = document.getElementById('archiveModal');
-    if (archiveModalEl && archiveModalEl.classList.contains('show')) {
-        renderArchiveModal();
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to archive customers');
+            return;
+        }
+        
+        // Archive each customer via API
+        const archivePromises = ids.map(async (id) => {
+            const customer = customers.find(c => c.id === id);
+            if (!customer) return;
+            
+            const response = await fetch(API_BASE_URL + '/customers/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+                    email: customer.email || null,
+                    phone: customer.phone || null,
+                    status: customer.status || 'pending',
+                    assigned_to: null, // Clear assignment when archiving
+                    notes: customer.comments || customer.notes || null,
+                    archived: true
+                })
+            });
+            
+            if (response.ok) {
+                const updated = await response.json();
+                // Update local array
+                const index = customers.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    customers[index] = { ...customers[index], ...updated, archived: true, assignedTo: null };
+                }
+            }
+        });
+        
+        await Promise.all(archivePromises);
+        
+        renderAssignWorkPage();
+        // Refresh archive modal if it's open
+        const archiveModalEl = document.getElementById('archiveModal');
+        if (archiveModalEl && archiveModalEl.classList.contains('show')) {
+            renderArchiveModal();
+        }
+        loadDashboard();
+        showNotification('success', 'Archived', `Moved ${ids.length} customer(s) to Archive.`);
+    } catch (error) {
+        console.error('Error archiving customers:', error);
+        showNotification('error', 'Error', 'Failed to archive customers. Please try again.');
     }
-    loadDashboard();
-    showNotification('success', 'Archived', `Moved ${ids.length} customer(s) to Archive.`);
 }
 
 function getSelectedArchiveCustomerIds() {
@@ -2047,7 +2107,7 @@ function getSelectedArchiveCustomerIds() {
     return Array.from(checkboxes).map(cb => parseInt(cb.getAttribute('data-id')));
 }
 
-function restoreFromArchiveSelected() {
+async function restoreFromArchiveSelected() {
     if (!currentUser || currentUser.role !== 'admin') {
         showNotification('error', 'Not allowed', 'Only admin can restore customers.');
         return;
@@ -2057,14 +2117,58 @@ function restoreFromArchiveSelected() {
         showNotification('info', 'No Selection', 'Select archived customers to restore.');
         return;
     }
-    customers = customers.map(c => ids.includes(c.id)
-        ? { ...c, status: (c.previousStatus || 'pending'), archived: false, previousStatus: undefined }
-        : c);
-    saveCustomers();
-    renderArchiveModal();
-    renderAssignWorkPage();
-    loadDashboard();
-    showNotification('success', 'Restored', `Moved ${ids.length} customer(s) back to Assign Work.`);
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to restore customers');
+            return;
+        }
+        
+        // Restore each customer via API
+        const restorePromises = ids.map(async (id) => {
+            const customer = customers.find(c => c.id === id);
+            if (!customer) return;
+            
+            const previousStatus = customer.previousStatus || customer.status || 'pending';
+            
+            const response = await fetch(API_BASE_URL + '/customers/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+                    email: customer.email || null,
+                    phone: customer.phone || null,
+                    status: previousStatus,
+                    assigned_to: customer.assignedTo || customer.assigned_to || null,
+                    notes: customer.comments || customer.notes || null,
+                    archived: false
+                })
+            });
+            
+            if (response.ok) {
+                const updated = await response.json();
+                // Update local array
+                const index = customers.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    customers[index] = { ...customers[index], ...updated, archived: false };
+                }
+            }
+        });
+        
+        await Promise.all(restorePromises);
+        
+        renderArchiveModal();
+        renderAssignWorkPage();
+        loadDashboard();
+        showNotification('success', 'Restored', `Moved ${ids.length} customer(s) back to Assign Work.`);
+    } catch (error) {
+        console.error('Error restoring customers:', error);
+        showNotification('error', 'Error', 'Failed to restore customers. Please try again.');
+    }
 }
 
 function toggleAllArchiveSelection(checkbox) {
@@ -2186,9 +2290,9 @@ function renderAssignWorkPage() {
         let refundStatusDisplay = '';
         if (isAdmin) {
             const refundStatusKey = `customerRefundStatus_${customer.email || customer.id}`;
-            let refundStatus = localStorage.getItem(refundStatusKey);
+            let refundStatus = sessionStorage.getItem(refundStatusKey);
             if (!refundStatus) {
-                refundStatus = localStorage.getItem('customerRefundStatus');
+                refundStatus = sessionStorage.getItem('customerRefundStatus');
             }
             if (refundStatus) {
                 refundStatusDisplay = `<td class="refund-status-column" style="display: table-cell;"><span class="badge bg-info">${getRefundStatusDisplayName(refundStatus)}</span></td>`;
@@ -2423,7 +2527,7 @@ function openDeleteByStatusModal() {
     modal.show();
 }
 
-function confirmDeleteByStatus() {
+async function confirmDeleteByStatus() {
     const modalEl = document.getElementById('confirmDeleteModal');
     const statuses = JSON.parse(modalEl.getAttribute('data-statuses') || '[]');
     const password = document.getElementById('confirmDeletePassword').value;
@@ -2431,19 +2535,57 @@ function confirmDeleteByStatus() {
         showNotification('error', 'Incorrect Password', 'The password you entered is incorrect.');
         return;
     }
-    const before = customers.length;
-    const set = new Set(statuses);
-    customers = customers.filter(c => !set.has(c.status || ''));
-    saveCustomers();
-    // Refresh UI
-    window.assignFiltered = null; // reset any filtered view; status may not exist now
-    renderAssignWorkPage();
-    loadDashboard();
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    modal.hide();
-    const removed = before - customers.length;
-    showNotification('success', 'Deleted', `Removed ${removed} customer(s).`);
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to delete customers');
+            return;
+        }
+        
+        // Find all customers with the selected statuses
+        const set = new Set(statuses);
+        const customersToDelete = customers.filter(c => set.has(c.status || ''));
+        const customerIds = customersToDelete.map(c => c.id);
+        
+        if (customerIds.length === 0) {
+            showNotification('info', 'Nothing To Delete', 'No customers found with the selected statuses.');
+            return;
+        }
+        
+        // Use bulk delete API
+        const response = await fetch(API_BASE_URL + '/customers/bulk-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ customerIds })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            // Remove from local array
+            customers = customers.filter(c => !set.has(c.status || ''));
+            
+            // Refresh UI
+            window.assignFiltered = null; // reset any filtered view; status may not exist now
+            renderAssignWorkPage();
+            loadDashboard();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            
+            showNotification('success', 'Deleted', `Removed ${result.deletedCount || customerIds.length} customer(s).`);
+        } else {
+            const error = await response.json();
+            showNotification('error', 'Error', error.error || 'Failed to delete customers');
+        }
+    } catch (error) {
+        console.error('Error deleting customers:', error);
+        showNotification('error', 'Error', 'Failed to delete customers. Please try again.');
+    }
 }
 
 // Delete All functionality for Assign Work tab
@@ -2500,7 +2642,7 @@ async function confirmDeleteAll() {
     // Verify admin password with server by attempting login
     try {
         // Get authentication token
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You must be logged in.');
             return;
@@ -2705,9 +2847,9 @@ function openUpdateStatusModal(customerId) {
     document.getElementById('updateCustomerStatus').value = customer.status || '';
     document.getElementById('updateComments').value = customer.comments || '';
     
-    // Load refund status from localStorage (keyed by customer email or ID)
+    // Load refund status from sessionStorage (clears when browser closes)
     const refundStatusKey = `customerRefundStatus_${customer.email || customerId}`;
-    const savedRefundStatus = localStorage.getItem(refundStatusKey);
+    const savedRefundStatus = sessionStorage.getItem(refundStatusKey);
     const refundStatusField = document.getElementById('updateCustomerRefundStatus');
     if (refundStatusField) {
         refundStatusField.value = savedRefundStatus || '';
@@ -3163,7 +3305,7 @@ function goBackToCalendar() {
     }
 }
 
-function saveStatusUpdate() {
+async function saveStatusUpdate() {
     const customerId = parseInt(document.getElementById('updateCustomerId').value);
     const status = document.getElementById('updateCustomerStatus').value;
     const comments = document.getElementById('updateComments').value;
@@ -3252,38 +3394,78 @@ function saveStatusUpdate() {
             const refundStatusField = document.getElementById('updateCustomerRefundStatus');
             if (refundStatusField) {
                 const refundStatus = refundStatusField.value || '';
-                // Save to localStorage keyed by customer email or ID for cross-login sync
+                // Save to sessionStorage (clears when browser closes) keyed by customer email or ID
                 const refundStatusKey = `customerRefundStatus_${customer.email || customerId}`;
                 if (refundStatus) {
-                    localStorage.setItem(refundStatusKey, refundStatus);
+                    sessionStorage.setItem(refundStatusKey, refundStatus);
                     // Also save globally for customer dashboard
-                    localStorage.setItem('customerRefundStatus', refundStatus);
+                    sessionStorage.setItem('customerRefundStatus', refundStatus);
                 } else {
-                    localStorage.removeItem(refundStatusKey);
+                    sessionStorage.removeItem(refundStatusKey);
                 }
             }
         }
         
-        saveCustomers();
-        
-        const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
-        modal.hide();
-        
-        loadAssignWorkTable();
-        // Refresh archive modal if it's open
-        const archiveModalEl = document.getElementById('archiveModal');
-        if (archiveModalEl && archiveModalEl.classList.contains('show')) {
-            renderArchiveModal();
-        }
-        loadDashboard();
-        
-        // Refresh Top 20 States chart if Progress tab is visible
-        const progressTab = document.getElementById('progressTab');
-        if (progressTab && progressTab.style.display !== 'none') {
-            loadTrafficSection();
+        // Update customer via API
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to update customers');
+            return;
         }
         
-        showNotification('success', 'Status Updated', 'Customer status has been updated successfully!');
+        const customerData = {
+            name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+            email: customer.email || null,
+            phone: customer.phone || null,
+            status: status,
+            assigned_to: customer.assignedTo || customer.assigned_to || null,
+            notes: comments || customer.notes || null
+        };
+        
+        try {
+            const response = await fetch(API_BASE_URL + '/customers/' + customerId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(customerData)
+            });
+            
+            if (response.ok) {
+                const updated = await response.json();
+                // Update local array
+                const index = customers.findIndex(c => c.id === customerId);
+                if (index !== -1) {
+                    customers[index] = { ...customers[index], ...updated, status, comments: comments };
+                }
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                modal.hide();
+                
+                loadAssignWorkTable();
+                // Refresh archive modal if it's open
+                const archiveModalEl = document.getElementById('archiveModal');
+                if (archiveModalEl && archiveModalEl.classList.contains('show')) {
+                    renderArchiveModal();
+                }
+                loadDashboard();
+                
+                // Refresh Top 20 States chart if Progress tab is visible
+                const progressTab = document.getElementById('progressTab');
+                if (progressTab && progressTab.style.display !== 'none') {
+                    loadTrafficSection();
+                }
+                
+                showNotification('success', 'Status Updated', 'Customer status has been updated successfully!');
+            } else {
+                const error = await response.json();
+                showNotification('error', 'Error', error.error || 'Failed to update customer');
+            }
+        } catch (error) {
+            console.error('Error updating customer:', error);
+            showNotification('error', 'Error', 'Failed to update customer. Please try again.');
+        }
     }
 }
 
@@ -3597,7 +3779,7 @@ function exportCustomers() {
     document.body.removeChild(link);
 }
 
-function assignToEmployee(employeeUsername) {
+async function assignToEmployee(employeeUsername) {
     const selectedCheckboxes = document.querySelectorAll('.customer-checkbox:checked');
     if (selectedCheckboxes.length === 0) {
         showNotification('warning', 'No Selection', 'Please select customers to assign.');
@@ -3607,21 +3789,57 @@ function assignToEmployee(employeeUsername) {
     const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.id));
     const selectedCustomers = customers.filter(c => selectedIds.includes(c.id));
     
-    selectedCustomers.forEach(customer => {
-        customer.assignedTo = employeeUsername;
-    });
-    
-    saveCustomers();
-    loadAssignWorkTable();
-    
-    // Uncheck all checkboxes
-    selectedCheckboxes.forEach(cb => cb.checked = false);
-    document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
-    
-    showNotification('success', 'Assignment Complete', `Assigned ${selectedCustomers.length} customers to ${employeeUsername}`);
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to assign customers');
+            return;
+        }
+        
+        // Assign each customer via API
+        const assignPromises = selectedCustomers.map(async (customer) => {
+            const response = await fetch(API_BASE_URL + '/customers/' + customer.id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+                    email: customer.email || null,
+                    phone: customer.phone || null,
+                    status: customer.status || 'pending',
+                    assigned_to: employeeUsername,
+                    notes: customer.comments || customer.notes || null
+                })
+            });
+            
+            if (response.ok) {
+                const updated = await response.json();
+                // Update local array
+                const index = customers.findIndex(c => c.id === customer.id);
+                if (index !== -1) {
+                    customers[index] = { ...customers[index], ...updated, assignedTo: employeeUsername };
+                }
+            }
+        });
+        
+        await Promise.all(assignPromises);
+        
+        loadAssignWorkTable();
+        
+        // Uncheck all checkboxes
+        selectedCheckboxes.forEach(cb => cb.checked = false);
+        document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
+        
+        showNotification('success', 'Assignment Complete', `Assigned ${selectedCustomers.length} customers to ${employeeUsername}`);
+    } catch (error) {
+        console.error('Error assigning customers:', error);
+        showNotification('error', 'Error', 'Failed to assign customers. Please try again.');
+    }
 }
 
-function assignToUnassigned() {
+async function assignToUnassigned() {
     const selectedCheckboxes = document.querySelectorAll('.customer-checkbox:checked');
     if (selectedCheckboxes.length === 0) {
         showNotification('warning', 'No Selection', 'Please select customers to unassign.');
@@ -3631,18 +3849,54 @@ function assignToUnassigned() {
     const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.id));
     const selectedCustomers = customers.filter(c => selectedIds.includes(c.id));
     
-    selectedCustomers.forEach(customer => {
-        customer.assignedTo = '';
-    });
-    
-    saveCustomers();
-    loadAssignWorkTable();
-    
-    // Uncheck all checkboxes
-    selectedCheckboxes.forEach(cb => cb.checked = false);
-    document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
-    
-    showNotification('success', 'Unassignment Complete', `Unassigned ${selectedCustomers.length} customers`);
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to unassign customers');
+            return;
+        }
+        
+        // Unassign each customer via API
+        const unassignPromises = selectedCustomers.map(async (customer) => {
+            const response = await fetch(API_BASE_URL + '/customers/' + customer.id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+                    email: customer.email || null,
+                    phone: customer.phone || null,
+                    status: customer.status || 'pending',
+                    assigned_to: null,
+                    notes: customer.comments || customer.notes || null
+                })
+            });
+            
+            if (response.ok) {
+                const updated = await response.json();
+                // Update local array
+                const index = customers.findIndex(c => c.id === customer.id);
+                if (index !== -1) {
+                    customers[index] = { ...customers[index], ...updated, assignedTo: null };
+                }
+            }
+        });
+        
+        await Promise.all(unassignPromises);
+        
+        loadAssignWorkTable();
+        
+        // Uncheck all checkboxes
+        selectedCheckboxes.forEach(cb => cb.checked = false);
+        document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
+        
+        showNotification('success', 'Unassignment Complete', `Unassigned ${selectedCustomers.length} customers`);
+    } catch (error) {
+        console.error('Error unassigning customers:', error);
+        showNotification('error', 'Error', 'Failed to unassign customers. Please try again.');
+    }
 }
 
 // Chart Type Management
@@ -4151,9 +4405,9 @@ function exportAllData() {
     customers.forEach(c => {
         const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
         const refundStatusKey = `customerRefundStatus_${c.email || c.id}`;
-        let refundStatus = localStorage.getItem(refundStatusKey);
+        let refundStatus = sessionStorage.getItem(refundStatusKey);
         if (!refundStatus) {
-            refundStatus = localStorage.getItem('customerRefundStatus');
+            refundStatus = sessionStorage.getItem('customerRefundStatus');
         }
         const refundStatusDisplay = refundStatus ? getRefundStatusDisplayName(refundStatus) : '';
         csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}","${getStatusDisplayName(c.status || 'pending')}","${c.callStatus || 'not_called'}","${c.assignedTo || 'Unassigned'}","${(c.comments || '').replace(/"/g, '""')}","${refundStatusDisplay}"\n`;
@@ -4326,7 +4580,7 @@ async function saveNewUser() {
     }
     
     try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You must be logged in to create users.');
             return;
@@ -4382,7 +4636,7 @@ async function toggleUserLock(username) {
             return;
         }
         
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You must be logged in.');
             return;
@@ -4457,7 +4711,7 @@ async function confirmDeleteUser(username) {
             return;
         }
         
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You must be logged in.');
             return;
@@ -4621,7 +4875,7 @@ function idbGet(key) {
 // Bulk upload customers to server (for large files - 300K+ records)
 async function bulkUploadCustomers(customersData) {
     try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         
         if (!token) {
             showNotification('error', 'Upload Failed', 'You must be logged in to upload files');
@@ -4702,9 +4956,22 @@ async function bulkUploadCustomers(customersData) {
     }
 }
 
+/**
+ * @deprecated This function is inefficient for large datasets (300k+ customers).
+ * It loops through ALL customers and makes individual API calls.
+ * Use direct API calls for specific operations instead:
+ * - POST /customers for creating new customers
+ * - PUT /customers/:id for updating specific customers
+ * - POST /customers/bulk-upload for bulk operations
+ * 
+ * This function is kept only for backward compatibility and should NOT be used
+ * in production with large datasets.
+ */
 async function saveCustomers() {
+    console.warn('saveCustomers() is deprecated. Use direct API calls instead for better performance.');
+    
     try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         
         if (!token) {
             console.error('No authentication token');
@@ -4712,6 +4979,7 @@ async function saveCustomers() {
         }
         
         // Save each customer to the server
+        // WARNING: This will be VERY slow with 300k+ customers
         for (const customer of customers) {
             // Transform customer data to match database schema
             const customerData = {
@@ -4981,7 +5249,7 @@ function getSampleCustomers() {
 
 async function loadCustomers() {
     try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         
         if (!token) {
             // No token means user not logged in
@@ -5065,7 +5333,7 @@ async function loadCustomers() {
     } catch (error) {
         console.error('Error loading customers:', error);
         // Fallback to sample data in development mode
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (token && token.startsWith('dev-token-')) {
             console.log('Using sample data due to connection error');
             customers = getSampleCustomers();
@@ -5080,20 +5348,30 @@ async function loadCustomers() {
     }
 }
 
-function reloadSampleData() {
-    customers = getSampleCustomers();
-    saveCustomers();
+async function reloadSampleData() {
+    const sampleCustomers = getSampleCustomers();
+    // Format for bulk upload API
+    const formattedCustomers = sampleCustomers.map(customer => ({
+        name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+        email: customer.email || null,
+        phone: customer.phone || null,
+        status: customer.status || 'pending',
+        assignedTo: customer.assignedTo || null,
+        notes: customer.comments || customer.notes || null
+    }));
+    
+    // Use bulk upload API for efficiency
+    await bulkUploadCustomers(formattedCustomers);
+    customers = sampleCustomers; // Update local array
     loadDashboard();
     showNotification('success', 'Data Reloaded', 'Sample data has been reloaded with data across multiple months');
 }
 
-function saveUsers() {
-    localStorage.setItem('crm_users', JSON.stringify(users));
-}
+// Removed saveUsers() - users are stored in database, not localStorage
 
 async function loadUsers() {
     try {
-        const token = localStorage.getItem('authToken');
+        const token = sessionStorage.getItem('authToken');
         if (!token) {
             // If not logged in, use empty array
             users = [];
@@ -5119,7 +5397,8 @@ async function loadUsers() {
 }
 
 function loadUserProfiles() {
-    const saved = localStorage.getItem('crm_user_profiles');
+    // User profiles are now stored in sessionStorage (clears when browser closes)
+    const saved = sessionStorage.getItem('crm_user_profiles');
     if (saved) {
         userProfiles = JSON.parse(saved);
     } else {
@@ -5147,7 +5426,8 @@ function loadUserProfiles() {
 }
 
 function saveUserProfiles() {
-    localStorage.setItem('crm_user_profiles', JSON.stringify(userProfiles));
+    // Store in sessionStorage instead of localStorage (clears when browser closes)
+    sessionStorage.setItem('crm_user_profiles', JSON.stringify(userProfiles));
 }
 
 function showMyProfileModal() {

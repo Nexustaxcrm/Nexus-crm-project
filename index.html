@@ -2875,16 +2875,16 @@
             
             if (toggle.checked) {
                 html.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
+                sessionStorage.setItem('theme', 'dark');
             } else {
                 html.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
+                sessionStorage.setItem('theme', 'light');
             }
         }
         
         // Load saved theme preference on page load
         function loadTheme() {
-            const savedTheme = localStorage.getItem('theme');
+            const savedTheme = sessionStorage.getItem('theme');
             const toggle = document.getElementById('darkModeToggle');
             const html = document.documentElement;
             
@@ -4332,7 +4332,7 @@
         
         // Check if customer is already logged in
         function checkCustomerLogin() {
-            const isLoggedIn = localStorage.getItem('customerLoggedIn');
+            const isLoggedIn = sessionStorage.getItem('customerLoggedIn');
             if (isLoggedIn === 'true') {
                 // Hide admin pages
                 const loginPage = document.getElementById('loginPage');
@@ -4351,8 +4351,8 @@
         
         // Customer logout
         function customerLogout() {
-            localStorage.removeItem('customerLoggedIn');
-            localStorage.removeItem('customerUsername');
+            sessionStorage.removeItem('customerLoggedIn');
+            sessionStorage.removeItem('customerUsername');
             
             // Hide customer dashboard
             const customerDashboard = document.getElementById('customerDashboardPage');
@@ -4462,7 +4462,7 @@
             };
             
             // Save customer data to localStorage
-            localStorage.setItem('customerData', JSON.stringify(customerData));
+            sessionStorage.setItem('customerData', JSON.stringify(customerData));
             
             // Save uploaded files (as base64 for demo purposes)
             const filePromises = uploadedFiles.map(fileData => {
@@ -4480,7 +4480,7 @@
             });
             
             const fileDataArray = await Promise.all(filePromises);
-            localStorage.setItem('customerFiles', JSON.stringify(fileDataArray));
+            sessionStorage.setItem('customerFiles', JSON.stringify(fileDataArray));
             
             // Show success message
             alert('Your information has been submitted successfully! Your tax advisor will review your details and update your refund status.');
@@ -4496,7 +4496,7 @@
             const firstNameEl = document.getElementById('customerFirstName');
             if (!firstNameEl) return; // Customer page not loaded yet
             
-            const savedData = localStorage.getItem('customerData');
+            const savedData = sessionStorage.getItem('customerData');
             if (savedData) {
                 const customerData = JSON.parse(savedData);
                 
@@ -4533,12 +4533,12 @@
                 
                 if (customerEmail) {
                     const refundStatusKey = `customerRefundStatus_${customerEmail}`;
-                    refundStatus = localStorage.getItem(refundStatusKey);
+                    refundStatus = sessionStorage.getItem(refundStatusKey);
                 }
                 
                 // Fallback to global customerRefundStatus
                 if (!refundStatus) {
-                    refundStatus = localStorage.getItem('customerRefundStatus');
+                    refundStatus = sessionStorage.getItem('customerRefundStatus');
                 }
                 
                 if (refundStatus) {
@@ -4581,7 +4581,7 @@
         // Run checkCustomerLogin immediately when script loads (before DOMContentLoaded)
         (function() {
             // Check if customer is logged in on page load
-            const customerLoggedIn = localStorage.getItem('customerLoggedIn');
+            const customerLoggedIn = sessionStorage.getItem('customerLoggedIn');
             if (customerLoggedIn === 'true') {
                 // Wait for DOM to be ready
                 if (document.readyState === 'loading') {
