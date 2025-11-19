@@ -2399,11 +2399,44 @@ function updateAssignArchiveButtonsVisibility() {
 
 async function renderAssignWorkPage() {
     const tbody = document.getElementById('assignWorkTable');
-    const pager = document.getElementById('assignPagination');
+    let pager = document.getElementById('assignPagination');
+    
+    // CRITICAL: If pagination element doesn't exist, create it immediately
+    if (!pager) {
+        console.warn('⚠️ Pagination element not found! Creating it now...');
+        const assignWorkTab = document.getElementById('assignWorkTab');
+        if (assignWorkTab) {
+            // Find the table container and add pagination right after it
+            const tableContainer = assignWorkTab.querySelector('.data-table');
+            if (tableContainer && tableContainer.parentElement) {
+                pager = document.createElement('div');
+                pager.id = 'assignPagination';
+                pager.style.cssText = 'display: block !important; visibility: visible !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 3px solid #007bff !important; background: #ffffff !important; width: 100% !important; min-height: 60px !important;';
+                // Insert after the table container's parent div
+                tableContainer.parentElement.parentElement.appendChild(pager);
+                console.log('✅ Created pagination element after table');
+            } else {
+                // Fallback: append to assignWorkTab
+                pager = document.createElement('div');
+                pager.id = 'assignPagination';
+                pager.style.cssText = 'display: block !important; visibility: visible !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 3px solid #007bff !important; background: #ffffff !important; width: 100% !important; min-height: 60px !important;';
+                assignWorkTab.appendChild(pager);
+                console.log('✅ Created pagination element (fallback)');
+            }
+        } else {
+            console.error('❌ assignWorkTab not found!');
+        }
+    }
     
     // Show loading state
     if (tbody) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+    }
+    
+    // Show a temporary pagination message while loading
+    if (pager) {
+        pager.innerHTML = '<div style="text-align: center; padding: 10px; color: #666;">Loading pagination...</div>';
+        pager.style.cssText = 'display: block !important; visibility: visible !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 3px solid #007bff !important; background: #ffffff !important; width: 100% !important; min-height: 60px !important;';
     }
     
     try {
@@ -2596,6 +2629,9 @@ async function renderAssignWorkPage() {
         // Initialize column reordering for assigned work table
         initColumnReordering('assignedWorkTable');
 
+        // CRITICAL: Re-fetch pagination element (it might have been created earlier)
+        pager = document.getElementById('assignPagination');
+        
         // Always show pagination - ensure element exists and is visible
         if (!pager) {
             console.warn('Pagination element not found! Creating it...');
@@ -2653,18 +2689,36 @@ async function renderAssignWorkPage() {
             pager.innerHTML = '';
             pager.innerHTML = paginationHTML;
             
-            // Remove grey background, keep it simple and visible
-            pager.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; padding: 10px 15px !important; margin-top: 10px !important; border-top: 1px solid #ddd !important; background: transparent !important;';
+            // FORCE VISIBILITY - White background, clear border, always visible
+            pager.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 3px solid #007bff !important; background: #ffffff !important; width: 100% !important; min-height: 60px !important; box-shadow: 0 -2px 5px rgba(0,0,0,0.1) !important;';
             
+            // Verify it was set
+            const actualHTML = pager.innerHTML;
             console.log('✅ PAGINATION RENDERED!', {
                 element: pager,
                 elementVisible: pager.offsetHeight > 0,
-                innerHTML: pager.innerHTML.substring(0, 100),
+                elementDisplay: window.getComputedStyle(pager).display,
+                elementVisibility: window.getComputedStyle(pager).visibility,
+                innerHTMLLength: actualHTML.length,
+                innerHTMLPreview: actualHTML.substring(0, 200),
                 total: total,
                 page: page,
                 pages: pagesText,
-                size: size
+                size: size,
+                hasSelect: actualHTML.includes('<select'),
+                hasShowLabel: actualHTML.includes('Show:')
             });
+            
+            // If HTML wasn't set, try again
+            if (!actualHTML || actualHTML.length < 50) {
+                console.error('❌ Pagination HTML not set! Trying again...');
+                pager.innerHTML = paginationHTML;
+            }
+            
+            // Force scroll to make it visible
+            setTimeout(() => {
+                pager.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 300);
         } else {
             console.error('Could not find or create pagination element!');
         }
