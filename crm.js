@@ -1655,6 +1655,12 @@ async function processFile() {
 
             // Reload customers from server
             await loadCustomers();
+            
+            // Refresh Assign Work tab if it's currently visible
+            const assignWorkTab = document.getElementById('assignWorkTab');
+            if (assignWorkTab && assignWorkTab.style.display !== 'none') {
+                await renderAssignWorkPage();
+            }
 
             // Show success message
             setTimeout(() => {
@@ -2281,99 +2287,195 @@ function updateAssignArchiveButtonsVisibility() {
     archiveBtn.style.display = isAdmin ? 'inline-flex' : 'none';
 }
 
-function renderAssignWorkPage() {
+async function renderAssignWorkPage() {
     const tbody = document.getElementById('assignWorkTable');
     const pager = document.getElementById('assignPagination');
-    const source = getAssignSourceArray();
-    const total = source.length;
-    const size = window.assignPageSize || 200;
-    const pages = Math.max(1, Math.ceil(total / size));
-    let page = Math.min(Math.max(1, window.assignCurrentPage || 1), pages);
-    window.assignCurrentPage = page;
-
-    const start = (page - 1) * size;
-    const end = Math.min(start + size, total);
-    const slice = source.slice(start, end);
-
-    // Show/hide refund status column based on admin role
-    const isAdmin = currentUser && currentUser.role === 'admin';
-    const refundStatusHeader = document.getElementById('refundStatusHeader');
-    if (refundStatusHeader) {
-        refundStatusHeader.style.display = isAdmin ? '' : 'none';
+    
+    // Show loading state
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
     }
-
-    let html = '';
-    for (let i = 0; i < slice.length; i++) {
-        const customer = slice[i];
-        const statusForDisplay = customer.status || '';
-        const assignedTo = customer.assignedTo || customer.assigned_to || '';
-        const assignedToDisplay = assignedTo ? `<span class="badge bg-info"><i class="fas fa-user"></i> ${assignedTo}</span>` : '<span class="text-muted">-</span>';
-        
-        // Get refund status for admin
-        let refundStatusDisplay = '';
-        if (isAdmin) {
-            const refundStatusKey = `customerRefundStatus_${customer.email || customer.id}`;
-            let refundStatus = sessionStorage.getItem(refundStatusKey);
-            if (!refundStatus) {
-                refundStatus = sessionStorage.getItem('customerRefundStatus');
-            }
-            if (refundStatus) {
-                refundStatusDisplay = `<td class="refund-status-column" style="display: table-cell;"><span class="badge bg-info">${getRefundStatusDisplayName(refundStatus)}</span></td>`;
-            } else {
-                refundStatusDisplay = '<td class="refund-status-column" style="display: table-cell;"><span class="text-muted">-</span></td>';
-            }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">Please log in to view customers</td></tr>';
+            return;
         }
         
-        html += `
-        <tr>
-            <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
-            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none">${customer.phone || ''}</a></td>
-            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
-            <td><small class="text-muted">${customer.address || ''}</small></td>
-            <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
-            <td>${assignedToDisplay}</td>
-            ${refundStatusDisplay}
-            <td><small>${customer.comments || '-'}</small></td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
-                    <i class="fas fa-edit"></i>
-                </button>
-            </td>
-        </tr>`;
-    }
-    tbody.innerHTML = html;
-    
-    // Initialize column reordering for assigned work table
-    initColumnReordering('assignedWorkTable');
+        // Get pagination parameters
+        const size = window.assignPageSize || 200;
+        const page = Math.max(1, window.assignCurrentPage || 1);
+        window.assignCurrentPage = page;
+        
+        // Build query parameters - exclude archived by default
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: size.toString()
+        });
+        
+        // Apply status filter if set (send to API for server-side filtering)
+        const sel = Array.isArray(window.assignStatusFilter) ? window.assignStatusFilter : null;
+        if (sel && sel.length > 0) {
+            const filtered = sel.filter(s => s !== 'archived');
+            if (filtered.length === 1) {
+                // Single status - use API filter
+                params.append('status', filtered[0]);
+            }
+            // For multiple statuses, we'll filter client-side after fetching
+        }
+        
+        // Fetch customers from API with pagination
+        const response = await fetch(API_BASE_URL + '/customers?' + params.toString(), {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch customers');
+        }
+        
+        const data = await response.json();
+        const customersData = data.customers || data;
+        const pagination = data.pagination || { totalRecords: customersData.length, totalPages: 1 };
+        
+        // Transform database records to match frontend expectations
+        const slice = customersData.map(customer => {
+            let firstName = customer.firstName || '';
+            let lastName = customer.lastName || '';
+            
+            if (!firstName && !lastName && customer.name) {
+                const nameParts = customer.name.trim().split(/\s+/);
+                firstName = nameParts[0] || '';
+                lastName = nameParts.slice(1).join(' ') || '';
+            }
+            
+            return {
+                ...customer,
+                id: customer.id,
+                firstName: firstName,
+                lastName: lastName,
+                name: customer.name || `${firstName} ${lastName}`.trim(),
+                phone: customer.phone || '',
+                email: customer.email || '',
+                address: customer.address || customer.notes || '',
+                status: customer.status || 'pending',
+                callStatus: customer.callStatus || 'not_called',
+                comments: customer.comments || customer.notes || '',
+                assignedTo: customer.assignedTo || customer.assigned_to || '',
+                archived: customer.archived || false
+            };
+        });
+        
+        // Apply status filter if set (client-side filtering for multiple statuses)
+        let filteredSlice = slice;
+        if (sel && sel.length > 0) {
+            const filtered = sel.filter(s => s !== 'archived');
+            if (filtered.length > 1) {
+                // Multiple statuses - filter client-side
+                const filteredSet = new Set(filtered);
+                filteredSlice = slice.filter(c => filteredSet.has(c.status || ''));
+            }
+            // If single status, API already filtered it
+        }
+        
+        // Filter out archived customers (should already be filtered by API, but double-check)
+        filteredSlice = filteredSlice.filter(c => !c.archived && c.status !== 'archived');
+        
+        // Use pagination info from API
+        const total = pagination.totalRecords || filteredSlice.length;
+        const pages = pagination.totalPages || Math.max(1, Math.ceil(total / size));
+        
+        // For display, use the slice directly (already paginated by API)
+        const displaySlice = filteredSlice;
 
-    if (pager) {
-        const pagesText = Math.max(1, Math.ceil(total / size));
-        const displayStart = total === 0 ? 0 : start + 1;
-        const displayEnd = total === 0 ? 0 : end;
-        pager.innerHTML = `
-            <div class="text-muted small">Showing ${displayStart}-${displayEnd} of ${total}</div>
-            <div class="btn-group">
-                <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">⏮</button>
-                <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage--; renderAssignWorkPage()">‹</button>
-                <span class="btn btn-sm btn-light disabled">Page ${page} / ${pagesText}</span>
-                <button class="btn btn-sm btn-outline-secondary" ${page===pagesText?'disabled':''} onclick="window.assignCurrentPage++; renderAssignWorkPage()">›</button>
-                <button class="btn btn-sm btn-outline-secondary" ${page===pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">⏭</button>
-            </div>
-            <div>
-                <select class="form-select form-select-sm" style="width:auto" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
-                    <option ${size===100?'selected':''} value="100">100</option>
-                    <option ${size===200?'selected':''} value="200">200</option>
-                    <option ${size===300?'selected':''} value="300">300</option>
-                    <option ${size===500?'selected':''} value="500">500</option>
-                    <option ${size===1000?'selected':''} value="1000">1000</option>
-                </select>
-            </div>`;
-    }
+        // Show/hide refund status column based on admin role
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        const refundStatusHeader = document.getElementById('refundStatusHeader');
+        if (refundStatusHeader) {
+            refundStatusHeader.style.display = isAdmin ? '' : 'none';
+        }
 
-    // Initialize column resizing once per render
-    initAssignWorkColumnResize();
-    updateAssignArchiveButtonsVisibility();
+        let html = '';
+        for (let i = 0; i < displaySlice.length; i++) {
+            const customer = displaySlice[i];
+            const statusForDisplay = customer.status || '';
+            const assignedTo = customer.assignedTo || customer.assigned_to || '';
+            const assignedToDisplay = assignedTo ? `<span class="badge bg-info"><i class="fas fa-user"></i> ${assignedTo}</span>` : '<span class="text-muted">-</span>';
+            
+            // Get refund status for admin
+            let refundStatusDisplay = '';
+            if (isAdmin) {
+                const refundStatusKey = `customerRefundStatus_${customer.email || customer.id}`;
+                let refundStatus = sessionStorage.getItem(refundStatusKey);
+                if (!refundStatus) {
+                    refundStatus = sessionStorage.getItem('customerRefundStatus');
+                }
+                if (refundStatus) {
+                    refundStatusDisplay = `<td class="refund-status-column" style="display: table-cell;"><span class="badge bg-info">${getRefundStatusDisplayName(refundStatus)}</span></td>`;
+                } else {
+                    refundStatusDisplay = '<td class="refund-status-column" style="display: table-cell;"><span class="text-muted">-</span></td>';
+                }
+            }
+            
+            html += `
+            <tr>
+                <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
+                <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+                <td><a href="tel:${customer.phone || ''}" class="text-decoration-none">${customer.phone || ''}</a></td>
+                <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
+                <td><small class="text-muted">${customer.address || ''}</small></td>
+                <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
+                <td>${assignedToDisplay}</td>
+                ${refundStatusDisplay}
+                <td><small>${customer.comments || '-'}</small></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }
+        if (tbody) tbody.innerHTML = html;
+        
+        // Initialize column reordering for assigned work table
+        initColumnReordering('assignedWorkTable');
+
+        if (pager) {
+            const pagesText = Math.max(1, pages);
+            const displayStart = total === 0 ? 0 : (page - 1) * size + 1;
+            const displayEnd = total === 0 ? 0 : Math.min(page * size, total);
+            pager.innerHTML = `
+                <div class="text-muted small">Showing ${displayStart}-${displayEnd} of ${total}</div>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">⏮</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage--; renderAssignWorkPage()">‹</button>
+                    <span class="btn btn-sm btn-light disabled">Page ${page} / ${pagesText}</span>
+                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage++; renderAssignWorkPage()">›</button>
+                    <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">⏭</button>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" style="width:auto" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                        <option ${size===100?'selected':''} value="100">100</option>
+                        <option ${size===200?'selected':''} value="200">200</option>
+                        <option ${size===300?'selected':''} value="300">300</option>
+                        <option ${size===500?'selected':''} value="500">500</option>
+                        <option ${size===1000?'selected':''} value="1000">1000</option>
+                    </select>
+                </div>`;
+        }
+
+        // Initialize column resizing once per render
+        initAssignWorkColumnResize();
+        updateAssignArchiveButtonsVisibility();
+    } catch (error) {
+        console.error('Error loading assign work table:', error);
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error loading customers. Please refresh the page.</td></tr>';
+        }
+        showNotification('error', 'Load Failed', 'Failed to load customers. Please try again.');
+    }
 }
 
 // Add draggable column resizers to Assign Work table
