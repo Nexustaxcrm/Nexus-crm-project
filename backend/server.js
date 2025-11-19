@@ -11,10 +11,11 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CRITICAL: Trust proxy for Railway deployment
+// CRITICAL: Trust proxy for Railway deployment (but only the first proxy for security)
 // Railway uses a reverse proxy, so we need to trust X-Forwarded-* headers
-// This fixes the express-rate-limit validation error
-app.set('trust proxy', true);
+// Setting to 1 means we only trust the first proxy (Railway's), not all proxies
+// This prevents IP-based rate limiting bypass while fixing the express-rate-limit error
+app.set('trust proxy', 1);
 
 // Security: Helmet.js - Set various HTTP headers for security
 app.use(helmet({
