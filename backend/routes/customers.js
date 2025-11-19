@@ -460,11 +460,10 @@ router.post('/bulk-upload', authenticateToken, express.json({ limit: '50mb' }), 
                 values.push(name, email, phone, status, assigned_to, notes, false); // archived = FALSE
             }
 
-            // Use ON CONFLICT DO NOTHING to handle duplicates gracefully
+            // Insert customers (removed ON CONFLICT since there's no unique constraint)
             const query = `
                 INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived)
                 VALUES ${placeholders.join(', ')}
-                ON CONFLICT DO NOTHING
             `;
 
             try {
@@ -661,14 +660,19 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                         const insertQuery = `
                             INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived)
                             VALUES ${placeholders.join(', ')}
-                            ON CONFLICT DO NOTHING
                         `;
                         
                         const result = await client.query(insertQuery, values);
                         importedCount += result.rowCount || 0;
                         
+                        // Log if no rows inserted (for debugging)
+                        if (result.rowCount === 0 && batchData.length > 0) {
+                            console.warn(`Warning: Batch of ${batchData.length} rows resulted in 0 inserts. Check data format.`);
+                            console.warn(`Sample row from batch:`, JSON.stringify(batchData[0]));
+                        }
+                        
                         // Log progress every 50k rows
-                        if (chunkStart % 50000 === 1 && chunkStart > 1) {
+                        if (chunkStart % 50000 === 0 && chunkStart > 0) {
                             console.log(`Processed ${chunkStart} / ${totalRows} rows (${Math.round((chunkStart / totalRows) * 100)}%) - Imported: ${importedCount}`);
                         }
                     } catch (batchError) {
@@ -735,6 +739,9 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
             const dataRows = rows.slice(headerRowIndex + 1);
             totalRows = dataRows.length;
             
+            console.log(`Found header row at index ${headerRowIndex}:`, headers);
+            console.log(`Total data rows to process: ${totalRows}`);
+            
             const normalize = (h) => h.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
             
             // Build header index map (including assigned_to support)
@@ -764,6 +771,13 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                     headerIndexByKey.assigned_to = idx;
                 }
             });
+            
+            console.log('Header mapping result:', JSON.stringify(headerIndexByKey));
+            
+            // Check if we found at least one required field
+            if (headerIndexByKey.name === -1 && headerIndexByKey.firstName === -1 && headerIndexByKey.lastName === -1) {
+                console.warn('WARNING: No name, firstName, or lastName column found in Excel file!');
+            }
 
             // Process rows in chunks and insert using COPY (much faster for bulk inserts)
             console.log(`Processing ${totalRows} rows in batches of ${batchSize}...`);
@@ -801,7 +815,10 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                     }
 
                     // Skip empty rows
-                    if (!firstName && !lastName && !email && !phone && !name) continue;
+                    if (!firstName && !lastName && !email && !phone && !name) {
+                        errorCount++;
+                        continue;
+                    }
 
                     const finalName = name || `${firstName} ${lastName}`.trim() || 'Unknown';
                     
@@ -813,6 +830,20 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                         assigned_to: rowAssignedTo,
                         notes: address || null
                     });
+                }
+                
+                // Log first batch sample for debugging
+                if (chunkStart === 0) {
+                    console.log('First batch processing:');
+                    console.log('  - Headers detected:', headers);
+                    console.log('  - Header index map:', JSON.stringify(headerIndexByKey));
+                    console.log('  - First data row sample:', JSON.stringify(dataRows[0]));
+                    console.log('  - Batch data length:', batchData.length);
+                    if (batchData.length > 0) {
+                        console.log('  - Sample customer data:', JSON.stringify(batchData[0]));
+                    } else {
+                        console.warn('  - WARNING: First batch is empty! All rows may be getting skipped.');
+                    }
                 }
                 
                 // Insert batch using optimized bulk insert
@@ -839,11 +870,22 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
                         const insertQuery = `
                             INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived)
                             VALUES ${placeholders.join(', ')}
-                            ON CONFLICT DO NOTHING
                         `;
                         
                         const result = await client.query(insertQuery, values);
                         importedCount += result.rowCount || 0;
+                        
+                        // Log if no rows inserted (for debugging)
+                        if (result.rowCount === 0 && batchData.length > 0) {
+                            console.error(`ERROR: Batch of ${batchData.length} rows resulted in 0 inserts!`);
+                            console.error(`Sample row from batch:`, JSON.stringify(batchData[0]));
+                            console.error(`Query:`, insertQuery.substring(0, 200) + '...');
+                        } else if (result.rowCount > 0) {
+                            // Log successful batch
+                            if (chunkStart % 50000 === 0 || chunkStart === 0) {
+                                console.log(`Batch ${Math.floor(chunkStart / batchSize) + 1}: Inserted ${result.rowCount} rows`);
+                            }
+                        }
                         
                         // Log progress every 50k rows
                         if (chunkStart % 50000 === 0 && chunkStart > 0) {
@@ -865,13 +907,25 @@ router.post('/upload-file', authenticateToken, upload.single('file'), async (req
         await client.query('COMMIT');
         
         console.log(`Upload completed: ${importedCount} imported, ${errorCount} errors out of ${totalRows} total rows`);
+        
+        // Additional diagnostic logging
+        if (importedCount === 0 && totalRows > 0) {
+            console.error('CRITICAL: No customers were imported!');
+            console.error('Possible causes:');
+            console.error('  1. All rows are empty (no name, email, phone, or address)');
+            console.error('  2. Header detection failed - column names don\'t match expected format');
+            console.error('  3. Data format issue - check Excel file structure');
+            console.error(`  4. ${totalRows - errorCount} rows were processed but skipped as empty`);
+        }
 
         res.json({
             success: true,
             totalRecords: totalRows,
             importedCount,
             errorCount,
-            message: `Successfully imported ${importedCount} customers${errorCount > 0 ? ` (${errorCount} errors)` : ''}`
+            message: importedCount > 0 
+                ? `Successfully imported ${importedCount} customers${errorCount > 0 ? ` (${errorCount} errors)` : ''}`
+                : `No customers imported. ${errorCount} rows were empty or invalid. Please check your Excel file format.`
         });
     } catch (error) {
         await client.query('ROLLBACK');
