@@ -195,12 +195,23 @@ app.get('/test', (req, res) => {
 });
 
 // Serve static files from parent directory (frontend)
-// This allows serving index.html and other frontend files
-// If Root Directory is project root, __dirname will be backend/, so go up one level
+// Railway Root Directory MUST be set to project root (.) not backend
+// If Root Directory = ., then __dirname = /app/backend, so parent = /app (where index.html is)
+// If Root Directory = backend, then __dirname = /app, and parent = / (which doesn't have index.html)
 const frontendPath = path.join(__dirname, '..');
 
-// Serve static files (CSS, JS, images, etc.)
-app.use(express.static(frontendPath));
+// Log paths for debugging
+console.log('Server starting...');
+console.log('Current directory (__dirname):', __dirname);
+console.log('Frontend path:', frontendPath);
+console.log('Looking for index.html at:', path.join(frontendPath, 'index.html'));
+console.log('index.html exists:', fs.existsSync(path.join(frontendPath, 'index.html')));
+
+// Serve static files (CSS, JS, images, etc.) from parent directory
+app.use(express.static(frontendPath, {
+    // Don't fail if directory doesn't exist
+    fallthrough: true
+}));
 
 // Serve index.html for all non-API routes (SPA routing)
 // This catch-all MUST come AFTER all API routes
@@ -215,16 +226,51 @@ app.get('*', (req, res) => {
     
     // Check if file exists before sending
     if (fs.existsSync(indexPath)) {
-        return res.sendFile(indexPath, { root: frontendPath });
+        return res.sendFile(indexPath);
     }
     
-    // If index.html not found, return helpful error
+    // If index.html not found, provide clear instructions
     res.status(404).send(`
-        <h1>Frontend Not Found</h1>
-        <p>index.html not found at: ${indexPath}</p>
-        <p>Current directory: ${__dirname}</p>
-        <p>Frontend path: ${frontendPath}</p>
-        <p>Please check Railway Root Directory setting.</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Configuration Error</title>
+            <style>
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+                h1 { color: #d32f2f; }
+                code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+                .instruction { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <h1>⚠️ Railway Configuration Error</h1>
+            <p><strong>index.html not found.</strong> Railway Root Directory is incorrectly configured.</p>
+            
+            <div class="instruction">
+                <h3>🔧 Fix Railway Settings:</h3>
+                <ol>
+                    <li>Go to Railway Dashboard → Your Service → <strong>Settings</strong></li>
+                    <li>Find <strong>"Source"</strong> or <strong>"Root Directory"</strong></li>
+                    <li>Change from: <code>backend</code></li>
+                    <li>Change to: <code>.</code> (dot) or leave <strong>empty</strong></li>
+                    <li>Go to <strong>Deploy</strong> section</li>
+                    <li>Set <strong>Start Command</strong> to: <code>cd backend && node server.js</code></li>
+                    <li><strong>Save</strong> and Railway will auto-redeploy</li>
+                </ol>
+            </div>
+            
+            <p><strong>Current paths:</strong></p>
+            <ul>
+                <li>Current directory: <code>${__dirname}</code></li>
+                <li>Frontend path: <code>${frontendPath}</code></li>
+                <li>Looking for: <code>${indexPath}</code></li>
+            </ul>
+            
+            <p><strong>Why this happens:</strong></p>
+            <p>When Root Directory = <code>backend</code>, Railway only deploys files from the backend folder. 
+            The <code>index.html</code> file is in the parent directory, which Railway can't access.</p>
+        </body>
+        </html>
     `);
 });
 

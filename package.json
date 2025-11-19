@@ -1,0 +1,25 @@
+{
+  "name": "nexus-crm",
+  "version": "1.0.0",
+  "description": "Nexus Tax Filing CRM - Full Stack Application",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "install": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "keywords": [
+    "crm",
+    "tax-filing"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+
