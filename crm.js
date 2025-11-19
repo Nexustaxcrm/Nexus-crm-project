@@ -245,7 +245,7 @@ async function handleLogin(e) {
     try {
         // Try to connect to server first with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for Railway
         
         const response = await fetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
