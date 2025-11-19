@@ -24,6 +24,57 @@ const authenticateToken = (req, res, next) => {
     return res.status(500).json({ error: 'Authentication not initialized' });
 };
 
+// Input validation middleware
+const validateUserInput = (req, res, next) => {
+    const { username, password, role } = req.body;
+    
+    // Validate username
+    if (username !== undefined) {
+        if (typeof username !== 'string' || username.trim().length === 0) {
+            return res.status(400).json({ error: 'Username must be a non-empty string' });
+        }
+        if (username.trim().length > 255) {
+            return res.status(400).json({ error: 'Username is too long (max 255 characters)' });
+        }
+        if (username.trim().length < 3) {
+            return res.status(400).json({ error: 'Username must be at least 3 characters' });
+        }
+        // Allow only alphanumeric, underscore, and hyphen
+        if (!/^[a-zA-Z0-9_-]+$/.test(username.trim())) {
+            return res.status(400).json({ error: 'Username can only contain letters, numbers, underscores, and hyphens' });
+        }
+    }
+    
+    // Validate password (if provided)
+    if (password !== undefined) {
+        if (typeof password !== 'string' || password.length === 0) {
+            return res.status(400).json({ error: 'Password must be a non-empty string' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+        if (password.length > 1000) {
+            return res.status(400).json({ error: 'Password is too long' });
+        }
+    }
+    
+    // Validate role (if provided)
+    if (role !== undefined) {
+        const validRoles = ['admin', 'employee', 'preparation'];
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({ error: `Role must be one of: ${validRoles.join(', ')}` });
+        }
+    }
+    
+    // Check for SQL injection patterns (basic)
+    const sqlInjectionPattern = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)|(--)|(\/\*)|(\*\/)|(;)/i;
+    if (username && sqlInjectionPattern.test(username)) {
+        return res.status(400).json({ error: 'Invalid characters detected in username' });
+    }
+    
+    next();
+};
+
 // Get all users (requires authentication)
 router.get('/', authenticateToken, async (req, res) => {
     try {
@@ -41,7 +92,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create user (requires authentication - only admins should create users)
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, validateUserInput, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -80,7 +131,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update user (requires authentication)
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, validateUserInput, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {

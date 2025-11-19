@@ -3,6 +3,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
+const helmet = require('helmet');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -10,8 +11,61 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Allow frontend to talk to backend
-app.use(cors());
+// Security: Helmet.js - Set various HTTP headers for security
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            connectSrc: ["'self'", "https://nexus-crm-project-production.up.railway.app"]
+        }
+    },
+    crossOriginEmbedderPolicy: false, // Allow embedding for file uploads
+    crossOriginResourcePolicy: { policy: "cross-origin" } // Allow resources from same origin
+}));
+
+// CORS: Restrict to specific origins for security
+const allowedOrigins = [
+    'https://nexus-crm-project-production.up.railway.app',
+    'http://localhost:3000', // For local development
+    'http://localhost:5500', // For local development with Live Server
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5500'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // In production, require origin (more secure)
+        // In development, allow requests with no origin (for Postman, curl, etc.)
+        const isDevelopment = process.env.NODE_ENV !== 'production';
+        
+        if (!origin) {
+            if (isDevelopment) {
+                // Allow in development for testing tools
+                return callback(null, true);
+            } else {
+                // Block in production for security
+                console.warn('CORS blocked: Request with no origin in production');
+                return callback(new Error('Not allowed by CORS'));
+            }
+        }
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            // Log blocked origins for security monitoring
+            console.warn(`CORS blocked origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Authorization']
+}));
 // Increased limits for large Excel file uploads (300k-500k rows)
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ extended: true, limit: '500mb' }));

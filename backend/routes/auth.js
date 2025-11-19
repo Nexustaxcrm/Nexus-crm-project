@@ -34,8 +34,39 @@ const verifyToken = (req, res, next) => {
 // Export verifyToken for use in other routes
 router.verifyToken = verifyToken;
 
+// Input validation middleware
+const validateLogin = (req, res, next) => {
+    const { username, password } = req.body;
+    
+    // Validate input
+    if (!username || typeof username !== 'string' || username.trim().length === 0) {
+        return res.status(400).json({ error: 'Username is required and must be a string' });
+    }
+    
+    if (!password || typeof password !== 'string' || password.length === 0) {
+        return res.status(400).json({ error: 'Password is required' });
+    }
+    
+    // Sanitize: trim and limit length
+    if (username.trim().length > 255) {
+        return res.status(400).json({ error: 'Username is too long (max 255 characters)' });
+    }
+    
+    if (password.length > 1000) {
+        return res.status(400).json({ error: 'Password is too long' });
+    }
+    
+    // Check for SQL injection patterns (basic)
+    const sqlInjectionPattern = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)|(--)|(\/\*)|(\*\/)|(;)/i;
+    if (sqlInjectionPattern.test(username) || sqlInjectionPattern.test(password)) {
+        return res.status(400).json({ error: 'Invalid characters detected' });
+    }
+    
+    next();
+};
+
 // Login endpoint
-router.post('/login', async (req, res) => {
+router.post('/login', validateLogin, async (req, res) => {
     try {
         // Get pool from request app (fallback if not initialized)
         const dbPool = pool || req.app.locals.pool;
