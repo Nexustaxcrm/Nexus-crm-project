@@ -491,87 +491,197 @@ function loadDashboard() {
     }
 }
 
-function loadAdminDashboard() {
-    const statsHtml = `
-        <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('all')">
-                <div class="stats-icon" style="background: #5e72e4;">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stats-number">${customers.length}</div>
-                <div class="stats-label">Total Customers</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('called')">
-                <div class="stats-icon" style="background: #2dce89;">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="stats-number">${getCustomersByCallStatus('called').length}</div>
-                <div class="stats-label">Total Calls</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('voice_mail')">
-                <div class="stats-icon" style="background: #fb6340;">
-                    <i class="fas fa-voicemail"></i>
-                </div>
-                <div class="stats-number">${getCustomersByCallStatus('voice_mail').length}</div>
-                <div class="stats-label">Voice Mails</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('w2_received')">
-                <div class="stats-icon" style="background: #11cdef;">
-                    <i class="fas fa-file-check"></i>
-                </div>
-                <div class="stats-number">${getCustomersByStatus('w2_received').length}</div>
-                <div class="stats-label">W2 Received</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('not_called')">
-                <div class="stats-icon" style="background: #f5365c;">
-                    <i class="fas fa-phone-slash"></i>
-                </div>
-                <div class="stats-number">${getCustomersByCallStatus('not_called').length}</div>
-                <div class="stats-label">Pending Calls</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('follow_up')">
-                <div class="stats-icon" style="background: #ffa500;">
-                    <i class="fas fa-redo"></i>
-                </div>
-                <div class="stats-number">${getFollowUpCustomers().length}</div>
-                <div class="stats-label">Follow-up</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="showNewLeadModal()">
-                <div class="stats-icon" style="background: #2dce89;">
-                    <i class="fas fa-plus"></i>
-                </div>
-                <div class="stats-number">+</div>
-                <div class="stats-label">New Lead</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card" onclick="openArchiveView()">
-                <div class="stats-icon" style="background: #6c757d;">
-                    <i class="fas fa-archive"></i>
-                </div>
-                <div class="stats-number">${getArchivedCount()}</div>
-                <div class="stats-label">Archived</div>
-            </div>
-        </div>
-    `;
+async function loadAdminDashboard() {
+    // Show loading state
+    const statsCards = document.getElementById('statsCards');
+    if (statsCards) {
+        statsCards.innerHTML = '<div class="col-12 text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading statistics...</span></div></div>';
+    }
     
-    document.getElementById('statsCards').innerHTML = statsHtml;
-    
-    // Load traffic section for admin
-    loadTrafficSection();
-    loadMonthlyComparisonChart();
+    try {
+        // Fetch statistics from API (includes ALL customers, not just first 100)
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+        
+        const response = await fetch(API_BASE_URL + '/customers/stats', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch statistics');
+        }
+        
+        const stats = await response.json();
+        
+        // Use API statistics for all counts
+        const statsHtml = `
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('all')">
+                    <div class="stats-icon" style="background: #5e72e4;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stats-number">${stats.totalCustomers || 0}</div>
+                    <div class="stats-label">Total Customers</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('called')">
+                    <div class="stats-icon" style="background: #2dce89;">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="stats-number">${stats.callStatusCounts?.called || 0}</div>
+                    <div class="stats-label">Total Calls</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('voice_mail')">
+                    <div class="stats-icon" style="background: #fb6340;">
+                        <i class="fas fa-voicemail"></i>
+                    </div>
+                    <div class="stats-number">${stats.callStatusCounts?.voice_mail || 0}</div>
+                    <div class="stats-label">Voice Mails</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('w2_received')">
+                    <div class="stats-icon" style="background: #11cdef;">
+                        <i class="fas fa-file-check"></i>
+                    </div>
+                    <div class="stats-number">${stats.w2Received || 0}</div>
+                    <div class="stats-label">W2 Received</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('not_called')">
+                    <div class="stats-icon" style="background: #f5365c;">
+                        <i class="fas fa-phone-slash"></i>
+                    </div>
+                    <div class="stats-number">${stats.callStatusCounts?.not_called || 0}</div>
+                    <div class="stats-label">Pending Calls</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('follow_up')">
+                    <div class="stats-icon" style="background: #ffa500;">
+                        <i class="fas fa-redo"></i>
+                    </div>
+                    <div class="stats-number">${stats.followUpCount || 0}</div>
+                    <div class="stats-label">Follow-up</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="showNewLeadModal()">
+                    <div class="stats-icon" style="background: #2dce89;">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="stats-number">+</div>
+                    <div class="stats-label">New Lead</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="openArchiveView()">
+                    <div class="stats-icon" style="background: #6c757d;">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <div class="stats-number">${stats.archivedCount || 0}</div>
+                    <div class="stats-label">Archived</div>
+                </div>
+            </div>
+        `;
+        
+        if (statsCards) {
+            statsCards.innerHTML = statsHtml;
+        }
+        
+        // Load traffic section for admin
+        loadTrafficSection();
+        loadMonthlyComparisonChart();
+    } catch (error) {
+        console.error('Error loading dashboard statistics:', error);
+        // Fallback to local data if API fails
+        const statsHtml = `
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('all')">
+                    <div class="stats-icon" style="background: #5e72e4;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stats-number">${customers.length}</div>
+                    <div class="stats-label">Total Customers</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('called')">
+                    <div class="stats-icon" style="background: #2dce89;">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="stats-number">${getCustomersByCallStatus('called').length}</div>
+                    <div class="stats-label">Total Calls</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('voice_mail')">
+                    <div class="stats-icon" style="background: #fb6340;">
+                        <i class="fas fa-voicemail"></i>
+                    </div>
+                    <div class="stats-number">${getCustomersByCallStatus('voice_mail').length}</div>
+                    <div class="stats-label">Voice Mails</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('w2_received')">
+                    <div class="stats-icon" style="background: #11cdef;">
+                        <i class="fas fa-file-check"></i>
+                    </div>
+                    <div class="stats-number">${getCustomersByStatus('w2_received').length}</div>
+                    <div class="stats-label">W2 Received</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('not_called')">
+                    <div class="stats-icon" style="background: #f5365c;">
+                        <i class="fas fa-phone-slash"></i>
+                    </div>
+                    <div class="stats-number">${getCustomersByCallStatus('not_called').length}</div>
+                    <div class="stats-label">Pending Calls</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('follow_up')">
+                    <div class="stats-icon" style="background: #ffa500;">
+                        <i class="fas fa-redo"></i>
+                    </div>
+                    <div class="stats-number">${getFollowUpCustomers().length}</div>
+                    <div class="stats-label">Follow-up</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="showNewLeadModal()">
+                    <div class="stats-icon" style="background: #2dce89;">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="stats-number">+</div>
+                    <div class="stats-label">New Lead</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="openArchiveView()">
+                    <div class="stats-icon" style="background: #6c757d;">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <div class="stats-number">${getArchivedCount()}</div>
+                    <div class="stats-label">Archived</div>
+                </div>
+            </div>
+        `;
+        if (statsCards) {
+            statsCards.innerHTML = statsHtml;
+        }
+        showNotification('warning', 'Statistics Warning', 'Could not load full statistics. Showing limited data.');
+    }
 }
 
 function loadEmployeeDashboard() {
@@ -2304,7 +2414,7 @@ async function renderAssignWorkPage() {
         }
         
         // Get pagination parameters
-        const size = window.assignPageSize || 200;
+        const size = window.assignPageSize || 100; // Default to 100 per page
         const page = Math.max(1, window.assignCurrentPage || 1);
         window.assignCurrentPage = page;
         
@@ -2460,8 +2570,8 @@ async function renderAssignWorkPage() {
                         <option ${size===100?'selected':''} value="100">100</option>
                         <option ${size===200?'selected':''} value="200">200</option>
                         <option ${size===300?'selected':''} value="300">300</option>
+                        <option ${size===400?'selected':''} value="400">400</option>
                         <option ${size===500?'selected':''} value="500">500</option>
-                        <option ${size===1000?'selected':''} value="1000">1000</option>
                     </select>
                 </div>`;
         }

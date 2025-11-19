@@ -130,6 +130,103 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
+// Get statistics for all customers (for dashboard)
+router.get('/stats', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        // Get total count (excluding archived by default)
+        const includeArchived = req.query.include_archived === 'true' || req.query.include_archived === '1';
+        let countQuery = 'SELECT COUNT(*) FROM customers WHERE 1=1';
+        if (!includeArchived) {
+            countQuery += ' AND (archived IS NULL OR archived = FALSE)';
+        }
+        
+        const totalResult = await dbPool.query(countQuery);
+        const totalCustomers = parseInt(totalResult.rows[0].count);
+        
+        // Get counts by status (excluding archived)
+        const statusQuery = `
+            SELECT 
+                status,
+                COUNT(*) as count
+            FROM customers
+            WHERE (archived IS NULL OR archived = FALSE)
+            GROUP BY status
+        `;
+        const statusResult = await dbPool.query(statusQuery);
+        const statusCounts = {};
+        statusResult.rows.forEach(row => {
+            statusCounts[row.status] = parseInt(row.count);
+        });
+        
+        // Get counts by call_status (excluding archived)
+        // The status field contains both call statuses and other statuses
+        // Call statuses: 'called', 'voice_mail', 'not_called'
+        // Other statuses: 'w2_received', 'follow_up', 'pending', etc.
+        const callStatusQuery = `
+            SELECT 
+                CASE 
+                    WHEN status = 'called' THEN 'called'
+                    WHEN status = 'voice_mail' THEN 'voice_mail'
+                    WHEN status = 'not_called' THEN 'not_called'
+                    WHEN status = 'pending' THEN 'not_called'  -- Treat pending as not_called
+                    ELSE NULL
+                END as call_status,
+                COUNT(*) as count
+            FROM customers
+            WHERE (archived IS NULL OR archived = FALSE)
+            AND (status IN ('called', 'voice_mail', 'not_called', 'pending'))
+            GROUP BY 
+                CASE 
+                    WHEN status = 'called' THEN 'called'
+                    WHEN status = 'voice_mail' THEN 'voice_mail'
+                    WHEN status = 'not_called' THEN 'not_called'
+                    WHEN status = 'pending' THEN 'not_called'
+                    ELSE NULL
+                END
+        `;
+        const callStatusResult = await dbPool.query(callStatusQuery);
+        const callStatusCounts = {
+            called: 0,
+            voice_mail: 0,
+            not_called: 0
+        };
+        callStatusResult.rows.forEach(row => {
+            if (row.call_status && callStatusCounts.hasOwnProperty(row.call_status)) {
+                callStatusCounts[row.call_status] = parseInt(row.count);
+            }
+        });
+        
+        // Get archived count
+        const archivedResult = await dbPool.query('SELECT COUNT(*) FROM customers WHERE archived = TRUE');
+        const archivedCount = parseInt(archivedResult.rows[0].count);
+        
+        // Get follow-up count (customers with status 'follow_up' or similar)
+        const followUpResult = await dbPool.query(`
+            SELECT COUNT(*) FROM customers 
+            WHERE (archived IS NULL OR archived = FALSE) 
+            AND (status = 'follow_up' OR status LIKE '%follow%')
+        `);
+        const followUpCount = parseInt(followUpResult.rows[0].count);
+        
+        res.json({
+            totalCustomers,
+            statusCounts,
+            callStatusCounts,
+            archivedCount,
+            followUpCount,
+            w2Received: statusCounts['w2_received'] || 0
+        });
+    } catch (error) {
+        console.error('Error fetching customer statistics:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Create customer
 router.post('/', authenticateToken, async (req, res) => {
     try {
