@@ -5466,6 +5466,11 @@ function showMyProfileModal() {
     document.getElementById('profilePhone').value = userProfile.phone;
     document.getElementById('profileAddress').value = userProfile.address;
     
+    // Clear password fields
+    document.getElementById('profileCurrentPassword').value = '';
+    document.getElementById('profileNewPassword').value = '';
+    document.getElementById('profileConfirmPassword').value = '';
+    
     // Show/hide photo preview
     if (userProfile.photo) {
         document.getElementById('profilePhotoPreview').src = userProfile.photo;
@@ -5492,16 +5497,91 @@ function previewProfilePhoto(input) {
     }
 }
 
-function saveMyProfile() {
+async function saveMyProfile() {
     const firstName = document.getElementById('profileFirstName').value;
     const lastName = document.getElementById('profileLastName').value;
     const phone = document.getElementById('profilePhone').value;
     const address = document.getElementById('profileAddress').value;
     const photoFile = document.getElementById('profilePhotoInput').files[0];
+    const currentPassword = document.getElementById('profileCurrentPassword').value;
+    const newPassword = document.getElementById('profileNewPassword').value;
+    const confirmPassword = document.getElementById('profileConfirmPassword').value;
     
     if (!firstName || !lastName) {
         showNotification('error', 'Validation Error', 'First Name and Last Name are required!');
         return;
+    }
+    
+    // Handle password change if new password is provided
+    if (newPassword) {
+        if (!currentPassword) {
+            showNotification('error', 'Validation Error', 'Please enter your current password to change it.');
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            showNotification('error', 'Validation Error', 'New password and confirm password do not match.');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            showNotification('error', 'Validation Error', 'New password must be at least 6 characters long.');
+            return;
+        }
+        
+        // Verify current password and update password
+        try {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                showNotification('error', 'Authentication Error', 'Please log in again.');
+                return;
+            }
+            
+            // First verify current password by attempting login
+            const verifyResponse = await fetch(API_BASE_URL + '/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser.username, password: currentPassword })
+            });
+            
+            if (!verifyResponse.ok) {
+                showNotification('error', 'Invalid Password', 'Current password is incorrect.');
+                return;
+            }
+            
+            // Update password via API
+            const updateResponse = await fetch(API_BASE_URL + '/users/' + currentUser.id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    username: currentUser.username,
+                    password: newPassword,
+                    role: currentUser.role,
+                    locked: false
+                })
+            });
+            
+            if (!updateResponse.ok) {
+                const error = await updateResponse.json();
+                showNotification('error', 'Password Update Failed', error.error || 'Failed to update password.');
+                return;
+            }
+            
+            showNotification('success', 'Password Changed', 'Your password has been changed successfully!');
+            
+            // Clear password fields
+            document.getElementById('profileCurrentPassword').value = '';
+            document.getElementById('profileNewPassword').value = '';
+            document.getElementById('profileConfirmPassword').value = '';
+            
+        } catch (error) {
+            console.error('Password update error:', error);
+            showNotification('error', 'Password Update Failed', 'Failed to update password. Please try again.');
+            return;
+        }
     }
     
     // Find existing profile or create new one
