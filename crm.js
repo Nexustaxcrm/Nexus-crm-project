@@ -268,6 +268,8 @@ async function handleLogin(e) {
             sessionStorage.setItem('authToken', data.token);
             sessionStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
+            // Also set on window for global access
+            window.currentUser = data.user;
             showDashboard();
             showNotification('success', 'Login Successful', 'Welcome back!');
         } else {
@@ -318,6 +320,8 @@ async function handleLogin(e) {
             sessionStorage.setItem('authToken', 'dev-token-' + Date.now());
             sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
             currentUser = mockUser;
+            // Also set on window for global access
+            window.currentUser = mockUser;
             showDashboard();
             showNotification('info', 'Development Mode', 'Server not connected - using offline mode. Check console for details.');
         } else {

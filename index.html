@@ -2878,11 +2878,43 @@
             console.log('🗑️ deleteAllCustomers() called');
             
             try {
-                // Check if user is admin
-                if (!window.currentUser || window.currentUser.role !== 'admin') {
+                // Get user from sessionStorage (where it's stored after login)
+                let user = null;
+                const userStr = sessionStorage.getItem('currentUser');
+                if (userStr) {
+                    try {
+                        user = JSON.parse(userStr);
+                    } catch (e) {
+                        console.error('Error parsing currentUser from sessionStorage:', e);
+                    }
+                }
+                
+                // Also check window.currentUser (set by crm.js) as fallback
+                if (!user && window.currentUser) {
+                    user = window.currentUser;
+                }
+                
+                // Also check global currentUser variable (from crm.js)
+                if (!user && typeof currentUser !== 'undefined' && currentUser) {
+                    user = currentUser;
+                }
+                
+                console.log('Current user:', user);
+                
+                // Check if user is admin - but let backend verify too
+                if (user && user.role !== 'admin') {
                     alert('Access Denied: Only administrators can delete all customers.');
-                    console.error('❌ User is not admin:', window.currentUser);
+                    console.error('❌ User is not admin. Role:', user.role, 'User:', user);
                     return;
+                }
+                
+                // If we can't determine user role, warn but continue (backend will verify)
+                if (!user) {
+                    console.warn('⚠️ Could not determine user role from frontend. Proceeding - backend will verify.');
+                    const proceed = confirm('Warning: Could not verify admin status. The backend will verify your permissions. Continue?');
+                    if (!proceed) {
+                        return;
+                    }
                 }
                 
                 // Double confirmation
