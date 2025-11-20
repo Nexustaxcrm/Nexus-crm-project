@@ -2942,15 +2942,34 @@
                 
                 console.log('✅ All confirmations passed. Starting deletion...');
                 
-                // Check authentication BEFORE making the request
-                const token = sessionStorage.getItem('authToken');
-                console.log('Token check:', token ? 'Token found (length: ' + token.length + ')' : 'No token');
+                // DEBUG: Check all possible token locations
+                console.log('=== AUTHENTICATION DEBUG ===');
+                const token1 = sessionStorage.getItem('authToken');
+                const token2 = localStorage.getItem('authToken');
+                const userStrSession = sessionStorage.getItem('currentUser');
+                const userStrLocal = localStorage.getItem('currentUser');
+                
+                console.log('sessionStorage.authToken:', token1 ? 'Found (length: ' + token1.length + ', starts with: ' + token1.substring(0, 20) + '...)' : 'NOT FOUND');
+                console.log('localStorage.authToken:', token2 ? 'Found (length: ' + token2.length + ')' : 'NOT FOUND');
+                console.log('sessionStorage.currentUser:', userStrSession);
+                console.log('localStorage.currentUser:', userStrLocal);
+                console.log('window.currentUser:', window.currentUser);
+                console.log('typeof currentUser:', typeof currentUser);
+                if (typeof currentUser !== 'undefined') {
+                    console.log('currentUser variable:', currentUser);
+                }
+                
+                // Try to get token from multiple sources
+                let token = token1 || token2;
                 
                 if (!token || token.trim() === '') {
-                    console.error('❌ No auth token found in sessionStorage');
-                    alert('Error: Not authenticated. Please log out and log back in again.');
+                    console.error('❌ No auth token found in sessionStorage or localStorage');
+                    console.error('Full sessionStorage:', JSON.stringify(sessionStorage, null, 2));
+                    alert('Error: Not authenticated. Please check:\n\n1. Are you logged in?\n2. Try logging out and logging back in\n3. Check browser console (F12) for details');
                     return;
                 }
+                
+                console.log('✅ Using token:', token.substring(0, 20) + '... (length: ' + token.length + ')');
                 
                 // Note: We don't reject dev tokens here - let the backend handle validation
                 // The backend will return 403 if the token is invalid or user is not admin
@@ -2962,6 +2981,10 @@
                     alert('Deleting all customers. This may take a moment...');
                 }
                 console.log('Making DELETE request to:', API_BASE_URL + '/customers/all');
+                console.log('Request headers:', {
+                    'Authorization': `Bearer ${token.substring(0, 20)}...`,
+                    'Content-Type': 'application/json'
+                });
                 
                 const response = await fetch(API_BASE_URL + '/customers/all', {
                     method: 'DELETE',
@@ -2971,24 +2994,50 @@
                     }
                 });
                 
+                console.log('Response received:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    headers: Object.fromEntries(response.headers.entries())
+                });
+                
                 console.log('Response status:', response.status, response.statusText);
                 
                 // Check if response has content before parsing JSON
                 const contentType = response.headers.get('content-type');
                 let data;
+                let responseText = '';
                 
-                if (contentType && contentType.includes('application/json')) {
-                    data = await response.json();
-                } else {
-                    const text = await response.text();
-                    console.error('Non-JSON response:', text);
-                    throw new Error('Server returned non-JSON response: ' + text);
+                try {
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await response.json();
+                    } else {
+                        responseText = await response.text();
+                        console.warn('Non-JSON response received:', responseText.substring(0, 200));
+                        // Try to parse as JSON anyway
+                        try {
+                            data = JSON.parse(responseText);
+                        } catch (e) {
+                            throw new Error('Server returned non-JSON response: ' + responseText.substring(0, 200));
+                        }
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    console.error('Response text:', responseText);
+                    throw new Error('Failed to parse server response: ' + parseError.message);
                 }
                 
                 console.log('Response data:', data);
                 
                 if (!response.ok) {
-                    throw new Error(data.error || `Server error: ${response.status} ${response.statusText}`);
+                    const errorMsg = data.error || data.message || `Server error: ${response.status} ${response.statusText}`;
+                    console.error('❌ Server returned error:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        error: errorMsg,
+                        fullData: data
+                    });
+                    throw new Error(errorMsg);
                 }
                 
                 // Success
