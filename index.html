@@ -3833,8 +3833,30 @@
                         </div>
                     </div>
                 </div>
+                
                 <!-- Pagination Controls - Placed OUTSIDE the table, at the bottom of Assign Work page -->
-                <div id="assignPagination" style="clear: both; margin-top: 30px; display: block !important; visibility: visible !important; width: 100% !important;"></div>
+                <div id="assignPagination" style="clear: both; margin-top: 30px; margin-bottom: 20px; padding: 20px; background: #ffffff; border-top: 3px solid #007bff; display: flex !important; justify-content: center !important; align-items: center !important; gap: 20px !important; flex-wrap: wrap !important; width: 100% !important; visibility: visible !important; opacity: 1 !important;">
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-primary" onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
+                        <button class="btn btn-sm btn-primary" onclick="window.assignCurrentPage=Math.max(1, (window.assignCurrentPage || 1) - 1); renderAssignWorkPage()">Prev</button>
+                        <span style="font-size: 14px; font-weight: bold; color: #333;">Page <span id="assignCurrentPageDisplay">1</span> of <span id="assignTotalPagesDisplay">1</span></span>
+                        <button class="btn btn-sm btn-primary" onclick="window.assignCurrentPage=(window.assignCurrentPage || 1) + 1; renderAssignWorkPage()">Next</button>
+                        <button class="btn btn-sm btn-primary" id="assignLastBtn" onclick="const totalPages = parseInt(document.getElementById('assignTotalPagesDisplay')?.textContent?.replace(/,/g, '') || '1'); window.assignCurrentPage=totalPages; renderAssignWorkPage()">Last</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 15px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                        <label style="margin: 0; font-size: 14px; font-weight: 600; color: #495057;">Items per page:</label>
+                        <select id="assignPageSizeSelect" class="form-select form-select-sm" style="width: 100px; padding: 6px 10px; border: 2px solid #007bff; border-radius: 4px; font-weight: 500; cursor: pointer;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                            <option value="100" selected>100</option>
+                            <option value="200">200</option>
+                            <option value="300">300</option>
+                            <option value="400">400</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                    <div style="font-size: 13px; color: #666; font-weight: 500; padding: 8px 15px; background: #e9ecef; border-radius: 6px;">
+                        Showing <strong style="color: #007bff;" id="assignDisplayRange">1-100</strong> of <strong style="color: #007bff; font-size: 15px;" id="assignTotalDisplay">0</strong> customers
+                    </div>
+                </div>
             </div>
 
             <!-- Progress Tab -->

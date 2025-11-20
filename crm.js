@@ -2866,11 +2866,36 @@ async function renderAssignWorkPage() {
             </div>
         `;
         
-        // FORCE set innerHTML and make visible
-        // Ensure pagination is clearly separated from the table and ALWAYS visible
-        pager.innerHTML = paginationHTML;
+        // Update the existing pagination elements (they're already in HTML)
+        // Update page numbers
+        const currentPageDisplay = document.getElementById('assignCurrentPageDisplay');
+        const totalPagesDisplay = document.getElementById('assignTotalPagesDisplay');
+        const displayRange = document.getElementById('assignDisplayRange');
+        const totalDisplayEl = document.getElementById('assignTotalDisplay');
+        const pageSizeSelect = document.getElementById('assignPageSizeSelect');
+        
+        if (currentPageDisplay) currentPageDisplay.textContent = page;
+        if (totalPagesDisplay) totalPagesDisplay.textContent = pagesText.toLocaleString();
+        if (displayRange) displayRange.textContent = `${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}`;
+        if (totalDisplayEl) totalDisplayEl.textContent = totalDisplay.toLocaleString();
+        if (pageSizeSelect) {
+            pageSizeSelect.value = size.toString();
+            // Update button states
+            const buttons = pager.querySelectorAll('button');
+            buttons[0].disabled = page === 1; // First
+            buttons[1].disabled = page === 1; // Prev
+            buttons[2].disabled = page >= pagesText; // Next
+            buttons[3].disabled = page >= pagesText; // Last
+        }
+        
+        // FORCE set innerHTML as fallback (in case HTML structure changed)
+        // But prefer updating individual elements for better performance
+        if (!currentPageDisplay || !totalPagesDisplay) {
+            pager.innerHTML = paginationHTML;
+        }
+        
         // Force visibility with !important styles
-        pager.style.cssText = 'display: block !important; visibility: visible !important; width: 100% !important; opacity: 1 !important; margin-top: 30px !important; margin-bottom: 20px !important; clear: both !important; position: relative !important; z-index: 10 !important;';
+        pager.style.cssText = 'display: flex !important; visibility: visible !important; width: 100% !important; opacity: 1 !important; margin-top: 30px !important; margin-bottom: 20px !important; clear: both !important; position: relative !important; z-index: 10 !important;';
         
         // VERIFY it was set
         console.log('✅ PAGINATION RENDERED:', {
