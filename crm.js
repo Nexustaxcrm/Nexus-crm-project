@@ -460,6 +460,14 @@ function showTab(tabName, clickedElement) {
             if (currentUser.role === 'admin') {
                 document.getElementById('assignWorkTab').style.display = 'block';
                 loadAssignWorkTable();
+                // Ensure pagination is visible after tab is shown
+                setTimeout(() => {
+                    const pagerCheck = document.getElementById('assignPagination');
+                    if (pagerCheck && (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 50)) {
+                        console.log('🔄 Re-rendering pagination after tab show...');
+                        renderAssignWorkPage();
+                    }
+                }, 200);
             }
             break;
         case 'progress':
@@ -2634,20 +2642,35 @@ async function renderAssignWorkPage() {
         
         // Always show pagination - ensure element exists and is visible
         if (!pager) {
-            console.warn('Pagination element not found! Creating it...');
+            console.warn('⚠️ Pagination element not found! Creating it now...');
             const assignWorkTab = document.getElementById('assignWorkTab');
             if (assignWorkTab) {
-                // Create pagination element INSIDE assignWorkTab
-                const newPager = document.createElement('div');
-                newPager.id = 'assignPagination';
-                newPager.className = 'd-flex justify-content-between align-items-center mt-3 mb-3 px-3';
-                newPager.style.cssText = 'display: flex !important; visibility: visible !important; background-color: #f8f9fa; border-top: 1px solid #dee2e6; padding: 15px !important;';
-                assignWorkTab.appendChild(newPager);
-                pager = newPager;
-                console.log('Created pagination element inside assignWorkTab');
+                // Find the .data-table container and insert pagination after it
+                const dataTable = assignWorkTab.querySelector('.data-table');
+                if (dataTable && dataTable.nextSibling) {
+                    // Insert after data-table
+                    pager = document.createElement('div');
+                    pager.id = 'assignPagination';
+                    pager.className = 'd-flex justify-content-between align-items-center mt-3 mb-3 px-3';
+                    assignWorkTab.insertBefore(pager, dataTable.nextSibling);
+                    console.log('✅ Created pagination element after .data-table');
+                } else {
+                    // Fallback: append to assignWorkTab
+                    pager = document.createElement('div');
+                    pager.id = 'assignPagination';
+                    pager.className = 'd-flex justify-content-between align-items-center mt-3 mb-3 px-3';
+                    assignWorkTab.appendChild(pager);
+                    console.log('✅ Created pagination element (fallback - appended to assignWorkTab)');
+                }
             } else {
-                console.error('assignWorkTab element not found!');
+                console.error('❌ assignWorkTab element not found!');
             }
+        }
+        
+        // Ensure pagination element is found and accessible
+        if (!pager) {
+            console.error('❌ CRITICAL: Could not find or create pagination element!');
+            return; // Exit early if we can't create pagination
         }
         
         // Ensure pagination is always visible
@@ -2710,35 +2733,67 @@ async function renderAssignWorkPage() {
             pager.innerHTML = paginationHTML;
             
             // FORCE VISIBILITY - Centered at bottom, always visible
-            pager.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; visibility: visible !important; opacity: 1 !important; position: relative !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 2px solid #007bff !important; background: #f8f9fa !important; width: 100% !important; min-height: 70px !important; box-shadow: 0 -2px 8px rgba(0,0,0,0.1) !important;';
+            // Use important flags to override any conflicting styles
+            pager.style.setProperty('display', 'flex', 'important');
+            pager.style.setProperty('justify-content', 'center', 'important');
+            pager.style.setProperty('align-items', 'center', 'important');
+            pager.style.setProperty('visibility', 'visible', 'important');
+            pager.style.setProperty('opacity', '1', 'important');
+            pager.style.setProperty('position', 'relative', 'important');
+            pager.style.setProperty('padding', '15px 20px', 'important');
+            pager.style.setProperty('margin-top', '20px', 'important');
+            pager.style.setProperty('border-top', '2px solid #007bff', 'important');
+            pager.style.setProperty('background', '#f8f9fa', 'important');
+            pager.style.setProperty('width', '100%', 'important');
+            pager.style.setProperty('min-height', '70px', 'important');
+            pager.style.setProperty('box-shadow', '0 -2px 8px rgba(0,0,0,0.1)', 'important');
+            pager.style.setProperty('z-index', '10', 'important');
             
             // Verify it was set
             const actualHTML = pager.innerHTML;
+            const hasSelect = actualHTML.includes('<select');
+            const hasShowLabel = actualHTML.includes('Show:');
+            
             console.log('✅ PAGINATION RENDERED!', {
                 element: pager,
                 elementVisible: pager.offsetHeight > 0,
                 elementDisplay: window.getComputedStyle(pager).display,
                 elementVisibility: window.getComputedStyle(pager).visibility,
                 innerHTMLLength: actualHTML.length,
-                innerHTMLPreview: actualHTML.substring(0, 200),
                 total: total,
                 page: page,
                 pages: pagesText,
                 size: size,
-                hasSelect: actualHTML.includes('<select'),
-                hasShowLabel: actualHTML.includes('Show:')
+                hasSelect: hasSelect,
+                hasShowLabel: hasShowLabel,
+                parentElement: pager.parentElement?.id || 'none'
             });
             
-            // If HTML wasn't set, try again
-            if (!actualHTML || actualHTML.length < 50) {
-                console.error('❌ Pagination HTML not set! Trying again...');
+            // If HTML wasn't set or dropdown is missing, try again
+            if (!actualHTML || actualHTML.length < 50 || !hasSelect) {
+                console.error('❌ Pagination HTML not set correctly! Trying again...');
                 pager.innerHTML = paginationHTML;
+                // Force re-render after a brief delay
+                setTimeout(() => {
+                    if (!pager.innerHTML.includes('<select')) {
+                        console.error('❌ CRITICAL: Dropdown still missing after retry!');
+                        pager.innerHTML = paginationHTML;
+                    }
+                }, 100);
             }
             
-            // Force scroll to make it visible
+            // Ensure parent tab is visible (in case it was hidden)
+            const assignWorkTab = document.getElementById('assignWorkTab');
+            if (assignWorkTab && assignWorkTab.style.display === 'none') {
+                console.warn('⚠️ assignWorkTab is hidden, but pagination should still render');
+            }
+            
+            // Force scroll to make it visible after tab is shown
             setTimeout(() => {
-                pager.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }, 300);
+                if (pager && pager.offsetParent !== null) {
+                    pager.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }
+            }, 500);
         } else {
             console.error('Could not find or create pagination element!');
         }
@@ -2746,11 +2801,120 @@ async function renderAssignWorkPage() {
         // Initialize column resizing once per render
         initAssignWorkColumnResize();
         updateAssignArchiveButtonsVisibility();
+        
+        // Final check: Ensure pagination is visible and has content
+        setTimeout(() => {
+            const finalCheck = document.getElementById('assignPagination');
+            if (finalCheck) {
+                const finalHTML = finalCheck.innerHTML;
+                if (!finalHTML || finalHTML.length < 50 || !finalHTML.includes('<select')) {
+                    console.error('❌ FINAL CHECK FAILED: Pagination missing content! Re-rendering...');
+                    // Re-render pagination with current values
+                    if (pager && typeof page !== 'undefined' && typeof size !== 'undefined') {
+                        const pagesText = Math.max(1, Math.ceil((total || 0) / size));
+                        const displayStart = total === 0 ? 0 : (page - 1) * size + 1;
+                        const displayEnd = total === 0 ? 0 : Math.min(page * size, total);
+                        const totalDisplay = (total || 0).toLocaleString();
+                        
+                        const emergencyHTML = `
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <button class="btn btn-sm btn-outline-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                                        <i class="fas fa-angle-double-left"></i> First
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=Math.max(1, window.assignCurrentPage-1); renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                                        <i class="fas fa-angle-left"></i> Prev
+                                    </button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; padding: 0 15px;">
+                                    <span style="color: #333; font-size: 14px; font-weight: 500;">Page</span>
+                                    <span style="color: #007bff; font-size: 16px; font-weight: bold; min-width: 30px; text-align: center;">${page}</span>
+                                    <span style="color: #666; font-size: 14px;">of</span>
+                                    <span style="color: #333; font-size: 14px; font-weight: 500; min-width: 50px; text-align: center;">${pagesText}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="margin: 0; color: #333; font-size: 14px; font-weight: 500; white-space: nowrap;">Show:</label>
+                                    <select class="form-select form-select-sm" style="width: 90px !important; padding: 6px 10px !important; font-size: 14px !important; border: 2px solid #007bff !important; border-radius: 4px !important; font-weight: 500 !important;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                                        <option ${size===100?'selected':''} value="100">100</option>
+                                        <option ${size===200?'selected':''} value="200">200</option>
+                                        <option ${size===300?'selected':''} value="300">300</option>
+                                        <option ${size===400?'selected':''} value="400">400</option>
+                                        <option ${size===500?'selected':''} value="500">500</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <button class="btn btn-sm btn-outline-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=Math.min(${pagesText}, window.assignCurrentPage+1); renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                                        Next <i class="fas fa-angle-right"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                                        Last <i class="fas fa-angle-double-right"></i>
+                                    </button>
+                                </div>
+                                <div style="margin-left: 20px; padding-left: 20px; border-left: 1px solid #ddd;">
+                                    <span style="color: #666; font-size: 13px;">
+                                        Showing <strong style="color: #333;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff;">${totalDisplay}</strong> customers
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                        finalCheck.innerHTML = emergencyHTML;
+                        console.log('✅ Emergency pagination render completed');
+                    }
+                }
+            }
+        }, 1000);
     } catch (error) {
         console.error('Error loading assign work table:', error);
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error loading customers. Please refresh the page.</td></tr>';
         }
+        
+        // Even on error, ensure pagination is visible with default values
+        const errorPager = document.getElementById('assignPagination');
+        if (errorPager) {
+            const defaultSize = window.assignPageSize || 200;
+            const defaultPage = window.assignCurrentPage || 1;
+            const errorHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-sm btn-outline-primary" disabled style="padding: 6px 12px; min-width: 70px;">
+                            <i class="fas fa-angle-double-left"></i> First
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" disabled style="padding: 6px 12px; min-width: 70px;">
+                            <i class="fas fa-angle-left"></i> Prev
+                        </button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 0 15px;">
+                        <span style="color: #333; font-size: 14px; font-weight: 500;">Page</span>
+                        <span style="color: #007bff; font-size: 16px; font-weight: bold; min-width: 30px; text-align: center;">${defaultPage}</span>
+                        <span style="color: #666; font-size: 14px;">of</span>
+                        <span style="color: #333; font-size: 14px; font-weight: 500; min-width: 50px; text-align: center;">1</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="margin: 0; color: #333; font-size: 14px; font-weight: 500; white-space: nowrap;">Show:</label>
+                        <select class="form-select form-select-sm" style="width: 90px !important; padding: 6px 10px !important; font-size: 14px !important; border: 2px solid #007bff !important; border-radius: 4px !important; font-weight: 500 !important;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                            <option ${defaultSize===100?'selected':''} value="100">100</option>
+                            <option ${defaultSize===200?'selected':''} value="200">200</option>
+                            <option ${defaultSize===300?'selected':''} value="300">300</option>
+                            <option ${defaultSize===400?'selected':''} value="400">400</option>
+                            <option ${defaultSize===500?'selected':''} value="500">500</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-sm btn-outline-primary" disabled style="padding: 6px 12px; min-width: 70px;">
+                            Next <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" disabled style="padding: 6px 12px; min-width: 70px;">
+                            Last <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            errorPager.innerHTML = errorHTML;
+            errorPager.style.setProperty('display', 'flex', 'important');
+            errorPager.style.setProperty('visibility', 'visible', 'important');
+        }
+        
         showNotification('error', 'Load Failed', 'Failed to load customers. Please try again.');
     }
 }
