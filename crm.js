@@ -2806,20 +2806,26 @@ async function renderAssignWorkPage() {
             if (assignWorkTab) {
                 pager = document.createElement('div');
                 pager.id = 'assignPagination';
-                // Insert after the .data-table div
-                const dataTable = assignWorkTab.querySelector('.data-table');
-                if (dataTable && dataTable.nextSibling) {
-                    assignWorkTab.insertBefore(pager, dataTable.nextSibling);
-                } else if (dataTable) {
-                    assignWorkTab.insertBefore(pager, dataTable.parentNode.nextSibling);
-                } else {
-                    assignWorkTab.appendChild(pager);
-                }
-                console.log('✅ Created pagination element');
+                // CRITICAL: Always append to the END of assignWorkTab (after table)
+                // This ensures it's at the bottom, outside the table
+                assignWorkTab.appendChild(pager);
+                console.log('✅ Created pagination element at bottom of Assign Work tab');
             } else {
                 console.error('❌ assignWorkTab not found! Cannot create pagination.');
                 return; // Exit if we can't create pagination
             }
+        }
+        
+        // CRITICAL: Ensure pagination is at the bottom of assignWorkTab
+        // Move it if it's not in the right position
+        const assignWorkTab = document.getElementById('assignWorkTab');
+        if (assignWorkTab && pager && pager.parentNode !== assignWorkTab) {
+            console.log('⚠️ Pagination not in correct parent. Moving to assignWorkTab...');
+            assignWorkTab.appendChild(pager);
+        } else if (assignWorkTab && pager && pager.nextSibling) {
+            // If there are siblings after pagination, move it to the end
+            assignWorkTab.appendChild(pager);
+            console.log('✅ Moved pagination to bottom of assignWorkTab');
         }
         
         // ALWAYS render pagination - this code MUST execute
@@ -2861,15 +2867,10 @@ async function renderAssignWorkPage() {
         `;
         
         // FORCE set innerHTML and make visible
-        // Ensure pagination is clearly separated from the table
+        // Ensure pagination is clearly separated from the table and ALWAYS visible
         pager.innerHTML = paginationHTML;
-        pager.style.display = 'block';
-        pager.style.visibility = 'visible';
-        pager.style.width = '100%';
-        pager.style.opacity = '1';
-        pager.style.marginTop = '30px';
-        pager.style.marginBottom = '20px';
-        pager.style.clear = 'both';
+        // Force visibility with !important styles
+        pager.style.cssText = 'display: block !important; visibility: visible !important; width: 100% !important; opacity: 1 !important; margin-top: 30px !important; margin-bottom: 20px !important; clear: both !important; position: relative !important; z-index: 10 !important;';
         
         // VERIFY it was set
         console.log('✅ PAGINATION RENDERED:', {
