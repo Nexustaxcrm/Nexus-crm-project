@@ -1928,33 +1928,53 @@ async function importTabularData(headers, dataRows) {
 }
 
 // Delete ALL customers (ADMIN ONLY - DANGEROUS!)
-async function deleteAllCustomers() {
-    // Double confirmation
-    const confirm1 = confirm('⚠️ WARNING: This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
-    if (!confirm1) {
-        return;
-    }
-    
-    const confirm2 = confirm('⚠️ FINAL WARNING: You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
-    if (!confirm2) {
-        return;
-    }
-    
-    const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
-    if (confirmText !== 'DELETE ALL') {
-        showNotification('error', 'Cancelled', 'Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
-        return;
-    }
+// CRITICAL: Make sure this function is globally accessible
+window.deleteAllCustomers = async function deleteAllCustomers() {
+    console.log('🗑️ deleteAllCustomers() called');
     
     try {
+        // Check if user is admin
+        if (!currentUser || currentUser.role !== 'admin') {
+            showNotification('error', 'Access Denied', 'Only administrators can delete all customers.');
+            console.error('❌ User is not admin:', currentUser);
+            return;
+        }
+        
+        // Double confirmation
+        console.log('Showing first confirmation...');
+        const confirm1 = confirm('⚠️ WARNING: This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
+        if (!confirm1) {
+            console.log('User cancelled at first confirmation');
+            return;
+        }
+        
+        console.log('Showing second confirmation...');
+        const confirm2 = confirm('⚠️ FINAL WARNING: You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
+        if (!confirm2) {
+            console.log('User cancelled at second confirmation');
+            return;
+        }
+        
+        console.log('Showing text prompt...');
+        const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
+        if (confirmText !== 'DELETE ALL') {
+            console.log('User did not type "DELETE ALL" correctly:', confirmText);
+            showNotification('error', 'Cancelled', 'Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
+            return;
+        }
+        
+        console.log('✅ All confirmations passed. Starting deletion...');
+        
         const token = sessionStorage.getItem('authToken');
         if (!token) {
+            console.error('❌ No auth token found');
             showNotification('error', 'Not Authenticated', 'Please log in again.');
             return;
         }
         
         // Show loading state
         showNotification('info', 'Deleting...', 'Deleting all customers. This may take a moment...');
+        console.log('Making DELETE request to:', API_BASE_URL + '/customers/all');
         
         const response = await fetch(API_BASE_URL + '/customers/all', {
             method: 'DELETE',
@@ -1964,28 +1984,49 @@ async function deleteAllCustomers() {
             }
         });
         
-        const data = await response.json();
+        console.log('Response status:', response.status, response.statusText);
+        
+        // Check if response has content before parsing JSON
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            console.error('Non-JSON response:', text);
+            throw new Error('Server returned non-JSON response: ' + text);
+        }
+        
+        console.log('Response data:', data);
         
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to delete customers');
+            throw new Error(data.error || `Server error: ${response.status} ${response.statusText}`);
         }
         
         // Success
+        console.log('✅ Successfully deleted customers:', data.deletedCount);
         showNotification('success', 'Deleted Successfully', `Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
         
         // Refresh dashboard and assign work tab
         setTimeout(() => {
             if (currentUser && currentUser.role === 'admin') {
+                console.log('Refreshing dashboard and assign work page...');
                 loadAdminDashboard();
                 renderAssignWorkPage();
             }
         }, 1000);
         
     } catch (error) {
-        console.error('Error deleting all customers:', error);
-        showNotification('error', 'Delete Failed', error.message || 'Failed to delete all customers. Please try again.');
+        console.error('❌ Error deleting all customers:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        showNotification('error', 'Delete Failed', error.message || 'Failed to delete all customers. Please check console for details.');
     }
-}
+};
 
 function showCSVPreview(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim());

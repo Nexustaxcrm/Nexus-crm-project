@@ -3424,7 +3424,7 @@
                         <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
                         <p class="mb-2"><strong>Delete ALL Customers</strong></p>
                         <p class="mb-3">This will permanently delete ALL customers from the database. This action cannot be undone!</p>
-                        <button type="button" class="btn btn-danger" onclick="deleteAllCustomers()">
+                        <button type="button" class="btn btn-danger" id="deleteAllCustomersBtn" onclick="if(typeof deleteAllCustomers === 'function') { deleteAllCustomers(); } else { alert('Error: deleteAllCustomers function not found. Check console.'); console.error('deleteAllCustomers function not available'); }">
                             <i class="fas fa-trash-alt"></i> Delete All Customers
                         </button>
                     </div>
