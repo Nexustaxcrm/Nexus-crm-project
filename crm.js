@@ -2834,34 +2834,42 @@ async function renderAssignWorkPage() {
         }
         
         // CRITICAL: Build pagination HTML - MUST include dropdown
+        // Pagination is placed OUTSIDE the table, at the bottom of the Assign Work page
         const paginationHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px; width: 100%;">
-                <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
-                <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=${page-1}; renderAssignWorkPage()">Prev</button>
-                <span style="font-size: 14px; font-weight: bold;">Page ${page} of ${pagesText.toLocaleString()}</span>
-                <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
-                    <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 20px; background: #ffffff; border-top: 3px solid #007bff; margin-top: 30px; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
+                    <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=${page-1}; renderAssignWorkPage()">Prev</button>
+                    <span style="font-size: 14px; font-weight: bold; color: #333;">Page ${page} of ${pagesText.toLocaleString()}</span>
+                    <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${page+1}; renderAssignWorkPage()">Next</button>
+                    <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">Last</button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 15px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                    <label style="margin: 0; font-size: 14px; font-weight: 600; color: #495057;">Items per page:</label>
+                    <select class="form-select form-select-sm" style="width: 100px; padding: 6px 10px; border: 2px solid #007bff; border-radius: 4px; font-weight: 500; cursor: pointer;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                         <option ${size===100?'selected':''} value="100">100</option>
                         <option ${size===200?'selected':''} value="200">200</option>
                         <option ${size===300?'selected':''} value="300">300</option>
                         <option ${size===400?'selected':''} value="400">400</option>
                         <option ${size===500?'selected':''} value="500">500</option>
                     </select>
-                </label>
-                <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${page+1}; renderAssignWorkPage()">Next</button>
-                <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">Last</button>
-                <span style="font-size: 13px; color: #333; font-weight: 500;">
+                </div>
+                <div style="font-size: 13px; color: #666; font-weight: 500; padding: 8px 15px; background: #e9ecef; border-radius: 6px;">
                     Showing <strong style="color: #007bff;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff; font-size: 15px;">${totalDisplay}</strong> customers
-                </span>
+                </div>
             </div>
         `;
         
         // FORCE set innerHTML and make visible
+        // Ensure pagination is clearly separated from the table
         pager.innerHTML = paginationHTML;
         pager.style.display = 'block';
         pager.style.visibility = 'visible';
         pager.style.width = '100%';
         pager.style.opacity = '1';
+        pager.style.marginTop = '30px';
+        pager.style.marginBottom = '20px';
+        pager.style.clear = 'both';
         
         // VERIFY it was set
         console.log('✅ PAGINATION RENDERED:', {
