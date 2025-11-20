@@ -149,6 +149,19 @@ function handleDrop(e) {
 }
 
 function initializeApp() {
+    // CRITICAL: Load currentUser from sessionStorage if available (for page refreshes)
+    const userStr = sessionStorage.getItem('currentUser');
+    if (userStr) {
+        try {
+            currentUser = JSON.parse(userStr);
+            window.currentUser = currentUser; // Also set on window for global access
+            console.log('✅ Loaded currentUser from sessionStorage:', currentUser.username, currentUser.role);
+        } catch (e) {
+            console.error('Error parsing currentUser from sessionStorage:', e);
+            currentUser = null;
+        }
+    }
+    
     // Load users from database
     loadUsers();
     // Load customers from database
@@ -168,8 +181,15 @@ function initializeApp() {
         return;
     }
     
-    // Always show login page - require authentication on each page load
-    showLogin();
+    // Check if user is already logged in (from sessionStorage)
+    if (currentUser && sessionStorage.getItem('authToken')) {
+        // User is already logged in, show dashboard instead of login
+        console.log('User already logged in, showing dashboard');
+        showDashboard();
+    } else {
+        // No user logged in, show login page
+        showLogin();
+    }
     
     // Setup event listeners
     setupEventListeners();
@@ -414,8 +434,27 @@ function updateUserDisplay() {
 
 // Tab Navigation
 function showTab(tabName, clickedElement) {
+    // CRITICAL: Ensure currentUser is loaded from sessionStorage if not already set
+    if (!currentUser) {
+        const userStr = sessionStorage.getItem('currentUser');
+        if (userStr) {
+            try {
+                currentUser = JSON.parse(userStr);
+                window.currentUser = currentUser; // Also set on window for global access
+            } catch (e) {
+                console.error('Error parsing currentUser from sessionStorage:', e);
+                showNotification('error', 'Session Error', 'Please log in again.');
+                return;
+            }
+        } else {
+            console.error('No currentUser found in sessionStorage');
+            showNotification('error', 'Not Logged In', 'Please log in to continue.');
+            return;
+        }
+    }
+    
     // Check if employee is trying to access restricted tabs
-    if (currentUser.role !== 'admin' && ['upload', 'assignWork', 'progress', 'userManagement'].includes(tabName)) {
+    if (currentUser && currentUser.role !== 'admin' && ['upload', 'assignWork', 'progress', 'userManagement'].includes(tabName)) {
         showNotification('error', 'Access Denied', 'You do not have permission to access this section.');
         return;
     }
@@ -450,18 +489,18 @@ function showTab(tabName, clickedElement) {
             loadDashboard();
             break;
         case 'assignedWork':
-            if (currentUser.role !== 'admin') {
+            if (currentUser && currentUser.role !== 'admin') {
                 document.getElementById('assignedWorkTab').style.display = 'block';
                 loadAssignedWorkTable();
             }
             break;
         case 'upload':
-            if (currentUser.role === 'admin') {
+            if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('uploadTab').style.display = 'block';
             }
             break;
         case 'assignWork':
-            if (currentUser.role === 'admin') {
+            if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('assignWorkTab').style.display = 'block';
                 // CRITICAL: Call renderAssignWorkPage directly (it calls loadAssignWorkTable internally)
                 renderAssignWorkPage();
@@ -486,18 +525,18 @@ function showTab(tabName, clickedElement) {
             }
             break;
         case 'progress':
-            if (currentUser.role === 'admin') {
+            if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('progressTab').style.display = 'block';
                 loadProgressCharts();
             }
             break;
         case 'reports':
-            if (currentUser.role === 'admin') {
+            if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('reportsTab').style.display = 'block';
             }
             break;
         case 'userManagement':
-            if (currentUser.role === 'admin') {
+            if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('userManagementTab').style.display = 'block';
                 loadUsers().then(() => loadUserManagementTable());
             }
