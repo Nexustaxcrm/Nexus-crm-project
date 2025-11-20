@@ -2688,77 +2688,94 @@ async function renderAssignWorkPage() {
         
         // Use pagination info from API - CRITICAL: Use totalRecords from API, not filteredSlice.length
         // filteredSlice.length is only the current page's data (e.g., 100), not the total
-        // If API doesn't provide totalRecords, we need to fetch it separately
         let total = pagination.totalRecords || 0;
         let pages = pagination.totalPages || Math.max(1, Math.ceil(total / size));
         
-        // If total is 0 but we have data, it means API didn't return pagination info
-        // This shouldn't happen, but let's handle it gracefully
-        if (total === 0 && customersData.length > 0) {
-            console.warn('⚠️ API did not return totalRecords. Fetching total count separately...');
-            // Try to get total from a separate count query
-            try {
-                const countResponse = await fetch(API_BASE_URL + '/customers?limit=1&page=1', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (countResponse.ok) {
-                    const countData = await countResponse.json();
-                    if (countData.pagination && countData.pagination.totalRecords) {
-                        total = countData.pagination.totalRecords;
-                        pages = Math.max(1, Math.ceil(total / size));
-                        console.log('✅ Retrieved total count from separate query:', total);
-                    }
-                }
-            } catch (e) {
-                console.error('❌ Failed to fetch total count:', e);
-            }
-        }
+        console.log('=== PAGINATION INITIAL VALUES ===');
+        console.log({
+            total: total,
+            pages: pages,
+            fromAPI: pagination.totalRecords,
+            hasPagination: !!pagination,
+            paginationObject: pagination,
+            customersDataLength: customersData.length,
+            pageSize: size,
+            currentPage: page
+        });
         
-        // VERIFY: Ensure total is not 0 when we have customers
-        // If total is still 0 but we have data, this is a critical backend bug
-        if (total === 0 && customersData.length > 0) {
-            console.error('❌ CRITICAL ERROR: Total count is 0 but we have customer data!');
-            console.error('This means the backend COUNT query is broken or returning incorrect results.');
-            console.error('API Response structure:', {
-                hasPagination: !!data.pagination,
-                paginationKeys: data.pagination ? Object.keys(data.pagination) : [],
-                customersCount: customersData.length,
-                fullResponse: data
+        // CRITICAL FIX: ALWAYS use stats endpoint if total is 0 or missing
+        // The stats endpoint is more reliable than the main API's count query
+        // This ensures pagination works even if the main API's count query fails
+        if ((total === 0 || !pagination.totalRecords || total === null || isNaN(total)) && customersData.length > 0) {
+            console.warn('⚠️ API returned invalid totalRecords. Using /customers/stats as reliable fallback...');
+            console.warn('Condition check:', {
+                totalIsZero: total === 0,
+                noTotalRecords: !pagination.totalRecords,
+                totalIsNull: total === null,
+                totalIsNaN: isNaN(total),
+                hasCustomers: customersData.length > 0
             });
             
-            // CRITICAL FIX: Use the /customers/stats endpoint as a reliable source for total count
+            // Use the stats endpoint which we know works correctly (it showed 1M+ in your logs)
             try {
-                console.log('🔄 Fetching total count from /customers/stats endpoint (reliable source)...');
+                console.log('🔄 Fetching total count from /customers/stats endpoint...');
+                console.log('Stats endpoint URL:', API_BASE_URL + '/customers/stats');
                 const statsResponse = await fetch(API_BASE_URL + '/customers/stats', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
+                console.log('Stats response status:', statsResponse.status, statsResponse.statusText);
+                
                 if (statsResponse.ok) {
                     const statsData = await statsResponse.json();
-                    console.log('Stats endpoint response:', statsData);
+                    console.log('✅ Stats endpoint response:', statsData);
+                    
                     if (statsData.totalCustomers && statsData.totalCustomers > 0) {
-                        total = statsData.totalCustomers;
+                        total = parseInt(statsData.totalCustomers);
                         pages = Math.max(1, Math.ceil(total / size));
-                        console.log('✅ SUCCESS: Retrieved correct total from /customers/stats endpoint:', total);
-                        console.log('✅ Total pages calculated:', pages);
+                        console.log('✅ SUCCESS: Retrieved correct total from /customers/stats:', total.toLocaleString());
+                        console.log('✅ Calculated total pages:', pages.toLocaleString());
+                        console.log('✅ Pagination will now work correctly!');
                     } else {
-                        console.error('❌ Stats endpoint also returned 0 totalCustomers');
+                        console.error('❌ Stats endpoint returned 0 or missing totalCustomers:', statsData);
                     }
                 } else {
                     console.error('❌ Stats endpoint failed:', statsResponse.status, statsResponse.statusText);
+                    try {
+                        const errorText = await statsResponse.text();
+                        console.error('Error response:', errorText);
+                    } catch (e) {
+                        console.error('Could not read error response');
+                    }
                 }
             } catch (statsError) {
-                console.error('❌ Failed to get count from stats endpoint:', statsError);
+                console.error('❌ Failed to fetch from stats endpoint:', statsError);
+                console.error('Error details:', statsError.message, statsError.stack);
             }
+        } else if (total > 0) {
+            console.log('✅ Using total from API pagination:', total.toLocaleString());
+        } else {
+            console.warn('⚠️ Total is 0 and no customers data - this might be correct if database is empty');
+        }
+        
+        // VERIFY: Final check - if total is still 0, use last resort estimate
+        if (total === 0 && customersData.length > 0) {
+            console.error('❌ FINAL CHECK: Total is still 0 after all fallbacks!');
+            console.error('This indicates a serious backend issue with the COUNT query.');
             
-            // Last resort: if we still don't have a total, estimate based on current page
-            if (total === 0 && customersData.length === size) {
-                // If we got exactly the page size, there's definitely more
-                // Use a conservative estimate to at least enable pagination
-                total = size * 100; // Estimate 100 pages minimum
-                pages = 100;
-                console.warn(`⚠️ Using conservative estimate: ${total} customers (${pages} pages minimum)`);
-                console.warn('⚠️ THIS IS AN ESTIMATE - The backend COUNT query needs to be fixed!');
-                console.warn('⚠️ Pagination will work, but page numbers may be inaccurate.');
+            // Last resort: if we got exactly the page size, there's definitely more customers
+            if (customersData.length === size) {
+                // Use a conservative estimate to enable pagination
+                total = size * 1000; // Estimate 1000 pages minimum (100k customers)
+                pages = 1000;
+                console.warn(`⚠️ LAST RESORT: Using estimate: ${total} customers (${pages} pages)`);
+                console.warn('⚠️ THIS IS AN ESTIMATE - Backend COUNT query must be fixed!');
+                console.warn('⚠️ Pagination will work, but you may need to navigate manually to find the last page.');
+            } else {
+                // If we got less than page size, that might be all
+                total = customersData.length;
+                pages = 1;
+                console.warn(`⚠️ Only ${customersData.length} customers found (less than page size ${size})`);
             }
         }
         
@@ -2837,8 +2854,12 @@ async function renderAssignWorkPage() {
         }
         if (tbody) tbody.innerHTML = html;
         
-        // Initialize column reordering for assigned work table
-        initColumnReordering('assignedWorkTable');
+        // Initialize column reordering for assigned work table (if function exists)
+        if (typeof initColumnReordering === 'function') {
+            initColumnReordering('assignedWorkTable');
+        } else {
+            console.warn('⚠️ initColumnReordering function not found - skipping column reordering');
+        }
 
         // CRITICAL: Get or create pagination element - MUST ALWAYS EXIST
         pager = document.getElementById('assignPagination');
