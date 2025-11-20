@@ -2873,6 +2873,125 @@
         // API Configuration - Use HTTPS for Railway deployment
         const API_BASE_URL = 'https://nexus-crm-project-production.up.railway.app/api';
         
+        // Delete ALL customers function - Defined here to ensure it's always available
+        window.deleteAllCustomers = async function deleteAllCustomers() {
+            console.log('🗑️ deleteAllCustomers() called');
+            
+            try {
+                // Check if user is admin
+                if (!window.currentUser || window.currentUser.role !== 'admin') {
+                    alert('Access Denied: Only administrators can delete all customers.');
+                    console.error('❌ User is not admin:', window.currentUser);
+                    return;
+                }
+                
+                // Double confirmation
+                console.log('Showing first confirmation...');
+                const confirm1 = confirm('⚠️ WARNING: This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
+                if (!confirm1) {
+                    console.log('User cancelled at first confirmation');
+                    return;
+                }
+                
+                console.log('Showing second confirmation...');
+                const confirm2 = confirm('⚠️ FINAL WARNING: You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
+                if (!confirm2) {
+                    console.log('User cancelled at second confirmation');
+                    return;
+                }
+                
+                console.log('Showing text prompt...');
+                const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
+                if (confirmText !== 'DELETE ALL') {
+                    console.log('User did not type "DELETE ALL" correctly:', confirmText);
+                    alert('Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
+                    return;
+                }
+                
+                console.log('✅ All confirmations passed. Starting deletion...');
+                
+                const token = sessionStorage.getItem('authToken');
+                if (!token) {
+                    console.error('❌ No auth token found');
+                    alert('Error: Not authenticated. Please log in again.');
+                    return;
+                }
+                
+                // Show loading state
+                if (typeof showNotification === 'function') {
+                    showNotification('info', 'Deleting...', 'Deleting all customers. This may take a moment...');
+                } else {
+                    alert('Deleting all customers. This may take a moment...');
+                }
+                console.log('Making DELETE request to:', API_BASE_URL + '/customers/all');
+                
+                const response = await fetch(API_BASE_URL + '/customers/all', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status, response.statusText);
+                
+                // Check if response has content before parsing JSON
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response: ' + text);
+                }
+                
+                console.log('Response data:', data);
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `Server error: ${response.status} ${response.statusText}`);
+                }
+                
+                // Success
+                console.log('✅ Successfully deleted customers:', data.deletedCount);
+                if (typeof showNotification === 'function') {
+                    showNotification('success', 'Deleted Successfully', `Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
+                } else {
+                    alert(`Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
+                }
+                
+                // Refresh dashboard and assign work tab
+                setTimeout(() => {
+                    if (window.currentUser && window.currentUser.role === 'admin') {
+                        console.log('Refreshing dashboard and assign work page...');
+                        if (typeof loadAdminDashboard === 'function') {
+                            loadAdminDashboard();
+                        }
+                        if (typeof renderAssignWorkPage === 'function') {
+                            renderAssignWorkPage();
+                        }
+                        // Reload page as fallback
+                        location.reload();
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                console.error('❌ Error deleting all customers:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                const errorMsg = error.message || 'Failed to delete all customers. Please check console for details.';
+                if (typeof showNotification === 'function') {
+                    showNotification('error', 'Delete Failed', errorMsg);
+                } else {
+                    alert('Error: ' + errorMsg);
+                }
+            }
+        };
+        
         // Dark Mode Toggle Function
         function toggleDarkMode() {
             const toggle = document.getElementById('darkModeToggle');
@@ -3424,7 +3543,7 @@
                         <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
                         <p class="mb-2"><strong>Delete ALL Customers</strong></p>
                         <p class="mb-3">This will permanently delete ALL customers from the database. This action cannot be undone!</p>
-                        <button type="button" class="btn btn-danger" id="deleteAllCustomersBtn" onclick="if(typeof deleteAllCustomers === 'function') { deleteAllCustomers(); } else { alert('Error: deleteAllCustomers function not found. Check console.'); console.error('deleteAllCustomers function not available'); }">
+                        <button type="button" class="btn btn-danger" id="deleteAllCustomersBtn" onclick="if(typeof window.deleteAllCustomers === 'function') { window.deleteAllCustomers(); } else { alert('Error: deleteAllCustomers function not found. Please refresh the page.'); console.error('deleteAllCustomers function not available'); }">
                             <i class="fas fa-trash-alt"></i> Delete All Customers
                         </button>
                     </div>
