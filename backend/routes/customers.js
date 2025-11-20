@@ -104,11 +104,21 @@ router.get('/', authenticateToken, async (req, res) => {
         // Get total count for pagination
         // CRITICAL: Build count query BEFORE adding LIMIT/OFFSET to main query
         // This ensures accurate count of all matching records
-        const countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
+        // IMPORTANT: Remove any ORDER BY, LIMIT, OFFSET from count query
+        let countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
+        // Remove ORDER BY, LIMIT, OFFSET if they exist (they shouldn't at this point, but be safe)
+        countQuery = countQuery.split(' ORDER BY')[0].split(' LIMIT')[0].split(' OFFSET')[0];
         const countParams = [...params]; // Copy params before adding limit/offset
         const countResult = await dbPool.query(countQuery, countParams);
-        const totalRecords = parseInt(countResult.rows[0].count);
-        const totalPages = Math.ceil(totalRecords / limit);
+        const totalRecords = parseInt(countResult.rows[0].count) || 0;
+        const totalPages = Math.max(1, Math.ceil(totalRecords / limit));
+        
+        // CRITICAL: If totalRecords is 0 but we expect data, log a warning
+        if (totalRecords === 0) {
+            console.warn('⚠️ WARNING: Count query returned 0 records. This might be correct if all customers are archived, or there might be an issue.');
+            console.warn('Count query:', countQuery);
+            console.warn('Count params:', countParams);
+        }
         
         // Debug logging for total count verification
         console.log('=== CUSTOMERS API COUNT DEBUG ===');

@@ -2608,7 +2608,15 @@ async function renderAssignWorkPage() {
         
         const data = await response.json();
         const customersData = data.customers || data;
-        const pagination = data.pagination || { totalRecords: customersData.length, totalPages: 1 };
+        const pagination = data.pagination || {};
+        
+        // CRITICAL: If pagination object is missing or has 0 totalRecords but we have data, 
+        // this is a backend bug - log it and try to work around it
+        if (!pagination.totalRecords && customersData.length > 0) {
+            console.error('❌ CRITICAL: API returned pagination with totalRecords=0 or missing, but we have customer data!');
+            console.error('Full API response:', data);
+            console.error('This means the backend count query is not working correctly.');
+        }
         
         // CRITICAL: Enhanced debug logging to verify total count
         console.log('=== ASSIGN WORK PAGE DEBUG ===');
@@ -2707,15 +2715,51 @@ async function renderAssignWorkPage() {
         }
         
         // VERIFY: Ensure total is not 0 when we have customers
+        // If total is still 0 but we have data, this is a critical backend bug
         if (total === 0 && customersData.length > 0) {
             console.error('❌ CRITICAL ERROR: Total count is 0 but we have customer data!');
-            console.error('This means pagination will not work correctly.');
-            console.error('Attempting to use customers.length as fallback...');
-            // Last resort: estimate total based on current page
-            // This is not accurate but better than showing 0
-            total = customersData.length * 1000; // Rough estimate
-            pages = Math.max(1, Math.ceil(total / size));
-            console.warn(`⚠️ Using estimated total: ${total} (this is NOT accurate, please check API)`);
+            console.error('This means the backend COUNT query is broken or returning incorrect results.');
+            console.error('API Response structure:', {
+                hasPagination: !!data.pagination,
+                paginationKeys: data.pagination ? Object.keys(data.pagination) : [],
+                customersCount: customersData.length,
+                fullResponse: data
+            });
+            
+            // CRITICAL FIX: Use the /customers/stats endpoint as a reliable source for total count
+            try {
+                console.log('🔄 Fetching total count from /customers/stats endpoint (reliable source)...');
+                const statsResponse = await fetch(API_BASE_URL + '/customers/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    console.log('Stats endpoint response:', statsData);
+                    if (statsData.totalCustomers && statsData.totalCustomers > 0) {
+                        total = statsData.totalCustomers;
+                        pages = Math.max(1, Math.ceil(total / size));
+                        console.log('✅ SUCCESS: Retrieved correct total from /customers/stats endpoint:', total);
+                        console.log('✅ Total pages calculated:', pages);
+                    } else {
+                        console.error('❌ Stats endpoint also returned 0 totalCustomers');
+                    }
+                } else {
+                    console.error('❌ Stats endpoint failed:', statsResponse.status, statsResponse.statusText);
+                }
+            } catch (statsError) {
+                console.error('❌ Failed to get count from stats endpoint:', statsError);
+            }
+            
+            // Last resort: if we still don't have a total, estimate based on current page
+            if (total === 0 && customersData.length === size) {
+                // If we got exactly the page size, there's definitely more
+                // Use a conservative estimate to at least enable pagination
+                total = size * 100; // Estimate 100 pages minimum
+                pages = 100;
+                console.warn(`⚠️ Using conservative estimate: ${total} customers (${pages} pages minimum)`);
+                console.warn('⚠️ THIS IS AN ESTIMATE - The backend COUNT query needs to be fixed!');
+                console.warn('⚠️ Pagination will work, but page numbers may be inaccurate.');
+            }
         }
         
         console.log('=== PAGINATION CALCULATION ===');
