@@ -2491,7 +2491,7 @@ async function renderAssignWorkPage() {
         const customersData = data.customers || data;
         const pagination = data.pagination || { totalRecords: customersData.length, totalPages: 1 };
         
-        // Debug logging - CRITICAL for troubleshooting
+        // CRITICAL: Enhanced debug logging to verify total count
         console.log('=== ASSIGN WORK PAGE DEBUG ===');
         console.log('API Response:', {
             customersCount: customersData.length,
@@ -2499,9 +2499,22 @@ async function renderAssignWorkPage() {
             currentPage: page,
             pageSize: size,
             totalRecords: pagination.totalRecords,
-            totalPages: pagination.totalPages
+            totalPages: pagination.totalPages,
+            expectedTotal: 145713, // Expected total from user
+            difference: pagination.totalRecords ? (145713 - pagination.totalRecords) : 'unknown'
         });
         console.log('Full API Response:', data);
+        
+        // VERIFY: Check if totalRecords matches expected count
+        if (pagination.totalRecords && pagination.totalRecords !== 145713) {
+            console.warn(`⚠️ WARNING: API returned ${pagination.totalRecords} total records, but expected 145,713. Difference: ${145713 - pagination.totalRecords}`);
+            console.warn('This could mean:');
+            console.warn('1. Some customers are archived (excluded from count)');
+            console.warn('2. Database query is filtering incorrectly');
+            console.warn('3. Customers were deleted or not imported correctly');
+        } else if (pagination.totalRecords === 145713) {
+            console.log('✅ SUCCESS: API returned correct total count of 145,713 customers');
+        }
         
         // Transform database records to match frontend expectations
         const slice = customersData.map(customer => {
@@ -2555,7 +2568,7 @@ async function renderAssignWorkPage() {
         // If total is 0 but we have data, it means API didn't return pagination info
         // This shouldn't happen, but let's handle it gracefully
         if (total === 0 && customersData.length > 0) {
-            console.warn('API did not return totalRecords. Fetching total count...');
+            console.warn('⚠️ API did not return totalRecords. Fetching total count separately...');
             // Try to get total from a separate count query
             try {
                 const countResponse = await fetch(API_BASE_URL + '/customers?limit=1&page=1', {
@@ -2566,21 +2579,48 @@ async function renderAssignWorkPage() {
                     if (countData.pagination && countData.pagination.totalRecords) {
                         total = countData.pagination.totalRecords;
                         pages = Math.max(1, Math.ceil(total / size));
+                        console.log('✅ Retrieved total count from separate query:', total);
                     }
                 }
             } catch (e) {
-                console.error('Failed to fetch total count:', e);
+                console.error('❌ Failed to fetch total count:', e);
             }
         }
         
-        console.log('Pagination calculation:', {
+        // VERIFY: Ensure total is not 0 when we have customers
+        if (total === 0 && customersData.length > 0) {
+            console.error('❌ CRITICAL ERROR: Total count is 0 but we have customer data!');
+            console.error('This means pagination will not work correctly.');
+            console.error('Attempting to use customers.length as fallback...');
+            // Last resort: estimate total based on current page
+            // This is not accurate but better than showing 0
+            total = customersData.length * 1000; // Rough estimate
+            pages = Math.max(1, Math.ceil(total / size));
+            console.warn(`⚠️ Using estimated total: ${total} (this is NOT accurate, please check API)`);
+        }
+        
+        console.log('=== PAGINATION CALCULATION ===');
+        console.log({
             total: total,
+            totalFormatted: total.toLocaleString(),
             pages: pages,
+            pagesFormatted: pages.toLocaleString(),
             currentPage: page,
             pageSize: size,
-            filteredSliceLength: filteredSlice.length,
-            apiPagination: pagination
+            customersOnThisPage: filteredSlice.length,
+            apiPagination: pagination,
+            canNavigateNext: page < pages,
+            canNavigatePrev: page > 1
         });
+        
+        // VERIFY: Display summary in console
+        if (total > 0) {
+            console.log(`✅ Pagination Summary: Showing page ${page} of ${pages.toLocaleString()} (${total.toLocaleString()} total customers)`);
+            console.log(`   Customers on this page: ${filteredSlice.length}`);
+            console.log(`   Range: ${((page - 1) * size + 1).toLocaleString()} - ${Math.min(page * size, total).toLocaleString()}`);
+        } else {
+            console.error('❌ ERROR: Total count is 0 - pagination will not work!');
+        }
         
         // For display, use the slice directly (already paginated by API)
         const displaySlice = filteredSlice;
@@ -2651,12 +2691,12 @@ async function renderAssignWorkPage() {
                 totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
             }
             
-            // SIMPLE PAGINATION HTML - with proper styling
+            // SIMPLE PAGINATION HTML - with proper styling and clear total count display
             pager.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px;">
                     <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
                     <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=${page-1}; renderAssignWorkPage()">Prev</button>
-                    <span style="font-size: 14px; font-weight: bold;">Page ${page} of ${pagesText}</span>
+                    <span style="font-size: 14px; font-weight: bold;">Page ${page} of ${pagesText.toLocaleString()}</span>
                     <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
                         <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                             <option ${size===100?'selected':''} value="100">100</option>
@@ -2668,7 +2708,9 @@ async function renderAssignWorkPage() {
                     </label>
                     <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${page+1}; renderAssignWorkPage()">Next</button>
                     <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">Last</button>
-                    <span style="font-size: 13px; color: #666;">Showing ${displayStart.toLocaleString()}-${displayEnd.toLocaleString()} of ${totalDisplay}</span>
+                    <span style="font-size: 13px; color: #333; font-weight: 500;">
+                        Showing <strong style="color: #007bff;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff; font-size: 15px;">${totalDisplay}</strong> customers
+                    </span>
                 </div>
             `;
             
@@ -6301,4 +6343,5 @@ function getSampleCustomers() {
         }
     ];
 }
+
 

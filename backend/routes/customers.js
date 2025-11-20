@@ -102,12 +102,31 @@ router.get('/', authenticateToken, async (req, res) => {
         }
         
         // Get total count for pagination
+        // CRITICAL: Build count query BEFORE adding LIMIT/OFFSET to main query
+        // This ensures accurate count of all matching records
         const countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
-        const countResult = await dbPool.query(countQuery, params);
+        const countParams = [...params]; // Copy params before adding limit/offset
+        const countResult = await dbPool.query(countQuery, countParams);
         const totalRecords = parseInt(countResult.rows[0].count);
         const totalPages = Math.ceil(totalRecords / limit);
         
-        // Add ordering and pagination
+        // Debug logging for total count verification
+        console.log('=== CUSTOMERS API COUNT DEBUG ===');
+        console.log('Query filters:', {
+            includeArchived,
+            archivedOnly,
+            status,
+            assignedTo,
+            search
+        });
+        console.log('Count query:', countQuery);
+        console.log('Count params:', countParams);
+        console.log('Total records found:', totalRecords);
+        console.log('Total pages:', totalPages);
+        console.log('Current page:', page);
+        console.log('Records per page:', limit);
+        
+        // Add ordering and pagination to main query (AFTER count query)
         query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
         params.push(limit, offset);
         
