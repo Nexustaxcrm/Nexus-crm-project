@@ -24,6 +24,9 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            // CRITICAL: Allow inline event handlers (onclick, onchange, etc.) for navigation
+            // This is required because the HTML uses inline onclick handlers like onclick="showTab(...)"
+            scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
             fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
             connectSrc: ["'self'", "https://nexus-crm-project-production.up.railway.app"]
