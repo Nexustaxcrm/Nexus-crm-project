@@ -459,15 +459,26 @@ function showTab(tabName, clickedElement) {
         case 'assignWork':
             if (currentUser.role === 'admin') {
                 document.getElementById('assignWorkTab').style.display = 'block';
-                loadAssignWorkTable();
+                // CRITICAL: Call renderAssignWorkPage directly (it calls loadAssignWorkTable internally)
+                renderAssignWorkPage();
                 // Ensure pagination is visible after tab is shown
                 setTimeout(() => {
                     const pagerCheck = document.getElementById('assignPagination');
-                    if (pagerCheck && (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 50)) {
-                        console.log('🔄 Re-rendering pagination after tab show...');
+                    if (!pagerCheck) {
+                        console.error('❌ Pagination element missing when tab shown! Creating it...');
                         renderAssignWorkPage();
+                    } else if (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 100 || !pagerCheck.innerHTML.includes('<select')) {
+                        console.log('🔄 Re-rendering pagination after tab show (missing dropdown)...');
+                        renderAssignWorkPage();
+                    } else {
+                        // Force show pagination even if it exists
+                        pagerCheck.style.display = 'block';
+                        pagerCheck.style.visibility = 'visible';
+                        pagerCheck.style.width = '100%';
+                        pagerCheck.style.opacity = '1';
+                        console.log('✅ Pagination element found and made visible');
                     }
-                }, 200);
+                }, 300);
             }
             break;
         case 'progress':
@@ -2062,6 +2073,8 @@ function loadAssignWorkTable() {
     window.assignFiltered = null;
     window.assignPageSize = window.assignPageSize || 200;
     window.assignCurrentPage = 1;
+    // CRITICAL: Call renderAssignWorkPage to ensure pagination is rendered
+    renderAssignWorkPage();
     renderAssignWorkPage();
     // Load employee dropdown
     loadEmployeeDropdown();
@@ -2677,49 +2690,88 @@ async function renderAssignWorkPage() {
         // Initialize column reordering for assigned work table
         initColumnReordering('assignedWorkTable');
 
-        // Get pagination element - SIMPLE
+        // CRITICAL: Get or create pagination element - MUST ALWAYS EXIST
         pager = document.getElementById('assignPagination');
         
-        if (pager) {
-            const pagesText = Math.max(1, pages);
-            const displayStart = total === 0 ? 0 : (page - 1) * size + 1;
-            const displayEnd = total === 0 ? 0 : Math.min(page * size, total);
-            
-            // Show warning if total is 0 but we have data
-            let totalDisplay = total.toLocaleString();
-            if (total === 0 && displaySlice.length > 0) {
-                totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
+        // If pagination element doesn't exist, CREATE IT NOW
+        if (!pager) {
+            console.error('❌ Pagination element not found! Creating it...');
+            const assignWorkTab = document.getElementById('assignWorkTab');
+            if (assignWorkTab) {
+                pager = document.createElement('div');
+                pager.id = 'assignPagination';
+                // Insert after the .data-table div
+                const dataTable = assignWorkTab.querySelector('.data-table');
+                if (dataTable && dataTable.nextSibling) {
+                    assignWorkTab.insertBefore(pager, dataTable.nextSibling);
+                } else if (dataTable) {
+                    assignWorkTab.insertBefore(pager, dataTable.parentNode.nextSibling);
+                } else {
+                    assignWorkTab.appendChild(pager);
+                }
+                console.log('✅ Created pagination element');
+            } else {
+                console.error('❌ assignWorkTab not found! Cannot create pagination.');
+                return; // Exit if we can't create pagination
             }
-            
-            // SIMPLE PAGINATION HTML - with proper styling and clear total count display
-            pager.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px;">
-                    <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
-                    <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=${page-1}; renderAssignWorkPage()">Prev</button>
-                    <span style="font-size: 14px; font-weight: bold;">Page ${page} of ${pagesText.toLocaleString()}</span>
-                    <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
-                        <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
-                            <option ${size===100?'selected':''} value="100">100</option>
-                            <option ${size===200?'selected':''} value="200">200</option>
-                            <option ${size===300?'selected':''} value="300">300</option>
-                            <option ${size===400?'selected':''} value="400">400</option>
-                            <option ${size===500?'selected':''} value="500">500</option>
-                        </select>
-                    </label>
-                    <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${page+1}; renderAssignWorkPage()">Next</button>
-                    <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">Last</button>
-                    <span style="font-size: 13px; color: #333; font-weight: 500;">
-                        Showing <strong style="color: #007bff;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff; font-size: 15px;">${totalDisplay}</strong> customers
-                    </span>
-                </div>
-            `;
-            
-            // Make sure it's visible with flex display
-            pager.style.display = 'block';
-            pager.style.visibility = 'visible';
-            pager.style.width = '100%';
-        } else {
-            console.error('Pagination element not found!');
+        }
+        
+        // ALWAYS render pagination - this code MUST execute
+        const pagesText = Math.max(1, pages);
+        const displayStart = total === 0 ? 0 : (page - 1) * size + 1;
+        const displayEnd = total === 0 ? 0 : Math.min(page * size, total);
+        
+        // Show warning if total is 0 but we have data
+        let totalDisplay = total.toLocaleString();
+        if (total === 0 && displaySlice.length > 0) {
+            totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
+        }
+        
+        // CRITICAL: Build pagination HTML - MUST include dropdown
+        const paginationHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px; width: 100%;">
+                <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
+                <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=${page-1}; renderAssignWorkPage()">Prev</button>
+                <span style="font-size: 14px; font-weight: bold;">Page ${page} of ${pagesText.toLocaleString()}</span>
+                <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
+                    <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                        <option ${size===100?'selected':''} value="100">100</option>
+                        <option ${size===200?'selected':''} value="200">200</option>
+                        <option ${size===300?'selected':''} value="300">300</option>
+                        <option ${size===400?'selected':''} value="400">400</option>
+                        <option ${size===500?'selected':''} value="500">500</option>
+                    </select>
+                </label>
+                <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${page+1}; renderAssignWorkPage()">Next</button>
+                <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">Last</button>
+                <span style="font-size: 13px; color: #333; font-weight: 500;">
+                    Showing <strong style="color: #007bff;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff; font-size: 15px;">${totalDisplay}</strong> customers
+                </span>
+            </div>
+        `;
+        
+        // FORCE set innerHTML and make visible
+        pager.innerHTML = paginationHTML;
+        pager.style.display = 'block';
+        pager.style.visibility = 'visible';
+        pager.style.width = '100%';
+        pager.style.opacity = '1';
+        
+        // VERIFY it was set
+        console.log('✅ PAGINATION RENDERED:', {
+            elementExists: !!pager,
+            innerHTMLLength: pager.innerHTML.length,
+            hasSelect: pager.innerHTML.includes('<select'),
+            hasDropdown: pager.innerHTML.includes('value="100"'),
+            total: total,
+            pages: pagesText,
+            currentPage: page
+        });
+        
+        // Double-check: if HTML wasn't set, try again
+        if (!pager.innerHTML || pager.innerHTML.length < 100 || !pager.innerHTML.includes('<select')) {
+            console.error('❌ Pagination HTML not set correctly! Retrying...');
+            pager.innerHTML = paginationHTML;
         }
 
         // Initialize column resizing once per render
@@ -2731,15 +2783,31 @@ async function renderAssignWorkPage() {
             tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error loading customers. Please refresh the page.</td></tr>';
         }
         
-        // Show pagination even on error
-        const errorPager = document.getElementById('assignPagination');
+        // CRITICAL: Show pagination even on error - MUST ALWAYS SHOW
+        let errorPager = document.getElementById('assignPagination');
+        if (!errorPager) {
+            // Create it if it doesn't exist
+            const assignWorkTab = document.getElementById('assignWorkTab');
+            if (assignWorkTab) {
+                errorPager = document.createElement('div');
+                errorPager.id = 'assignPagination';
+                const dataTable = assignWorkTab.querySelector('.data-table');
+                if (dataTable && dataTable.parentNode) {
+                    assignWorkTab.insertBefore(errorPager, dataTable.nextSibling);
+                } else {
+                    assignWorkTab.appendChild(errorPager);
+                }
+            }
+        }
+        
         if (errorPager) {
             const defaultSize = window.assignPageSize || 200;
+            const defaultPage = window.assignCurrentPage || 1;
             errorPager.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px;">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px; width: 100%;">
                     <button class="btn btn-sm btn-primary" disabled>First</button>
                     <button class="btn btn-sm btn-primary" disabled>Prev</button>
-                    <span style="font-size: 14px; font-weight: bold;">Page 1 of 1</span>
+                    <span style="font-size: 14px; font-weight: bold;">Page ${defaultPage} of 1</span>
                     <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
                         <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                             <option ${defaultSize===100?'selected':''} value="100">100</option>
@@ -2751,10 +2819,14 @@ async function renderAssignWorkPage() {
                     </label>
                     <button class="btn btn-sm btn-primary" disabled>Next</button>
                     <button class="btn btn-sm btn-primary" disabled>Last</button>
+                    <span style="font-size: 13px; color: #333; font-weight: 500;">Error loading customers</span>
                 </div>
             `;
             errorPager.style.display = 'block';
+            errorPager.style.visibility = 'visible';
             errorPager.style.width = '100%';
+            errorPager.style.opacity = '1';
+            console.log('✅ Error pagination rendered with dropdown');
         }
         
         showNotification('error', 'Load Failed', 'Failed to load customers. Please try again.');
