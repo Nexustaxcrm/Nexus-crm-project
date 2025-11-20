@@ -3419,6 +3419,16 @@
                         <p>Upload a CSV file to import multiple customers at once</p>
                     </div>
                     
+                    <!-- Danger Zone: Delete All Customers -->
+                    <div class="alert alert-danger mt-4" style="border: 2px solid #dc3545; border-radius: 8px;">
+                        <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
+                        <p class="mb-2"><strong>Delete ALL Customers</strong></p>
+                        <p class="mb-3">This will permanently delete ALL customers from the database. This action cannot be undone!</p>
+                        <button type="button" class="btn btn-danger" onclick="deleteAllCustomers()">
+                            <i class="fas fa-trash-alt"></i> Delete All Customers
+                        </button>
+                    </div>
+                    
                     <div class="upload-area" id="uploadArea" onclick="document.getElementById(&#39;csvFile&#39;).click()">
                         <div class="upload-icon">
                             <i class="fas fa-cloud-upload-alt"></i>

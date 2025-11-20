@@ -533,6 +533,49 @@ router.post('/bulk-delete', authenticateToken, async (req, res) => {
     }
 });
 
+// Delete ALL customers (ADMIN ONLY - DANGEROUS!)
+router.delete('/all', authenticateToken, async (req, res) => {
+    try {
+        // CRITICAL: Only allow admin users
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only admins can delete all customers' });
+        }
+
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        console.log('⚠️ WARNING: Admin user deleting ALL customers');
+        
+        // Delete all customers (this will also cascade delete customer_actions if foreign key is set)
+        const result = await dbPool.query('DELETE FROM customers');
+        const deletedCount = result.rowCount || 0;
+        
+        // Also delete customer_actions to clean up audit trail
+        try {
+            await dbPool.query('DELETE FROM customer_actions');
+            console.log('✅ Deleted all customer actions');
+        } catch (err) {
+            console.warn('⚠️ Could not delete customer_actions:', err.message);
+        }
+        
+        console.log(`✅ Deleted all customers: ${deletedCount} records removed`);
+        
+        res.json({
+            success: true,
+            deletedCount: deletedCount,
+            message: `Successfully deleted ALL ${deletedCount.toLocaleString()} customer(s)`
+        });
+    } catch (error) {
+        console.error('Error deleting all customers:', error);
+        res.status(500).json({ 
+            error: 'Server error during deletion',
+            details: error.message
+        });
+    }
+});
+
 // Bulk upload customers (optimized for large files - 300K+ records)
 router.post('/bulk-upload', authenticateToken, express.json({ limit: '50mb' }), async (req, res) => {
     try {

@@ -1926,6 +1926,67 @@ async function importTabularData(headers, dataRows) {
     showTab('dashboard');
     loadDashboard();
 }
+
+// Delete ALL customers (ADMIN ONLY - DANGEROUS!)
+async function deleteAllCustomers() {
+    // Double confirmation
+    const confirm1 = confirm('⚠️ WARNING: This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
+    if (!confirm1) {
+        return;
+    }
+    
+    const confirm2 = confirm('⚠️ FINAL WARNING: You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
+    if (!confirm2) {
+        return;
+    }
+    
+    const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
+    if (confirmText !== 'DELETE ALL') {
+        showNotification('error', 'Cancelled', 'Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
+        return;
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Not Authenticated', 'Please log in again.');
+            return;
+        }
+        
+        // Show loading state
+        showNotification('info', 'Deleting...', 'Deleting all customers. This may take a moment...');
+        
+        const response = await fetch(API_BASE_URL + '/customers/all', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to delete customers');
+        }
+        
+        // Success
+        showNotification('success', 'Deleted Successfully', `Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
+        
+        // Refresh dashboard and assign work tab
+        setTimeout(() => {
+            if (currentUser && currentUser.role === 'admin') {
+                loadAdminDashboard();
+                renderAssignWorkPage();
+            }
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error deleting all customers:', error);
+        showNotification('error', 'Delete Failed', error.message || 'Failed to delete all customers. Please try again.');
+    }
+}
+
 function showCSVPreview(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim());
     if (lines.length < 2) {
