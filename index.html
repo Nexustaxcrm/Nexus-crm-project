@@ -3510,11 +3510,11 @@
                                         <li><h6 class="dropdown-header">Select Employee</h6></li>
                                         <li id="employeeDropdownList"></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="assignToUnassigned()">
+                                        <li><a class="dropdown-item" href="#" onclick="assignToUnassigned()">
                                             <i class="fas fa-user-slash"></i> Mark as Unassigned
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="openDeleteAllModal()">
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="openDeleteAllModal()">
                                             <i class="fas fa-trash-alt"></i> Delete All
                                         </a></li>
                                     </ul>
@@ -3535,21 +3535,21 @@
                                             <div class="filter-dropdown-header">
                                                 <div class="filter-options">
                                                     <label class="filter-checkbox-item">
-                                                        <input type="checkbox" id="selectAllDeleteStatuses" checked="">
+                                                        <input type="checkbox" id="selectAllDeleteStatuses" checked>
                                                         <span class="checkmark"></span>
                                                         Select All
                                                     </label>
                                                 </div>
                                             </div>
                                             <div class="filter-dropdown-body">
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="follow_up" checked=""><span class="checkmark"></span>Follow-Up</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="call_back" checked=""><span class="checkmark"></span>Call Back</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="not_in_service" checked=""><span class="checkmark"></span>Not in Service</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="voice_mail" checked=""><span class="checkmark"></span>Voice Mail</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="citizen" checked=""><span class="checkmark"></span>Citizen</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="dnd" checked=""><span class="checkmark"></span>DND</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="interested" checked=""><span class="checkmark"></span>Interested</label>
-                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="pending" checked=""><span class="checkmark"></span>Pending</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="follow_up" checked><span class="checkmark"></span>Follow-Up</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="call_back" checked><span class="checkmark"></span>Call Back</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="not_in_service" checked><span class="checkmark"></span>Not in Service</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="voice_mail" checked><span class="checkmark"></span>Voice Mail</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="citizen" checked><span class="checkmark"></span>Citizen</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="dnd" checked><span class="checkmark"></span>DND</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="interested" checked><span class="checkmark"></span>Interested</label>
+                                                <label class="filter-checkbox-item"><input type="checkbox" class="delete-status-checkbox" value="pending" checked><span class="checkmark"></span>Pending</label>
                                             </div>
                                             <div class="filter-dropdown-footer">
                                                 <button class="btn btn-sm btn-outline-secondary" onclick="toggleDeleteStatusFilter(false)">Cancel</button>
@@ -3580,14 +3580,14 @@
                                                         <div class="filter-dropdown-header">
                                                             <div class="filter-options">
                                                                 <label class="filter-checkbox-item">
-                                                                    <input type="checkbox" id="assignStatusSelectAll" checked="">
+                                                                    <input type="checkbox" id="assignStatusSelectAll" checked>
                                                                     <span class="checkmark"></span>
                                                                     Show All
                                                                 </label>
                                                             </div>
                                                         </div>
                                                         <div class="filter-dropdown-body">
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="pending" checked=""><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
+                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="pending" checked><span class="checkmark"></span><div><span class="badge bg-warning">Pending</span><small class="text-muted d-block" style="font-size:11px;">pending</small></div></label>
                                                             <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="interested"><span class="checkmark"></span><div><span class="badge bg-success">Interested</span><small class="text-muted d-block" style="font-size:11px;">interested</small></div></label>
                                                             <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="voice_mail"><span class="checkmark"></span><div><span class="badge bg-secondary">Voice Mail</span><small class="text-muted d-block" style="font-size:11px;">voice_mail</small></div></label>
                                                             <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="w2_received"><span class="checkmark"></span><div><span class="badge bg-success">W2 Received</span><small class="text-muted d-block" style="font-size:11px;">w2_received</small></div></label>
@@ -3617,8 +3617,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- Pagination - Simple and outside table -->
-                <div id="assignPagination" style="display: block; width: 100%; padding: 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px;"></div>
+                <!-- Pagination will be populated by JavaScript -->
+                <div id="assignPagination"></div>
             </div>
 
             <!-- Progress Tab -->

@@ -2651,14 +2651,14 @@ async function renderAssignWorkPage() {
                 totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
             }
             
-            // SIMPLE PAGINATION HTML
+            // SIMPLE PAGINATION HTML - with proper styling
             pager.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px;">
                     <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()">First</button>
                     <button class="btn btn-sm btn-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=${page-1}; renderAssignWorkPage()">Prev</button>
                     <span style="font-size: 14px; font-weight: bold;">Page ${page} of ${pagesText}</span>
-                    <label style="margin: 0; font-size: 14px;">Show: 
-                        <select class="form-select form-select-sm d-inline-block" style="width: 80px; margin-left: 5px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                    <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
+                        <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                             <option ${size===100?'selected':''} value="100">100</option>
                             <option ${size===200?'selected':''} value="200">200</option>
                             <option ${size===300?'selected':''} value="300">300</option>
@@ -2672,9 +2672,10 @@ async function renderAssignWorkPage() {
                 </div>
             `;
             
-            // Make sure it's visible
+            // Make sure it's visible with flex display
             pager.style.display = 'block';
             pager.style.visibility = 'visible';
+            pager.style.width = '100%';
         } else {
             console.error('Pagination element not found!');
         }
@@ -2693,12 +2694,12 @@ async function renderAssignWorkPage() {
         if (errorPager) {
             const defaultSize = window.assignPageSize || 200;
             errorPager.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; padding: 15px 20px; background: #f8f9fa; border-top: 2px solid #007bff; margin-top: 20px;">
                     <button class="btn btn-sm btn-primary" disabled>First</button>
                     <button class="btn btn-sm btn-primary" disabled>Prev</button>
                     <span style="font-size: 14px; font-weight: bold;">Page 1 of 1</span>
-                    <label style="margin: 0; font-size: 14px;">Show: 
-                        <select class="form-select form-select-sm d-inline-block" style="width: 80px; margin-left: 5px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                    <label style="margin: 0; font-size: 14px; font-weight: 500;">Show: 
+                        <select class="form-select form-select-sm d-inline-block" style="width: 90px; margin-left: 8px; padding: 4px 8px; border: 2px solid #007bff; border-radius: 4px;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                             <option ${defaultSize===100?'selected':''} value="100">100</option>
                             <option ${defaultSize===200?'selected':''} value="200">200</option>
                             <option ${defaultSize===300?'selected':''} value="300">300</option>
@@ -2711,6 +2712,7 @@ async function renderAssignWorkPage() {
                 </div>
             `;
             errorPager.style.display = 'block';
+            errorPager.style.width = '100%';
         }
         
         showNotification('error', 'Load Failed', 'Failed to load customers. Please try again.');
