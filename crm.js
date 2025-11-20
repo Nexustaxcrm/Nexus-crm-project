@@ -2662,25 +2662,45 @@ async function renderAssignWorkPage() {
                 totalDisplay = `${displaySlice.length}+ (exact count unavailable)`;
             }
             
-            // SIMPLIFIED: Just show essential pagination controls - no grey background
+            // Pagination controls - centered at bottom as marked in red circle
             const paginationHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 0;">
-                    <div style="color: #333; font-size: 13px;">
-                        Showing ${displayStart.toLocaleString()}-${displayEnd.toLocaleString()} of ${totalDisplay} customers | Page ${page} of ${pagesText}
-                    </div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()" style="padding: 4px 8px;">⏮ First</button>
-                        <button class="btn btn-sm btn-outline-secondary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=Math.max(1, window.assignCurrentPage-1); renderAssignWorkPage()" style="padding: 4px 8px;">‹ Prev</button>
-                        <label style="margin: 0; color: #666; font-size: 13px; white-space: nowrap;">Show:</label>
-                        <select class="form-select form-select-sm" style="width: 100px !important; padding: 4px 8px !important; font-size: 13px !important;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
+                        <button class="btn btn-sm btn-outline-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=1; renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                            <i class="fas fa-angle-double-left"></i> First
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" ${page===1?'disabled':''} onclick="window.assignCurrentPage=Math.max(1, window.assignCurrentPage-1); renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                            <i class="fas fa-angle-left"></i> Prev
+                        </button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 0 15px;">
+                        <span style="color: #333; font-size: 14px; font-weight: 500;">Page</span>
+                        <span style="color: #007bff; font-size: 16px; font-weight: bold; min-width: 30px; text-align: center;">${page}</span>
+                        <span style="color: #666; font-size: 14px;">of</span>
+                        <span style="color: #333; font-size: 14px; font-weight: 500; min-width: 50px; text-align: center;">${pagesText}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="margin: 0; color: #333; font-size: 14px; font-weight: 500; white-space: nowrap;">Show:</label>
+                        <select class="form-select form-select-sm" style="width: 90px !important; padding: 6px 10px !important; font-size: 14px !important; border: 2px solid #007bff !important; border-radius: 4px !important; font-weight: 500 !important;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
                             <option ${size===100?'selected':''} value="100">100</option>
                             <option ${size===200?'selected':''} value="200">200</option>
                             <option ${size===300?'selected':''} value="300">300</option>
                             <option ${size===400?'selected':''} value="400">400</option>
                             <option ${size===500?'selected':''} value="500">500</option>
                         </select>
-                        <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=Math.min(${pagesText}, window.assignCurrentPage+1); renderAssignWorkPage()" style="padding: 4px 8px;">Next ›</button>
-                        <button class="btn btn-sm btn-outline-secondary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()" style="padding: 4px 8px;">Last ⏭</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-sm btn-outline-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=Math.min(${pagesText}, window.assignCurrentPage+1); renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                            Next <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()" style="padding: 6px 12px; min-width: 70px;">
+                            Last <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                    <div style="margin-left: 20px; padding-left: 20px; border-left: 1px solid #ddd;">
+                        <span style="color: #666; font-size: 13px;">
+                            Showing <strong style="color: #333;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff;">${totalDisplay}</strong> customers
+                        </span>
                     </div>
                 </div>
             `;
@@ -2689,8 +2709,8 @@ async function renderAssignWorkPage() {
             pager.innerHTML = '';
             pager.innerHTML = paginationHTML;
             
-            // FORCE VISIBILITY - White background, clear border, always visible
-            pager.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 3px solid #007bff !important; background: #ffffff !important; width: 100% !important; min-height: 60px !important; box-shadow: 0 -2px 5px rgba(0,0,0,0.1) !important;';
+            // FORCE VISIBILITY - Centered at bottom, always visible
+            pager.style.cssText = 'display: flex !important; justify-content: center !important; align-items: center !important; visibility: visible !important; opacity: 1 !important; position: relative !important; padding: 15px 20px !important; margin-top: 20px !important; border-top: 2px solid #007bff !important; background: #f8f9fa !important; width: 100% !important; min-height: 70px !important; box-shadow: 0 -2px 8px rgba(0,0,0,0.1) !important;';
             
             // Verify it was set
             const actualHTML = pager.innerHTML;
