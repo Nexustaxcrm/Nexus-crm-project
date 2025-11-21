@@ -803,12 +803,12 @@ async function loadAdminDashboard() {
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('follow_up')">
-                    <div class="stats-icon" style="background: #ffa500;">
-                        <i class="fas fa-redo"></i>
+                <div class="stats-card" onclick="filterByStatus('interested')">
+                    <div class="stats-icon" style="background: #2dce89;">
+                        <i class="fas fa-heart"></i>
                     </div>
-                    <div class="stats-number">${stats.followUpCount || 0}</div>
-                    <div class="stats-label">Follow-up</div>
+                    <div class="stats-number">${stats.interestedCount || stats.statusCounts?.interested || 0}</div>
+                    <div class="stats-label">Interested</div>
                 </div>
             </div>
             <div class="col-md-3">
@@ -888,12 +888,12 @@ async function loadAdminDashboard() {
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stats-card" onclick="filterByStatus('follow_up')">
-                <div class="stats-icon" style="background: #ffa500;">
-                    <i class="fas fa-redo"></i>
+            <div class="stats-card" onclick="filterByStatus('interested')">
+                <div class="stats-icon" style="background: #2dce89;">
+                    <i class="fas fa-heart"></i>
                 </div>
-                <div class="stats-number">${getFollowUpCustomers().length}</div>
-                <div class="stats-label">Follow-up</div>
+                <div class="stats-number">${getCustomersByStatus('interested').length}</div>
+                <div class="stats-label">Interested</div>
             </div>
         </div>
         <div class="col-md-3">

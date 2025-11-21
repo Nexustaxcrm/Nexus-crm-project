@@ -234,20 +234,15 @@ router.get('/stats', authenticateToken, async (req, res) => {
         const archivedResult = await dbPool.query('SELECT COUNT(*) FROM customers WHERE archived = TRUE');
         const archivedCount = parseInt(archivedResult.rows[0].count);
         
-        // Get follow-up count (customers with status 'follow_up' or similar)
-        const followUpResult = await dbPool.query(`
-            SELECT COUNT(*) FROM customers 
-            WHERE (archived IS NULL OR archived = FALSE) 
-            AND (status = 'follow_up' OR status LIKE '%follow%')
-        `);
-        const followUpCount = parseInt(followUpResult.rows[0].count);
+        // Get interested count (customers with status 'interested')
+        const interestedCount = statusCounts['interested'] || 0;
         
         res.json({
             totalCustomers,
             statusCounts,
             callStatusCounts,
             archivedCount,
-            followUpCount,
+            interestedCount,
             w2Received: statusCounts['w2_received'] || 0
         });
     } catch (error) {
