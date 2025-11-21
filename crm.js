@@ -289,12 +289,40 @@ function setupEventListeners() {
     
     // CRITICAL: Add double-click event delegation for phone number copying
     // This works for all phone links, even those added dynamically
-    // Use both dblclick and a click-based double-click detection for better compatibility
-    let lastClickTime = 0;
-    let lastClickTarget = null;
-    const DOUBLE_CLICK_DELAY = 300; // milliseconds
+    // Use debounce to prevent duplicate copies when both dblclick and click methods fire
+    let lastCopyTime = 0;
+    let lastCopiedPhone = null;
+    const COPY_DEBOUNCE_DELAY = 500; // milliseconds - prevent duplicate copies within this time
     
-    // Method 1: Native dblclick event
+    // Helper function to handle phone number copying with debounce
+    function handlePhoneCopy(phoneLink, source) {
+        // Get phone number from href attribute (removes tel: prefix) or text content
+        let phoneNumber = phoneLink.getAttribute('href');
+        if (!phoneNumber || phoneNumber.trim() === '') {
+            phoneNumber = phoneLink.textContent.trim();
+        }
+        
+        const now = Date.now();
+        
+        // Debounce: prevent duplicate copies if same phone was just copied
+        if (lastCopiedPhone === phoneNumber && (now - lastCopyTime) < COPY_DEBOUNCE_DELAY) {
+            console.log('⏭️ Skipping duplicate copy (debounced):', phoneNumber);
+            return;
+        }
+        
+        // Update last copy info
+        lastCopyTime = now;
+        lastCopiedPhone = phoneNumber;
+        
+        console.log(`📞 Double-click detected (${source}) on phone link:`, phoneNumber);
+        if (window.copyPhoneNumber) {
+            window.copyPhoneNumber(phoneNumber);
+        } else {
+            copyPhoneNumber(phoneNumber);
+        }
+    }
+    
+    // Method 1: Native dblclick event (primary method)
     document.addEventListener('dblclick', function(e) {
         // Check if double-clicked element is a phone link or inside a phone link
         let phoneLink = e.target.closest('a[href^="tel:"]');
@@ -308,22 +336,15 @@ function setupEventListeners() {
             e.preventDefault(); // Prevent default tel: link behavior on double-click
             e.stopPropagation(); // Stop event from bubbling
             
-            // Get phone number from href attribute (removes tel: prefix) or text content
-            let phoneNumber = phoneLink.getAttribute('href');
-            if (!phoneNumber || phoneNumber.trim() === '') {
-                phoneNumber = phoneLink.textContent.trim();
-            }
-            
-            console.log('📞 Double-click detected on phone link:', phoneNumber);
-            if (window.copyPhoneNumber) {
-                window.copyPhoneNumber(phoneNumber);
-            } else {
-                copyPhoneNumber(phoneNumber);
-            }
+            handlePhoneCopy(phoneLink, 'dblclick');
         }
     }, true); // Use capture phase to catch event early
     
     // Method 2: Click-based double-click detection (fallback for browsers that don't fire dblclick properly)
+    let lastClickTime = 0;
+    let lastClickTarget = null;
+    const DOUBLE_CLICK_DELAY = 300; // milliseconds
+    
     document.addEventListener('click', function(e) {
         const now = Date.now();
         let phoneLink = e.target.closest('a[href^="tel:"]');
@@ -338,17 +359,7 @@ function setupEventListeners() {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                let phoneNumber = phoneLink.getAttribute('href');
-                if (!phoneNumber || phoneNumber.trim() === '') {
-                    phoneNumber = phoneLink.textContent.trim();
-                }
-                
-                console.log('📞 Double-click detected (click method) on phone link:', phoneNumber);
-                if (window.copyPhoneNumber) {
-                    window.copyPhoneNumber(phoneNumber);
-                } else {
-                    copyPhoneNumber(phoneNumber);
-                }
+                handlePhoneCopy(phoneLink, 'click');
                 
                 // Reset to prevent triple-click issues
                 lastClickTime = 0;
