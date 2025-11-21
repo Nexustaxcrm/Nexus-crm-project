@@ -566,6 +566,20 @@
             max-width: 100%;
             color: var(--primary-color);
         }
+        
+        /* Phone link copy functionality - works for all phone links */
+        .phone-link {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .phone-link:hover {
+            text-decoration: underline !important;
+            color: #007bff !important;
+        }
+        .phone-link:active {
+            transform: scale(0.98);
+        }
 
         /* Email column (4) - link */
         .assign-work-table .table tbody td:nth-child(4) a {

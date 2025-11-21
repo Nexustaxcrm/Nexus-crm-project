@@ -36,6 +36,52 @@ let callStatusChart = null;
 let monthlyComparisonChart = null;
 let userProfiles = [];
 
+// Copy Phone Number to Clipboard Function
+async function copyPhoneNumber(phoneNumber) {
+    if (!phoneNumber || phoneNumber.trim() === '') {
+        showNotification('error', 'Copy Failed', 'No phone number to copy');
+        return;
+    }
+    
+    // Clean the phone number (remove tel: prefix if present, trim whitespace)
+    const cleanPhone = phoneNumber.replace(/^tel:/i, '').trim();
+    
+    try {
+        // Use modern Clipboard API if available
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(cleanPhone);
+            showNotification('success', 'Copied!', `Phone number "${cleanPhone}" copied to clipboard`, 2000);
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = cleanPhone;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    showNotification('success', 'Copied!', `Phone number "${cleanPhone}" copied to clipboard`, 2000);
+                } else {
+                    throw new Error('Copy command failed');
+                }
+            } catch (err) {
+                document.body.removeChild(textArea);
+                throw err;
+            }
+        }
+    } catch (error) {
+        console.error('Failed to copy phone number:', error);
+        showNotification('error', 'Copy Failed', 'Unable to copy phone number. Please try selecting and copying manually.');
+    }
+}
+
 // Notification System
 function showNotification(type, title, message, duration = 4000) {
     const container = document.getElementById('notificationContainer');
@@ -798,7 +844,7 @@ function loadAssignedWorkTable() {
     tbody.innerHTML = assignedCustomers.map(customer => `
         <tr>
             <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-            <td><a href="tel:${customer.phone}" class="text-decoration-none">${customer.phone}</a></td>
+            <td><a href="tel:${customer.phone}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone}</a></td>
             <td><a href="mailto:${customer.email}" class="text-decoration-none">${customer.email}</a></td>
             <td><small class="text-muted">${customer.address}</small></td>
             <td><span class="badge bg-${getStatusBadgeColor(customer.status)}">${getStatusDisplayName(customer.status)}</span></td>
@@ -1549,7 +1595,7 @@ function showStateCustomers(stateName) {
                                     ${stateCustomers.map(customer => `
                                         <tr>
                                             <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-                                            <td><a href="tel:${customer.phone}" class="text-decoration-none">${customer.phone}</a></td>
+                                            <td><a href="tel:${customer.phone}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone}</a></td>
                                             <td><a href="mailto:${customer.email}" class="text-decoration-none">${customer.email}</a></td>
                                             <td><small class="text-muted">${customer.address}</small></td>
                                             <td><span class="badge bg-${getStatusBadgeColor(customer.status)}">${getStatusDisplayName(customer.status)}</span></td>
@@ -2293,7 +2339,7 @@ function renderArchiveModal() {
         <tr>
             <td><input type="checkbox" class="archive-customer-checkbox" data-id="${customer.id}"></td>
             <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none">${customer.phone || ''}</a></td>
+            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
             <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
             <td><small class="text-muted">${customer.address || ''}</small></td>
             <td style="text-align:center;"><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
@@ -2877,7 +2923,7 @@ async function renderAssignWorkPage() {
             <tr>
                 <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
                 <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-                <td><a href="tel:${customer.phone || ''}" class="text-decoration-none">${customer.phone || ''}</a></td>
+                <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
                 <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
                 <td><small class="text-muted">${customer.address || ''}</small></td>
                 <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
