@@ -3052,19 +3052,19 @@ async function renderAssignWorkPage() {
         html += `
         <tr>
             <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
-            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-                <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
-            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
-            <td><small class="text-muted">${customer.address || ''}</small></td>
-            <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
-            <td>${assignedToDisplay}</td>
-            ${refundStatusDisplay}
-            <td><small>${customer.comments || '-'}</small></td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
                     <i class="fas fa-edit"></i>
                 </button>
             </td>
+            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
+            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
+            <td><small class="text-muted">${customer.address || ''}</small></td>
+            <td>${assignedToDisplay}</td>
+            ${refundStatusDisplay}
+            <td><small>${customer.comments || '-'}</small></td>
+            <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
         </tr>`;
     }
         if (tbody) tbody.innerHTML = html;
