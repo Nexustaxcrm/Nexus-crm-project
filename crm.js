@@ -2869,6 +2869,23 @@ async function renderAssignWorkPage() {
                 lastName = nameParts.slice(1).join(' ') || '';
             }
             
+            // CRITICAL: Separate address from comments
+            // The database 'notes' field may contain either address (from bulk upload) or comments (from updates)
+            // Strategy:
+            // 1. For address: Use customer.address if it exists, otherwise use notes ONLY if it looks like an address (contains comma, city/state pattern)
+            // 2. For comments: Use customer.comments if it exists, otherwise use notes ONLY if it doesn't look like an address
+            // This prevents comments from appearing in the address column and vice versa
+            
+            // Check if notes looks like an address (contains comma and typical address patterns)
+            const notesIsAddress = customer.notes && (
+                customer.notes.includes(',') || 
+                /^\d+\s+[A-Za-z]/.test(customer.notes) ||  // Starts with number and street name
+                /\b(Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Boulevard|Blvd|Court|Ct)\b/i.test(customer.notes)
+            );
+            
+            const addressValue = customer.address || (notesIsAddress ? customer.notes : '');
+            const commentsValue = customer.comments || (!notesIsAddress && customer.notes ? customer.notes : '');
+            
             return {
                 ...customer,
                 id: customer.id,
@@ -2877,10 +2894,10 @@ async function renderAssignWorkPage() {
                 name: customer.name || `${firstName} ${lastName}`.trim(),
                 phone: customer.phone || '',
                 email: customer.email || '',
-                address: customer.address || customer.notes || '',
+                address: addressValue,  // Use address field, or notes only if it looks like an address
                 status: customer.status || 'pending',
                 callStatus: customer.callStatus || 'not_called',
-                comments: customer.comments || customer.notes || '',
+                comments: commentsValue,  // Use comments field, or notes only if it doesn't look like an address
                 assignedTo: customer.assignedTo || customer.assigned_to || '',
                 archived: customer.archived || false
             };
@@ -4256,7 +4273,13 @@ async function saveStatusUpdate() {
             addressParts.push(stateName || stateCode);
         }
         if (zipCodeField.value) addressParts.push(zipCodeField.value);
-        customer.address = addressParts.join(', ') || '';
+        const updatedAddress = addressParts.join(', ') || '';
+        customer.address = updatedAddress;
+        
+        // CRITICAL: Preserve address separately from comments
+        // The database only has a 'notes' field, but we need to keep address and comments separate
+        // Store address in customer object for frontend display, but only send comments to notes field
+        // This prevents comments from overwriting the address
         
         // Save follow-up date and time if status is follow_up
         if (status === 'follow_up') {
@@ -4313,13 +4336,17 @@ async function saveStatusUpdate() {
             return;
         }
         
+        // CRITICAL: Only send comments to notes field, NOT the address
+        // The address should be preserved separately and not sent to the backend
+        // The backend 'notes' field should only contain comments, not address
+        // Address is stored in the customer object for frontend display only
         const customerData = {
             name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
             email: customer.email || null,
             phone: customer.phone || null,
             status: status,
             assigned_to: customer.assignedTo || customer.assigned_to || null,
-            notes: comments || customer.notes || null
+            notes: comments || null  // Only send comments, NOT address
         };
         
         try {
@@ -4337,7 +4364,17 @@ async function saveStatusUpdate() {
                 // Update local array
                 const index = customers.findIndex(c => c.id === customerId);
                 if (index !== -1) {
-                    customers[index] = { ...customers[index], ...updated, status, comments: comments };
+                    // CRITICAL: Preserve address separately from comments
+                    // The backend returns 'notes' which contains comments, but we need to keep address separate
+                    // The address should remain in the frontend customer object and NOT be overwritten by the API response
+                    const existingAddress = customers[index].address || updatedAddress || '';
+                    customers[index] = { 
+                        ...customers[index], 
+                        ...updated, 
+                        status, 
+                        comments: comments,
+                        address: existingAddress  // Always preserve existing address, never overwrite with notes
+                    };
                 }
         
         const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));

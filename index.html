@@ -548,8 +548,8 @@
             overflow-wrap: break-word;
         }
 
-        /* Name column (2) - strong tag */
-        .assign-work-table .table tbody td:nth-child(2) strong {
+        /* Name column (3rd) - strong tag (after reordering: Checkbox, Action, Name) */
+        .assign-work-table .table tbody td:nth-child(3) strong {
             display: block;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -557,8 +557,8 @@
             max-width: 100%;
         }
 
-        /* Phone column (3) - link */
-        .assign-work-table .table tbody td:nth-child(3) a {
+        /* Phone column (4th) - link (after reordering: Checkbox, Action, Name, Phone) */
+        .assign-work-table .table tbody td:nth-child(4) a {
             display: block;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -581,8 +581,8 @@
             transform: scale(0.98);
         }
 
-        /* Email column (4) - link */
-        .assign-work-table .table tbody td:nth-child(4) a {
+        /* Email column (5th) - link (after reordering: Checkbox, Action, Name, Phone, Email) */
+        .assign-work-table .table tbody td:nth-child(5) a {
             display: block;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -591,8 +591,8 @@
             color: var(--primary-color);
         }
 
-        /* Address column (5) - small tag */
-        .assign-work-table .table tbody td:nth-child(5) small {
+        /* Address column (6) - small tag (after reordering: Checkbox, Action, Name, Phone, Email, Address) */
+        .assign-work-table .table tbody td:nth-child(6) small {
             display: block;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -601,19 +601,42 @@
             color: var(--text-secondary);
         }
         
+        /* Comments column (9th) - fixed width with text overflow (after reordering: Checkbox, Action, Name, Phone, Email, Address, Assigned To, Refund Status, Comments) */
+        .assign-work-table .table thead th:nth-child(9),
+        .assign-work-table .table tbody td:nth-child(9) {
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(9) small {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        
         /* Dark mode styles for Phone, Email, Address, Assigned To, and Refund Status columns */
-        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(3) a,
-        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) a {
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) a,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(5) a {
             color: #4fc3f7 !important; /* Light blue for links in dark mode */
         }
         
-        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(3) a:hover,
-        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) a:hover {
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(4) a:hover,
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(5) a:hover {
             color: #81d4fa !important; /* Lighter blue on hover */
         }
         
-        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(5) small {
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(6) small {
             color: #e0e0e0 !important; /* Light gray for address text */
+        }
+        
+        [data-theme="dark"] .assign-work-table .table tbody td:nth-child(9) small {
+            color: #e0e0e0 !important; /* Light gray for comments text */
         }
         
         [data-theme="dark"] .assign-work-table .table tbody td:nth-child(7) {
