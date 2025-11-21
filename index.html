@@ -601,6 +601,102 @@
             color: var(--text-secondary);
         }
         
+        /* Name column (3rd) - fixed width with text overflow (after reordering: Checkbox, Action, Name) */
+        .assign-work-table .table thead th:nth-child(3),
+        .assign-work-table .table tbody td:nth-child(3) {
+            width: 140px !important;
+            min-width: 140px !important;
+            max-width: 140px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(3) strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        
+        /* Phone column (4th) - fixed width with text overflow (after reordering: Checkbox, Action, Name, Phone) */
+        .assign-work-table .table thead th:nth-child(4),
+        .assign-work-table .table tbody td:nth-child(4) {
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(4) a {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        
+        /* Email column (5th) - fixed width with text overflow (after reordering: Checkbox, Action, Name, Phone, Email) */
+        .assign-work-table .table thead th:nth-child(5),
+        .assign-work-table .table tbody td:nth-child(5) {
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(5) a {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        
+        /* Address column (6th) - fixed width with text overflow (after reordering: Checkbox, Action, Name, Phone, Email, Address) */
+        .assign-work-table .table thead th:nth-child(6),
+        .assign-work-table .table tbody td:nth-child(6) {
+            width: 200px !important;
+            min-width: 200px !important;
+            max-width: 200px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(6) small {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        
+        /* Assigned To column (7th) - fixed width with text overflow (after reordering: Checkbox, Action, Name, Phone, Email, Address, Assigned To) */
+        .assign-work-table .table thead th:nth-child(7),
+        .assign-work-table .table tbody td:nth-child(7) {
+            width: 130px !important;
+            min-width: 130px !important;
+            max-width: 130px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .assign-work-table .table tbody td:nth-child(7) .badge,
+        .assign-work-table .table tbody td:nth-child(7) span {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        
         /* Comments column (9th) - fixed width with text overflow (after reordering: Checkbox, Action, Name, Phone, Email, Address, Assigned To, Refund Status, Comments) */
         .assign-work-table .table thead th:nth-child(9),
         .assign-work-table .table tbody td:nth-child(9) {
