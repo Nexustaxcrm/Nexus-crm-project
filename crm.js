@@ -38,7 +38,8 @@ let userProfiles = [];
 
 // Copy Phone Number to Clipboard Function
 // Make it globally available
-window.copyPhoneNumber = async function copyPhoneNumber(phoneNumber) {
+// CRITICAL: This function prioritizes execCommand for macOS compatibility
+window.copyPhoneNumber = function copyPhoneNumber(phoneNumber) {
     if (!phoneNumber || phoneNumber.trim() === '') {
         showNotification('error', 'Copy Failed', 'No phone number to copy');
         return;
@@ -49,23 +50,17 @@ window.copyPhoneNumber = async function copyPhoneNumber(phoneNumber) {
     
     console.log('📋 Copying phone number:', cleanPhone);
     
-    // CRITICAL: Ensure document is focused before attempting to copy (required for macOS)
-    // This is especially important for double-click events on links
-    if (document.activeElement && document.activeElement.blur) {
-        document.activeElement.blur();
-    }
-    window.focus();
-    document.body.focus();
-    
-    // Use a more reliable method that works on macOS
-    // Create a temporary textarea element and use execCommand (works better on macOS)
+    // CRITICAL FOR MACOS: Use execCommand first (doesn't require document focus)
+    // This is the most reliable method for macOS browsers
     const textArea = document.createElement('textarea');
     textArea.value = cleanPhone;
+    
+    // Position it off-screen but still in viewport (required for some browsers)
     textArea.style.position = 'fixed';
-    textArea.style.left = '0';
+    textArea.style.left = '-9999px';
     textArea.style.top = '0';
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
+    textArea.style.width = '1px';
+    textArea.style.height = '1px';
     textArea.style.padding = '0';
     textArea.style.border = 'none';
     textArea.style.outline = 'none';
@@ -78,39 +73,45 @@ window.copyPhoneNumber = async function copyPhoneNumber(phoneNumber) {
     
     document.body.appendChild(textArea);
     
-    // Select the text
+    // Focus and select the textarea
+    textArea.focus();
     textArea.select();
     textArea.setSelectionRange(0, cleanPhone.length);
     
+    let copySuccess = false;
+    
     try {
-        // Try execCommand first (more reliable on macOS, especially Safari)
-        const successful = document.execCommand('copy');
+        // PRIMARY METHOD: execCommand (works best on macOS, doesn't need document focus)
+        copySuccess = document.execCommand('copy');
         
-        if (successful) {
+        if (copySuccess) {
             document.body.removeChild(textArea);
             showNotification('success', 'Copied!', `Phone number "${cleanPhone}" copied to clipboard`, 2000);
             console.log('✅ Phone number copied successfully (execCommand method)');
             return;
         }
     } catch (execError) {
-        console.log('execCommand failed, trying Clipboard API:', execError);
+        console.log('execCommand failed:', execError);
     }
     
-    // Fallback to Clipboard API if execCommand didn't work
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            // Ensure we're in a user interaction context
-            await navigator.clipboard.writeText(cleanPhone);
-            document.body.removeChild(textArea);
+    // FALLBACK: Try Clipboard API only if execCommand failed
+    // But wrap it in a try-catch to handle focus issues
+    if (!copySuccess && navigator.clipboard && navigator.clipboard.writeText) {
+        // Remove textarea first
+        document.body.removeChild(textArea);
+        
+        // Try Clipboard API as fallback
+        navigator.clipboard.writeText(cleanPhone).then(() => {
             showNotification('success', 'Copied!', `Phone number "${cleanPhone}" copied to clipboard`, 2000);
-            console.log('✅ Phone number copied successfully (Clipboard API)');
-            return;
-        }
-    } catch (clipboardError) {
-        console.error('Clipboard API also failed:', clipboardError);
+            console.log('✅ Phone number copied successfully (Clipboard API fallback)');
+        }).catch((clipboardError) => {
+            console.error('Clipboard API also failed:', clipboardError);
+            showNotification('error', 'Copy Failed', 'Unable to copy phone number. Please try selecting and copying manually.');
+        });
+        return;
     }
     
-    // If both methods failed, remove the textarea and show error
+    // If execCommand failed and Clipboard API is not available, show error
     document.body.removeChild(textArea);
     console.error('❌ All copy methods failed');
     showNotification('error', 'Copy Failed', 'Unable to copy phone number. Please try selecting and copying manually.');
