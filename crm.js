@@ -37,7 +37,8 @@ let monthlyComparisonChart = null;
 let userProfiles = [];
 
 // Copy Phone Number to Clipboard Function
-async function copyPhoneNumber(phoneNumber) {
+// Make it globally available
+window.copyPhoneNumber = async function copyPhoneNumber(phoneNumber) {
     if (!phoneNumber || phoneNumber.trim() === '') {
         showNotification('error', 'Copy Failed', 'No phone number to copy');
         return;
@@ -46,11 +47,14 @@ async function copyPhoneNumber(phoneNumber) {
     // Clean the phone number (remove tel: prefix if present, trim whitespace)
     const cleanPhone = phoneNumber.replace(/^tel:/i, '').trim();
     
+    console.log('📋 Copying phone number:', cleanPhone);
+    
     try {
         // Use modern Clipboard API if available
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(cleanPhone);
             showNotification('success', 'Copied!', `Phone number "${cleanPhone}" copied to clipboard`, 2000);
+            console.log('✅ Phone number copied successfully');
         } else {
             // Fallback for older browsers
             const textArea = document.createElement('textarea');
@@ -68,6 +72,7 @@ async function copyPhoneNumber(phoneNumber) {
                 
                 if (successful) {
                     showNotification('success', 'Copied!', `Phone number "${cleanPhone}" copied to clipboard`, 2000);
+                    console.log('✅ Phone number copied successfully (fallback method)');
                 } else {
                     throw new Error('Copy command failed');
                 }
@@ -77,10 +82,10 @@ async function copyPhoneNumber(phoneNumber) {
             }
         }
     } catch (error) {
-        console.error('Failed to copy phone number:', error);
+        console.error('❌ Failed to copy phone number:', error);
         showNotification('error', 'Copy Failed', 'Unable to copy phone number. Please try selecting and copying manually.');
     }
-}
+};
 
 // Notification System
 function showNotification(type, title, message, duration = 4000) {
@@ -234,7 +239,7 @@ function initializeApp() {
         showDashboard();
     } else {
         // No user logged in, show login page
-        showLogin();
+    showLogin();
     }
     
     // Setup event listeners
@@ -251,6 +256,90 @@ function setupEventListeners() {
             e.preventDefault();
         });
     });
+    
+    // CRITICAL: Add double-click event delegation for phone number copying
+    // This works for all phone links, even those added dynamically
+    // Use both dblclick and a click-based double-click detection for better compatibility
+    let lastClickTime = 0;
+    let lastClickTarget = null;
+    const DOUBLE_CLICK_DELAY = 300; // milliseconds
+    
+    // Method 1: Native dblclick event
+    document.addEventListener('dblclick', function(e) {
+        // Check if double-clicked element is a phone link or inside a phone link
+        let phoneLink = e.target.closest('a[href^="tel:"]');
+        
+        // Also check if the clicked element itself is a phone link
+        if (!phoneLink && e.target.tagName === 'A' && e.target.getAttribute('href') && e.target.getAttribute('href').startsWith('tel:')) {
+            phoneLink = e.target;
+        }
+        
+        if (phoneLink) {
+            e.preventDefault(); // Prevent default tel: link behavior on double-click
+            e.stopPropagation(); // Stop event from bubbling
+            
+            // Get phone number from href attribute (removes tel: prefix) or text content
+            let phoneNumber = phoneLink.getAttribute('href');
+            if (!phoneNumber || phoneNumber.trim() === '') {
+                phoneNumber = phoneLink.textContent.trim();
+            }
+            
+            console.log('📞 Double-click detected on phone link:', phoneNumber);
+            if (window.copyPhoneNumber) {
+                window.copyPhoneNumber(phoneNumber);
+            } else {
+                copyPhoneNumber(phoneNumber);
+            }
+        }
+    }, true); // Use capture phase to catch event early
+    
+    // Method 2: Click-based double-click detection (fallback for browsers that don't fire dblclick properly)
+    document.addEventListener('click', function(e) {
+        const now = Date.now();
+        let phoneLink = e.target.closest('a[href^="tel:"]');
+        
+        if (!phoneLink && e.target.tagName === 'A' && e.target.getAttribute('href') && e.target.getAttribute('href').startsWith('tel:')) {
+            phoneLink = e.target;
+        }
+        
+        if (phoneLink) {
+            // Check if this is a double-click (two clicks within DOUBLE_CLICK_DELAY ms on the same element)
+            if (lastClickTarget === phoneLink && (now - lastClickTime) < DOUBLE_CLICK_DELAY) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                let phoneNumber = phoneLink.getAttribute('href');
+                if (!phoneNumber || phoneNumber.trim() === '') {
+                    phoneNumber = phoneLink.textContent.trim();
+                }
+                
+                console.log('📞 Double-click detected (click method) on phone link:', phoneNumber);
+                if (window.copyPhoneNumber) {
+                    window.copyPhoneNumber(phoneNumber);
+                } else {
+                    copyPhoneNumber(phoneNumber);
+                }
+                
+                // Reset to prevent triple-click issues
+                lastClickTime = 0;
+                lastClickTarget = null;
+            } else {
+                // Store this click for potential double-click detection
+                lastClickTime = now;
+                lastClickTarget = phoneLink;
+                
+                // Clear after delay
+                setTimeout(() => {
+                    if (lastClickTarget === phoneLink) {
+                        lastClickTime = 0;
+                        lastClickTarget = null;
+                    }
+                }, DOUBLE_CLICK_DELAY);
+            }
+        }
+    }, true);
+    
+    console.log('✅ Phone number copy functionality initialized');
 }
 
 // Authentication Functions
@@ -711,80 +800,80 @@ async function loadAdminDashboard() {
     } catch (error) {
         console.error('Error loading dashboard statistics:', error);
         // Fallback to local data if API fails
-        const statsHtml = `
-            <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('all')">
-                    <div class="stats-icon" style="background: #5e72e4;">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stats-number">${customers.length}</div>
-                    <div class="stats-label">Total Customers</div>
+    const statsHtml = `
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('all')">
+                <div class="stats-icon" style="background: #5e72e4;">
+                    <i class="fas fa-users"></i>
                 </div>
+                <div class="stats-number">${customers.length}</div>
+                <div class="stats-label">Total Customers</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('called')">
-                    <div class="stats-icon" style="background: #2dce89;">
-                        <i class="fas fa-phone"></i>
-                    </div>
-                    <div class="stats-number">${getCustomersByCallStatus('called').length}</div>
-                    <div class="stats-label">Total Calls</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('called')">
+                <div class="stats-icon" style="background: #2dce89;">
+                    <i class="fas fa-phone"></i>
                 </div>
+                <div class="stats-number">${getCustomersByCallStatus('called').length}</div>
+                <div class="stats-label">Total Calls</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('voice_mail')">
-                    <div class="stats-icon" style="background: #fb6340;">
-                        <i class="fas fa-voicemail"></i>
-                    </div>
-                    <div class="stats-number">${getCustomersByCallStatus('voice_mail').length}</div>
-                    <div class="stats-label">Voice Mails</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('voice_mail')">
+                <div class="stats-icon" style="background: #fb6340;">
+                    <i class="fas fa-voicemail"></i>
                 </div>
+                <div class="stats-number">${getCustomersByCallStatus('voice_mail').length}</div>
+                <div class="stats-label">Voice Mails</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('w2_received')">
-                    <div class="stats-icon" style="background: #11cdef;">
-                        <i class="fas fa-file-check"></i>
-                    </div>
-                    <div class="stats-number">${getCustomersByStatus('w2_received').length}</div>
-                    <div class="stats-label">W2 Received</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('w2_received')">
+                <div class="stats-icon" style="background: #11cdef;">
+                    <i class="fas fa-file-check"></i>
                 </div>
+                <div class="stats-number">${getCustomersByStatus('w2_received').length}</div>
+                <div class="stats-label">W2 Received</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('not_called')">
-                    <div class="stats-icon" style="background: #f5365c;">
-                        <i class="fas fa-phone-slash"></i>
-                    </div>
-                    <div class="stats-number">${getCustomersByCallStatus('not_called').length}</div>
-                    <div class="stats-label">Pending Calls</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('not_called')">
+                <div class="stats-icon" style="background: #f5365c;">
+                    <i class="fas fa-phone-slash"></i>
                 </div>
+                <div class="stats-number">${getCustomersByCallStatus('not_called').length}</div>
+                <div class="stats-label">Pending Calls</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="filterByStatus('follow_up')">
-                    <div class="stats-icon" style="background: #ffa500;">
-                        <i class="fas fa-redo"></i>
-                    </div>
-                    <div class="stats-number">${getFollowUpCustomers().length}</div>
-                    <div class="stats-label">Follow-up</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('follow_up')">
+                <div class="stats-icon" style="background: #ffa500;">
+                    <i class="fas fa-redo"></i>
                 </div>
+                <div class="stats-number">${getFollowUpCustomers().length}</div>
+                <div class="stats-label">Follow-up</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="showNewLeadModal()">
-                    <div class="stats-icon" style="background: #2dce89;">
-                        <i class="fas fa-plus"></i>
-                    </div>
-                    <div class="stats-number">+</div>
-                    <div class="stats-label">New Lead</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="showNewLeadModal()">
+                <div class="stats-icon" style="background: #2dce89;">
+                    <i class="fas fa-plus"></i>
                 </div>
+                <div class="stats-number">+</div>
+                <div class="stats-label">New Lead</div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" onclick="openArchiveView()">
-                    <div class="stats-icon" style="background: #6c757d;">
-                        <i class="fas fa-archive"></i>
-                    </div>
-                    <div class="stats-number">${getArchivedCount()}</div>
-                    <div class="stats-label">Archived</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="openArchiveView()">
+                <div class="stats-icon" style="background: #6c757d;">
+                    <i class="fas fa-archive"></i>
                 </div>
+                <div class="stats-number">${getArchivedCount()}</div>
+                <div class="stats-label">Archived</div>
             </div>
-        `;
+        </div>
+    `;
         if (statsCards) {
             statsCards.innerHTML = statsHtml;
         }
@@ -1682,7 +1771,7 @@ async function saveNewLead() {
             name: `${firstName} ${lastName}`.trim() || 'Unknown',
             email: email || null,
             phone: phone || null,
-            status: 'pending',
+        status: 'pending',
             assigned_to: currentUser.role === 'employee' ? currentUser.username : null,
             notes: null
         };
@@ -1699,19 +1788,19 @@ async function saveNewLead() {
         if (response.ok) {
             const newCustomer = await response.json();
             // Add to local array for immediate UI update
-            customers.push(newCustomer);
-            
-            // Hide modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('newLeadModal'));
-            modal.hide();
-            
-            // Reset form
-            document.getElementById('newLeadForm').reset();
-            
-            // Reload dashboard
-            loadDashboard();
-            
-            showNotification('success', 'Customer Added', 'New customer has been added successfully!');
+    customers.push(newCustomer);
+    
+    // Hide modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('newLeadModal'));
+    modal.hide();
+    
+    // Reset form
+    document.getElementById('newLeadForm').reset();
+    
+    // Reload dashboard
+    loadDashboard();
+    
+    showNotification('success', 'Customer Added', 'New customer has been added successfully!');
         } else {
             const error = await response.json();
             showNotification('error', 'Error', error.error || 'Failed to add customer');
@@ -2008,7 +2097,7 @@ async function importTabularData(headers, dataRows) {
     }
 
     // Always use bulk upload API (optimized for any size)
-    await bulkUploadCustomers(customersData);
+        await bulkUploadCustomers(customersData);
     
     showNotification('success', 'Import Complete', `Successfully imported ${importedCount} customers!`);
     document.getElementById('csvFile').value = '';
@@ -2439,14 +2528,14 @@ async function archiveSelected() {
         
         await Promise.all(archivePromises);
         
-        renderAssignWorkPage();
-        // Refresh archive modal if it's open
-        const archiveModalEl = document.getElementById('archiveModal');
-        if (archiveModalEl && archiveModalEl.classList.contains('show')) {
-            renderArchiveModal();
-        }
-        loadDashboard();
-        showNotification('success', 'Archived', `Moved ${ids.length} customer(s) to Archive.`);
+    renderAssignWorkPage();
+    // Refresh archive modal if it's open
+    const archiveModalEl = document.getElementById('archiveModal');
+    if (archiveModalEl && archiveModalEl.classList.contains('show')) {
+        renderArchiveModal();
+    }
+    loadDashboard();
+    showNotification('success', 'Archived', `Moved ${ids.length} customer(s) to Archive.`);
     } catch (error) {
         console.error('Error archiving customers:', error);
         showNotification('error', 'Error', 'Failed to archive customers. Please try again.');
@@ -2512,10 +2601,10 @@ async function restoreFromArchiveSelected() {
         
         await Promise.all(restorePromises);
         
-        renderArchiveModal();
-        renderAssignWorkPage();
-        loadDashboard();
-        showNotification('success', 'Restored', `Moved ${ids.length} customer(s) back to Assign Work.`);
+    renderArchiveModal();
+    renderAssignWorkPage();
+    loadDashboard();
+    showNotification('success', 'Restored', `Moved ${ids.length} customer(s) back to Assign Work.`);
     } catch (error) {
         console.error('Error restoring customers:', error);
         showNotification('error', 'Error', 'Failed to restore customers. Please try again.');
@@ -2661,8 +2750,8 @@ async function renderAssignWorkPage() {
         // Get pagination parameters
         const size = window.assignPageSize || 100; // Default to 100 per page
         const page = Math.max(1, window.assignCurrentPage || 1);
-        window.assignCurrentPage = page;
-        
+    window.assignCurrentPage = page;
+
         // Build query parameters - exclude archived by default
         const params = new URLSearchParams({
             page: page.toString(),
@@ -2890,58 +2979,58 @@ async function renderAssignWorkPage() {
         // For display, use the slice directly (already paginated by API)
         const displaySlice = filteredSlice;
 
-        // Show/hide refund status column based on admin role
-        const isAdmin = currentUser && currentUser.role === 'admin';
-        const refundStatusHeader = document.getElementById('refundStatusHeader');
-        if (refundStatusHeader) {
-            refundStatusHeader.style.display = isAdmin ? '' : 'none';
-        }
+    // Show/hide refund status column based on admin role
+    const isAdmin = currentUser && currentUser.role === 'admin';
+    const refundStatusHeader = document.getElementById('refundStatusHeader');
+    if (refundStatusHeader) {
+        refundStatusHeader.style.display = isAdmin ? '' : 'none';
+    }
 
-        let html = '';
+    let html = '';
         for (let i = 0; i < displaySlice.length; i++) {
             const customer = displaySlice[i];
-            const statusForDisplay = customer.status || '';
-            const assignedTo = customer.assignedTo || customer.assigned_to || '';
-            const assignedToDisplay = assignedTo ? `<span class="badge bg-info"><i class="fas fa-user"></i> ${assignedTo}</span>` : '<span class="text-muted">-</span>';
-            
-            // Get refund status for admin
-            let refundStatusDisplay = '';
-            if (isAdmin) {
-                const refundStatusKey = `customerRefundStatus_${customer.email || customer.id}`;
-                let refundStatus = sessionStorage.getItem(refundStatusKey);
-                if (!refundStatus) {
-                    refundStatus = sessionStorage.getItem('customerRefundStatus');
-                }
-                if (refundStatus) {
-                    refundStatusDisplay = `<td class="refund-status-column" style="display: table-cell;"><span class="badge bg-info">${getRefundStatusDisplayName(refundStatus)}</span></td>`;
-                } else {
-                    refundStatusDisplay = '<td class="refund-status-column" style="display: table-cell;"><span class="text-muted">-</span></td>';
-                }
-            }
-            
-            html += `
-            <tr>
-                <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
-                <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-                <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
-                <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
-                <td><small class="text-muted">${customer.address || ''}</small></td>
-                <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
-                <td>${assignedToDisplay}</td>
-                ${refundStatusDisplay}
-                <td><small>${customer.comments || '-'}</small></td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                </td>
-            </tr>`;
-        }
-        if (tbody) tbody.innerHTML = html;
+        const statusForDisplay = customer.status || '';
+        const assignedTo = customer.assignedTo || customer.assigned_to || '';
+        const assignedToDisplay = assignedTo ? `<span class="badge bg-info"><i class="fas fa-user"></i> ${assignedTo}</span>` : '<span class="text-muted">-</span>';
         
+        // Get refund status for admin
+        let refundStatusDisplay = '';
+        if (isAdmin) {
+            const refundStatusKey = `customerRefundStatus_${customer.email || customer.id}`;
+                let refundStatus = sessionStorage.getItem(refundStatusKey);
+            if (!refundStatus) {
+                    refundStatus = sessionStorage.getItem('customerRefundStatus');
+            }
+            if (refundStatus) {
+                refundStatusDisplay = `<td class="refund-status-column" style="display: table-cell;"><span class="badge bg-info">${getRefundStatusDisplayName(refundStatus)}</span></td>`;
+            } else {
+                refundStatusDisplay = '<td class="refund-status-column" style="display: table-cell;"><span class="text-muted">-</span></td>';
+            }
+        }
+        
+        html += `
+        <tr>
+            <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
+            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+                <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
+            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
+            <td><small class="text-muted">${customer.address || ''}</small></td>
+            <td><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
+            <td>${assignedToDisplay}</td>
+            ${refundStatusDisplay}
+            <td><small>${customer.comments || '-'}</small></td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
+        </tr>`;
+    }
+        if (tbody) tbody.innerHTML = html;
+    
         // Initialize column reordering for assigned work table (if function exists)
         if (typeof initColumnReordering === 'function') {
-            initColumnReordering('assignedWorkTable');
+    initColumnReordering('assignedWorkTable');
         } else {
             console.warn('⚠️ initColumnReordering function not found - skipping column reordering');
         }
@@ -2999,16 +3088,16 @@ async function renderAssignWorkPage() {
                     <span style="font-size: 14px; font-weight: bold; color: #333;">Page ${page} of ${pagesText.toLocaleString()}</span>
                     <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${page+1}; renderAssignWorkPage()">Next</button>
                     <button class="btn btn-sm btn-primary" ${page>=pagesText?'disabled':''} onclick="window.assignCurrentPage=${pagesText}; renderAssignWorkPage()">Last</button>
-                </div>
+            </div>
                 <div style="display: flex; align-items: center; gap: 10px; padding: 8px 15px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
                     <label style="margin: 0; font-size: 14px; font-weight: 600; color: #495057;">Items per page:</label>
                     <select class="form-select form-select-sm" style="width: 100px; padding: 6px 10px; border: 2px solid #007bff; border-radius: 4px; font-weight: 500; cursor: pointer;" onchange="window.assignPageSize=parseInt(this.value); window.assignCurrentPage=1; renderAssignWorkPage()">
-                        <option ${size===100?'selected':''} value="100">100</option>
-                        <option ${size===200?'selected':''} value="200">200</option>
-                        <option ${size===300?'selected':''} value="300">300</option>
+                    <option ${size===100?'selected':''} value="100">100</option>
+                    <option ${size===200?'selected':''} value="200">200</option>
+                    <option ${size===300?'selected':''} value="300">300</option>
                         <option ${size===400?'selected':''} value="400">400</option>
-                        <option ${size===500?'selected':''} value="500">500</option>
-                    </select>
+                    <option ${size===500?'selected':''} value="500">500</option>
+                </select>
                 </div>
                 <div style="font-size: 13px; color: #666; font-weight: 500; padding: 8px 15px; background: #e9ecef; border-radius: 6px;">
                     Showing <strong style="color: #007bff;">${displayStart.toLocaleString()}-${displayEnd.toLocaleString()}</strong> of <strong style="color: #007bff; font-size: 15px;">${totalDisplay}</strong> customers
@@ -3062,11 +3151,11 @@ async function renderAssignWorkPage() {
         if (!pager.innerHTML || pager.innerHTML.length < 100 || !pager.innerHTML.includes('<select')) {
             console.error('❌ Pagination HTML not set correctly! Retrying...');
             pager.innerHTML = paginationHTML;
-        }
+    }
 
-        // Initialize column resizing once per render
-        initAssignWorkColumnResize();
-        updateAssignArchiveButtonsVisibility();
+    // Initialize column resizing once per render
+    initAssignWorkColumnResize();
+    updateAssignArchiveButtonsVisibility();
     } catch (error) {
         console.error('Error loading assign work table:', error);
         if (tbody) {
@@ -3314,7 +3403,7 @@ async function confirmDeleteByStatus() {
         }
         
         // Find all customers with the selected statuses
-        const set = new Set(statuses);
+    const set = new Set(statuses);
         const customersToDelete = customers.filter(c => set.has(c.status || ''));
         const customerIds = customersToDelete.map(c => c.id);
         
@@ -3336,16 +3425,16 @@ async function confirmDeleteByStatus() {
         if (response.ok) {
             const result = await response.json();
             // Remove from local array
-            customers = customers.filter(c => !set.has(c.status || ''));
+    customers = customers.filter(c => !set.has(c.status || ''));
             
-            // Refresh UI
-            window.assignFiltered = null; // reset any filtered view; status may not exist now
-            renderAssignWorkPage();
-            loadDashboard();
+    // Refresh UI
+    window.assignFiltered = null; // reset any filtered view; status may not exist now
+    renderAssignWorkPage();
+    loadDashboard();
             
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            modal.hide();
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
             
             showNotification('success', 'Deleted', `Removed ${result.deletedCount || customerIds.length} customer(s).`);
         } else {
@@ -4209,25 +4298,25 @@ async function saveStatusUpdate() {
                 if (index !== -1) {
                     customers[index] = { ...customers[index], ...updated, status, comments: comments };
                 }
-                
-                const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
-                modal.hide();
-                
-                loadAssignWorkTable();
-                // Refresh archive modal if it's open
-                const archiveModalEl = document.getElementById('archiveModal');
-                if (archiveModalEl && archiveModalEl.classList.contains('show')) {
-                    renderArchiveModal();
-                }
-                loadDashboard();
-                
-                // Refresh Top 20 States chart if Progress tab is visible
-                const progressTab = document.getElementById('progressTab');
-                if (progressTab && progressTab.style.display !== 'none') {
-                    loadTrafficSection();
-                }
-                
-                showNotification('success', 'Status Updated', 'Customer status has been updated successfully!');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+        modal.hide();
+        
+        loadAssignWorkTable();
+        // Refresh archive modal if it's open
+        const archiveModalEl = document.getElementById('archiveModal');
+        if (archiveModalEl && archiveModalEl.classList.contains('show')) {
+            renderArchiveModal();
+        }
+        loadDashboard();
+        
+        // Refresh Top 20 States chart if Progress tab is visible
+        const progressTab = document.getElementById('progressTab');
+        if (progressTab && progressTab.style.display !== 'none') {
+            loadTrafficSection();
+        }
+        
+        showNotification('success', 'Status Updated', 'Customer status has been updated successfully!');
             } else {
                 const error = await response.json();
                 showNotification('error', 'Error', error.error || 'Failed to update customer');
@@ -4596,13 +4685,13 @@ async function assignToEmployee(employeeUsername) {
         
         await Promise.all(assignPromises);
         
-        loadAssignWorkTable();
-        
-        // Uncheck all checkboxes
-        selectedCheckboxes.forEach(cb => cb.checked = false);
-        document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
-        
-        showNotification('success', 'Assignment Complete', `Assigned ${selectedCustomers.length} customers to ${employeeUsername}`);
+    loadAssignWorkTable();
+    
+    // Uncheck all checkboxes
+    selectedCheckboxes.forEach(cb => cb.checked = false);
+    document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
+    
+    showNotification('success', 'Assignment Complete', `Assigned ${selectedCustomers.length} customers to ${employeeUsername}`);
     } catch (error) {
         console.error('Error assigning customers:', error);
         showNotification('error', 'Error', 'Failed to assign customers. Please try again.');
@@ -4656,13 +4745,13 @@ async function assignToUnassigned() {
         
         await Promise.all(unassignPromises);
         
-        loadAssignWorkTable();
-        
-        // Uncheck all checkboxes
-        selectedCheckboxes.forEach(cb => cb.checked = false);
-        document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
-        
-        showNotification('success', 'Unassignment Complete', `Unassigned ${selectedCustomers.length} customers`);
+    loadAssignWorkTable();
+    
+    // Uncheck all checkboxes
+    selectedCheckboxes.forEach(cb => cb.checked = false);
+    document.querySelector('input[onchange="toggleAllSelection(this)"]').checked = false;
+    
+    showNotification('success', 'Unassignment Complete', `Unassigned ${selectedCustomers.length} customers`);
     } catch (error) {
         console.error('Error unassigning customers:', error);
         showNotification('error', 'Error', 'Failed to unassign customers. Please try again.');
