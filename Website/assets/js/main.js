@@ -123,7 +123,7 @@
         });
       }
 
-      // Logo stays static, only spinner rotates (handled by CSS animation)
+      // Logo rotates (handled by CSS animation), dots pulse (handled by CSS animation)
     }
   }
 
