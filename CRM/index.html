@@ -3003,8 +3003,9 @@
     
     <!-- API Configuration -->
     <script>
-        // API Configuration - Use HTTPS for Railway deployment
-        const API_BASE_URL = 'https://nexus-crm-project-production.up.railway.app/api';
+        // API Configuration - Use relative URL to work with both Railway domain and custom domain
+        // This automatically uses the current domain (nexustaxfiling.com or Railway domain)
+        const API_BASE_URL = window.location.origin + '/api';
         
         // Delete ALL customers function - Defined here to ensure it's always available
         window.deleteAllCustomers = async function deleteAllCustomers() {

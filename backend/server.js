@@ -39,6 +39,8 @@ app.use(helmet({
 // CORS: Restrict to specific origins for security
 const allowedOrigins = [
     'https://nexus-crm-project-production.up.railway.app',
+    'https://nexustaxfiling.com', // Custom domain
+    'http://nexustaxfiling.com', // HTTP version (for development/testing)
     'http://localhost:3000', // For local development
     'http://localhost:5500', // For local development with Live Server
     'http://127.0.0.1:3000',
