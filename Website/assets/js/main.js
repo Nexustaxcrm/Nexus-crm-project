@@ -1157,33 +1157,66 @@
       event.preventDefault();
 
       // Get and trim values of all input fields
-      var name = $.trim($("#fullname").val());
-      var phone = $.trim($("#YourPhone").val());
-      var email = $.trim($("#emailInput").val());
-      var website = $.trim($("#websiteInput").val());
-      var budget = $.trim($("#budgetInput").val());
-      var description = $.trim($("#textareaInput").val());
+      var name = $.trim($("#contactForm #fullname").val());
+      var phone = $.trim($("#contactForm #YourPhone").val());
+      var email = $.trim($("#contactForm #emailInput").val());
+      var description = $.trim($("#contactForm #textareaInput").val());
+
+      // Validate required fields
+      if (!name || !phone || !email) {
+        alert("Please fill in all required fields (Name, Phone, and Email).");
+        return;
+      }
+
+      // Validate email format
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+
+      // Disable submit button to prevent double submission
+      var submitBtn = $("#contactForm #submit");
+      submitBtn.prop("disabled", true);
+      submitBtn.html('<span>Sending...</span><span><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none"><g clip-path="url(#clip0_201_978343789)"><path d="M1.42236 6.99728H13.089M13.089 6.99728L7.48903 1.39728M13.089 6.99728L7.48903 12.5973" stroke="#030917" stroke-linecap="round" stroke-linejoin="round"/></g></svg></span>');
 
       // Create an object to send data
       var values = {
         fullname: name,
         phone: phone,
         email: email,
-        website: website,
-        budget: budget,
-        description: description
+        description: description || ""
       };
-      console.log(values);
+
+      // Get API base URL (works with both custom domain and Railway domain)
+      var apiBaseUrl = window.location.origin + '/api';
 
       $.ajax({
         type: "POST",
-        url: "assets/php/appointment.php",
-        data: values,
+        url: apiBaseUrl + "/contact",
+        contentType: "application/json",
+        data: JSON.stringify(values),
         success: function (response) {
-          alert(response);
+          if (response.success) {
+            alert(response.message || "Thank you for contacting us! We will get back to you soon.");
+            // Reset form
+            $("#contactForm")[0].reset();
+          } else {
+            alert(response.message || "An error occurred. Please try again.");
+          }
+          // Re-enable submit button
+          submitBtn.prop("disabled", false);
+          submitBtn.html('<span>Send Message</span><span><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none"><g clip-path="url(#clip0_201_978343789)"><path d="M1.42236 6.99728H13.089M13.089 6.99728L7.48903 1.39728M13.089 6.99728L7.48903 12.5973" stroke="#030917" stroke-linecap="round" stroke-linejoin="round"/></g></svg></span>');
         },
-        error: function () {
-          alert("An error occurred. Please try again.");
+        error: function (xhr, status, error) {
+          var errorMessage = "An error occurred. Please try again later.";
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            errorMessage = xhr.responseJSON.message;
+          }
+          alert(errorMessage);
+          // Re-enable submit button
+          submitBtn.prop("disabled", false);
+          submitBtn.html('<span>Send Message</span><span><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none"><g clip-path="url(#clip0_201_978343789)"><path d="M1.42236 6.99728H13.089M13.089 6.99728L7.48903 1.39728M13.089 6.99728L7.48903 12.5973" stroke="#030917" stroke-linecap="round" stroke-linejoin="round"/></g></svg></span>');
         },
       });
 

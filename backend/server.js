@@ -231,6 +231,7 @@ app.locals.pool = pool;
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const userRoutes = require('./routes/users');
+const contactRoutes = require('./routes/contact');
 
 // Initialize routes with app (so they can access the pool)
 if (authRoutes.init) authRoutes.init(app);
@@ -241,6 +242,7 @@ if (userRoutes.init) userRoutes.init(app);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check route at /api (must come before catch-all)
 app.get('/api', (req, res) => {
