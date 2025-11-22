@@ -2915,18 +2915,8 @@ async function moveSelectedCustomersToStatus() {
     }
 }
 
-// Update Move To button text when status is selected
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('move-to-status-radio') && e.target.checked) {
-            const statusDisplayName = getStatusDisplayName(e.target.value);
-            const textEl = document.getElementById('moveToStatusText');
-            if (textEl) {
-                textEl.textContent = `Move To: ${statusDisplayName}`;
-            }
-        }
-    });
-});
+// Note: Move To button text remains constant as "Move To"
+// Status selection is shown in the dropdown only, not in the button text
 
 // Close Move To dropdown when clicking outside
 document.addEventListener('click', function(e) {
