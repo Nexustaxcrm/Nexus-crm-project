@@ -123,7 +123,19 @@
         });
       }
 
-      // Logo rotates (handled by CSS animation), dots pulse (handled by CSS animation)
+      // Logo rotates with 3D flip animation (handled by GSAP)
+      gsap.fromTo(
+        logoImg,
+        { rotationY: 0 },
+        {
+          rotationY: 180,
+          duration: 1,
+          ease: "linear",
+          repeat: -1,
+          yoyo: true,
+          transformOrigin: "50% 50%",
+        }
+      );
     }
   }
 
