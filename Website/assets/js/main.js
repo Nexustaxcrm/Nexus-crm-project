@@ -1203,7 +1203,8 @@
         success: function (response) {
           console.log('✅ Contact form response:', response);
           if (response.success) {
-            alert(response.message || "Thank you for contacting us! We will get back to you soon.");
+            // Show custom success modal
+            showRegistrationSuccessModal();
             // Reset form
             $("#contactForm")[0].reset();
           } else {
@@ -1308,6 +1309,42 @@
 
   }
 
+
+  /*--------------------------------------------------------------
+    Registration Success Modal Functions
+  --------------------------------------------------------------*/
+  function showRegistrationSuccessModal() {
+    const modal = document.getElementById('registrationSuccessModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  
+  function closeRegistrationModal() {
+    const modal = document.getElementById('registrationSuccessModal');
+    if (modal) {
+      modal.style.display = 'none';
+      // Restore body scroll
+      document.body.style.overflow = '';
+    }
+  }
+  
+  // Close modal when clicking overlay
+  $(document).on('click', '.registration-modal-overlay', function() {
+    closeRegistrationModal();
+  });
+  
+  // Close modal with Escape key
+  $(document).on('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeRegistrationModal();
+    }
+  });
+  
+  // Make function globally available
+  window.closeRegistrationModal = closeRegistrationModal;
 
   if ($.exists("#FooterForm")) {
     $("#FooterForm #submit").on("click", function (event) {
