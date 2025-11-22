@@ -4,11 +4,19 @@ const nodemailer = require('nodemailer');
 
 // Create reusable transporter object using Gmail SMTP
 const createTransporter = () => {
+    const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || 'nexustaxfiling@gmail.com';
+    const emailPassword = process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD;
+    
+    // Check if credentials are provided
+    if (!emailPassword) {
+        throw new Error('Email credentials not configured. Please set EMAIL_PASSWORD or GMAIL_APP_PASSWORD in Railway environment variables.');
+    }
+    
     return nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
-            pass: process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD // Use App Password for Gmail
+            user: emailUser,
+            pass: emailPassword
         }
     });
 };
@@ -35,8 +43,17 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Create transporter
-        const transporter = createTransporter();
+        // Create transporter (check credentials first)
+        let transporter;
+        try {
+            transporter = createTransporter();
+        } catch (error) {
+            console.error('Email configuration error:', error.message);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Email service is not configured. Please contact the administrator.' 
+            });
+        }
 
         // Email content
         const mailOptions = {
