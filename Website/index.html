@@ -179,12 +179,20 @@
             class="ak-hero ak-style1 slide-inner"
             data-swiper-parallax="100%"
           >
-            <div class="ak-hero-featured" data-src="assets/img/hero/hero_1.png">
-              <img
-                src="assets/img/hero/hero_1.png"
+            <div class="ak-hero-featured">
+              <video
                 class="ak-hero-bg"
-                alt="..."
-              />
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                poster="assets/img/hero/hero_1.png"
+              >
+                <source src="assets/video/hero-video.mp4" type="video/mp4">
+                <!-- Fallback to image if video doesn't load -->
+                <img src="assets/img/hero/hero_1.png" alt="..." />
+              </video>
             </div>
             <div class="container-md">
               <div class="hero-slider-info">

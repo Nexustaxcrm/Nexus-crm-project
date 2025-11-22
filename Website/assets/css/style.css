@@ -3081,6 +3081,24 @@ kbd {
   -o-object-fit: cover;
      object-fit: cover;
 }
+
+/* Video styling for hero background */
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.ak-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+
+/* Show video when slide is active */
+.ak-slider-hero-1 .swiper-slide-active .ak-hero.ak-style1 .ak-hero-featured video.ak-hero-bg {
+  opacity: 1;
+}
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info {
   position: absolute;
   height: calc(100% - 80px);
