@@ -3619,10 +3619,9 @@
                                             <div class="excel-filter-dropdown" id="statusFilterDropdown">
                                                 <div class="filter-dropdown-header">
                                                     <div class="filter-options">
-                                                        <label class="filter-checkbox-item">
-                                                            <input type="checkbox" id="selectAllStatuses">
-                                                            <span class="checkmark"></span>
-                                                            Select All
+                                                        <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                            <input type="checkbox" id="selectAllStatuses" style="margin-right: 8px;">
+                                                            <span>Select All</span>
                                                         </label>
                                                     </div>
                                                 </div>
@@ -3876,64 +3875,51 @@
                                             <i class="fas fa-chevron-down"></i>
                                         </button>
                                         <div class="excel-filter-dropdown" id="moveToStatusDropdown" style="display: none;">
-                                            <div class="filter-dropdown-header">
-                                                <div class="filter-options">
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="pending">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-warning">Pending</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="interested">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-success">Interested</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="voice_mail">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-secondary">Voice Mail</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="w2_received">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-info">W2 Received</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="follow_up">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-warning">Follow-Up</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="call_back">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-info">Call Back</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="potential">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-primary">Potential</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="not_in_service">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-secondary">Not in Service</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="citizen">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-info">Citizen</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="dnd">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-danger">DND</span>
-                                                    </label>
-                                                    <label class="filter-checkbox-item">
-                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="archived">
-                                                        <span class="checkmark"></span>
-                                                        <span class="badge bg-dark">Archived</span>
-                                                    </label>
-                                                </div>
+                                            <div class="filter-dropdown-body" style="padding: 8px 0;">
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="pending" style="margin-right: 8px;">
+                                                    <span>Pending</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="interested" style="margin-right: 8px;">
+                                                    <span>Interested</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="voice_mail" style="margin-right: 8px;">
+                                                    <span>Voice Mail</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="w2_received" style="margin-right: 8px;">
+                                                    <span>W2 Received</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="follow_up" style="margin-right: 8px;">
+                                                    <span>Follow-Up</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="call_back" style="margin-right: 8px;">
+                                                    <span>Call Back</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="potential" style="margin-right: 8px;">
+                                                    <span>Potential</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="not_in_service" style="margin-right: 8px;">
+                                                    <span>Not in Service</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="citizen" style="margin-right: 8px;">
+                                                    <span>Citizen</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="dnd" style="margin-right: 8px;">
+                                                    <span>DND</span>
+                                                </label>
+                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                    <input type="radio" name="moveToStatus" class="move-to-status-radio" value="archived" style="margin-right: 8px;">
+                                                    <span>Archived</span>
+                                                </label>
                                             </div>
                                             <div class="filter-dropdown-footer">
                                                 <button class="btn btn-sm btn-primary" onclick="moveSelectedCustomersToStatus()">Move</button>
@@ -4001,24 +3987,23 @@
                                                     <div class="excel-filter-dropdown" id="assignStatusFilterDropdown">
                                                         <div class="filter-dropdown-header">
                                                             <div class="filter-options">
-                                                                <label class="filter-checkbox-item">
-                                                                    <input type="checkbox" id="assignStatusSelectAll" checked>
-                                                                    <span class="checkmark"></span>
-                                                                    Show All
+                                                                <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;">
+                                                                    <input type="checkbox" id="assignStatusSelectAll" checked style="margin-right: 8px;">
+                                                                    <span>Show All</span>
                                                                 </label>
                                                             </div>
                                                         </div>
                                                         <div class="filter-dropdown-body">
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="pending" checked><span class="checkmark"></span><span class="badge bg-warning">Pending</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="interested"><span class="checkmark"></span><span class="badge bg-success">Interested</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="voice_mail"><span class="checkmark"></span><span class="badge bg-secondary">Voice Mail</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="w2_received"><span class="checkmark"></span><span class="badge bg-success">W2 Received</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="follow_up"><span class="checkmark"></span><span class="badge bg-primary">Follow-Up</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="call_back"><span class="checkmark"></span><span class="badge bg-info">Call Back</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="not_in_service"><span class="checkmark"></span><span class="badge bg-danger">Not in Service</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="citizen"><span class="checkmark"></span><span class="badge bg-success">Citizen</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="dnd"><span class="checkmark"></span><span class="badge bg-warning">DND</span></label>
-                                                            <label class="filter-checkbox-item"><input type="checkbox" class="assign-status-checkbox" value="potential"><span class="checkmark"></span><span class="badge bg-info">Potential</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="pending" checked style="margin-right: 8px;"><span>Pending</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="interested" style="margin-right: 8px;"><span>Interested</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="voice_mail" style="margin-right: 8px;"><span>Voice Mail</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="w2_received" style="margin-right: 8px;"><span>W2 Received</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="follow_up" style="margin-right: 8px;"><span>Follow-Up</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="call_back" style="margin-right: 8px;"><span>Call Back</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="not_in_service" style="margin-right: 8px;"><span>Not in Service</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="citizen" style="margin-right: 8px;"><span>Citizen</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="dnd" style="margin-right: 8px;"><span>DND</span></label>
+                                                            <label class="filter-checkbox-item" style="display: flex; align-items: center; padding: 8px 12px; cursor: pointer;"><input type="checkbox" class="assign-status-checkbox" value="potential" style="margin-right: 8px;"><span>Potential</span></label>
                                                         </div>
                                                         <div class="filter-dropdown-footer">
                                                             <button class="btn btn-sm btn-outline-secondary" onclick="resetAssignStatusFilter()">Reset</button>
