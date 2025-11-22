@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 
+// Get shared pool from app.locals (set in server.js)
+let pool = null;
+
+// Initialize pool from app (called from server.js)
+router.init = function(app) {
+    pool = app.locals.pool;
+};
+
 // Create reusable transporter object using Gmail SMTP
 const createTransporter = () => {
     const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || 'nexustaxfiling@gmail.com';
@@ -92,6 +100,48 @@ This email was sent from the Nexus Tax Filing website contact form.
 
         // Send email
         await transporter.sendMail(mailOptions);
+
+        // Automatically create customer in CRM with "interested" status
+        try {
+            const dbPool = pool || req.app.locals.pool;
+            if (dbPool) {
+                // Check if customer already exists (by email or phone)
+                const existingCustomer = await dbPool.query(
+                    'SELECT id FROM customers WHERE email = $1 OR phone = $2 LIMIT 1',
+                    [email, phone]
+                );
+
+                if (existingCustomer.rows.length === 0) {
+                    // Create new customer with "interested" status
+                    await dbPool.query(
+                        `INSERT INTO customers (name, email, phone, status, notes, archived, created_at, updated_at) 
+                         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
+                        [
+                            fullname,
+                            email,
+                            phone,
+                            'interested', // Set status to "interested"
+                            description || null,
+                            false // Not archived
+                        ]
+                    );
+                    console.log(`✅ New customer created from contact form: ${fullname} (${email})`);
+                } else {
+                    // Update existing customer status to "interested" if not already
+                    await dbPool.query(
+                        `UPDATE customers 
+                         SET status = $1, notes = COALESCE($2, notes), updated_at = NOW() 
+                         WHERE (email = $3 OR phone = $4) AND status != 'interested'`,
+                        ['interested', description || null, email, phone]
+                    );
+                    console.log(`✅ Existing customer updated to "interested" status: ${fullname} (${email})`);
+                }
+            }
+        } catch (dbError) {
+            // Log error but don't fail the email send
+            console.error('Error creating customer from contact form:', dbError);
+            // Continue - email was sent successfully
+        }
 
         res.json({ 
             success: true, 

@@ -237,6 +237,7 @@ const contactRoutes = require('./routes/contact');
 if (authRoutes.init) authRoutes.init(app);
 if (customerRoutes.init) customerRoutes.init(app);
 if (userRoutes.init) userRoutes.init(app);
+if (contactRoutes.init) contactRoutes.init(app);
 
 // Use API routes (must come before static file serving)
 app.use('/api/auth', authRoutes);
