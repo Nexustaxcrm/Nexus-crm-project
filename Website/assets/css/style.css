@@ -249,17 +249,19 @@ kbd {
   display: inline-block;
   width: 120px;
   height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .txt-loading .preloader-text .logo-icon {
   width: 80px;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2;
 }
 .txt-loading .preloader-text .logo-spinner {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   z-index: 1;
@@ -272,58 +274,58 @@ kbd {
   height: 8px;
   border-radius: 50%;
   background-color: var(--body-color);
-  top: 0;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   animation: dotFade 3.5s linear infinite;
 }
-/* Position each dot around the circle (12 dots, 30 degrees apart) */
+/* Position each dot around the circle (12 dots, 30 degrees apart) - 56px radius from center */
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(1) {
-  transform: translateX(-50%) rotate(0deg) translateY(-56px) rotate(0deg);
+  transform: translate(-50%, -50%) translateY(-56px);
   animation-delay: 0s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(2) {
-  transform: translateX(-50%) rotate(30deg) translateY(-56px) rotate(-30deg);
+  transform: translate(-50%, -50%) rotate(30deg) translateY(-56px) rotate(-30deg);
   animation-delay: -0.292s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(3) {
-  transform: translateX(-50%) rotate(60deg) translateY(-56px) rotate(-60deg);
+  transform: translate(-50%, -50%) rotate(60deg) translateY(-56px) rotate(-60deg);
   animation-delay: -0.583s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(4) {
-  transform: translateX(-50%) rotate(90deg) translateY(-56px) rotate(-90deg);
+  transform: translate(-50%, -50%) rotate(90deg) translateY(-56px) rotate(-90deg);
   animation-delay: -0.875s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(5) {
-  transform: translateX(-50%) rotate(120deg) translateY(-56px) rotate(-120deg);
+  transform: translate(-50%, -50%) rotate(120deg) translateY(-56px) rotate(-120deg);
   animation-delay: -1.167s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(6) {
-  transform: translateX(-50%) rotate(150deg) translateY(-56px) rotate(-150deg);
+  transform: translate(-50%, -50%) rotate(150deg) translateY(-56px) rotate(-150deg);
   animation-delay: -1.458s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(7) {
-  transform: translateX(-50%) rotate(180deg) translateY(-56px) rotate(-180deg);
+  transform: translate(-50%, -50%) rotate(180deg) translateY(-56px) rotate(-180deg);
   animation-delay: -1.75s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(8) {
-  transform: translateX(-50%) rotate(210deg) translateY(-56px) rotate(-210deg);
+  transform: translate(-50%, -50%) rotate(210deg) translateY(-56px) rotate(-210deg);
   animation-delay: -2.042s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(9) {
-  transform: translateX(-50%) rotate(240deg) translateY(-56px) rotate(-240deg);
+  transform: translate(-50%, -50%) rotate(240deg) translateY(-56px) rotate(-240deg);
   animation-delay: -2.333s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(10) {
-  transform: translateX(-50%) rotate(270deg) translateY(-56px) rotate(-270deg);
+  transform: translate(-50%, -50%) rotate(270deg) translateY(-56px) rotate(-270deg);
   animation-delay: -2.625s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(11) {
-  transform: translateX(-50%) rotate(300deg) translateY(-56px) rotate(-300deg);
+  transform: translate(-50%, -50%) rotate(300deg) translateY(-56px) rotate(-300deg);
   animation-delay: -2.917s;
 }
 .txt-loading .preloader-text .logo-spinner .dot:nth-child(12) {
-  transform: translateX(-50%) rotate(330deg) translateY(-56px) rotate(-330deg);
+  transform: translate(-50%, -50%) rotate(330deg) translateY(-56px) rotate(-330deg);
   animation-delay: -3.208s;
 }
 @keyframes spinRing {
