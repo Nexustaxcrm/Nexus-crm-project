@@ -71,6 +71,7 @@
 
   $(window).on("load", function () {
     initPreloader();
+    initPageTransitionLoader();
     titleAnimation();
     fixedFooter();
     atdCircle();
@@ -91,61 +92,67 @@
   --------------------------------------------------------------*/
   function initPreloader() {
     if ($.exists(".preloader")) {
-      const loadingPercent = document.querySelector(".loading-percent");
-      const loadingBorder = document.querySelector(".loading-border");
       const logoImg = document.querySelector(".preloader-text .logo-icon");
       const preloader = document.getElementById("preloader");
 
-      const tl = gsap.timeline({
-        onComplete: function () {
+      // Wait for page to load, then hide preloader
+      window.addEventListener("load", function () {
+        setTimeout(function () {
           gsap.to(preloader, {
             duration: 1,
             ease: "expo.out",
             transform: "translateY(-100%)",
+            opacity: 0,
             onComplete: function () {
               preloader.style.display = "none";
             },
           });
-        },
+        }, 500); // Small delay to show spinner
       });
 
-      tl.to(
-        loadingPercent,
-        {
-          innerText: 100,
-          duration: 3,
-          roundProps: "innerText",
-          ease: "power1.inOut",
-          onUpdate: function () {
-            loadingPercent.innerText =
-              Math.floor(this.targets()[0].innerText) + "%";
-          },
-        },
-        0
-      );
+      // Logo stays static, only spinner rotates (handled by CSS animation)
+    }
+  }
 
-      tl.to(
-        loadingBorder,
-        {
-          width: "100%",
-          duration: 3,
-          ease: "power1.inOut",
-        },
-        0
-      );
+  /*--------------------------------------------------------------
+    1.5. Page Transition Loader  
+  --------------------------------------------------------------*/
+  function initPageTransitionLoader() {
+    const pageLoader = document.getElementById("pageLoader");
+    if (!pageLoader) return;
 
-      gsap.fromTo(
-        logoImg,
-        { rotationY: 0 },
-        {
-          rotationY: 180,
-          duration: 1,
-          ease: "linear",
-          repeat: -1,
-          yoyo: true,
-          transformOrigin: "50% 50%",
+    // Show loader when clicking on internal links
+    document.addEventListener("click", function (e) {
+      const link = e.target.closest("a");
+      if (link && link.href) {
+        const href = link.getAttribute("href");
+        const currentHost = window.location.hostname;
+        const linkHost = link.hostname;
+
+        // Only handle internal links (same domain)
+        if (
+          href &&
+          !href.startsWith("#") &&
+          !href.startsWith("javascript:") &&
+          !href.startsWith("mailto:") &&
+          !href.startsWith("tel:") &&
+          (linkHost === "" || linkHost === currentHost) &&
+          !link.hasAttribute("target")
+        ) {
+          // Show loader
+          pageLoader.classList.add("active");
         }
-      );
+      }
+    });
+
+    // Hide loader when page is fully loaded
+    window.addEventListener("load", function () {
+      pageLoader.classList.remove("active");
+    });
+
+    // Also hide loader if page is already loaded (for back/forward navigation)
+    if (document.readyState === "complete") {
+      pageLoader.classList.remove("active");
     }
   }
 

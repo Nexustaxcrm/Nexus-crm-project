@@ -241,50 +241,72 @@ kbd {
 }
 .txt-loading .preloader-text {
   text-align: center;
+  position: relative;
+  display: inline-block;
 }
 .txt-loading .preloader-text .logo-icon {
   width: 80px;
+  position: relative;
+  z-index: 2;
 }
-.txt-loading .loading-percent {
-  max-width: 200px;
-  min-width: 150px;
-}
-.txt-loading .loading-border-content {
-  position: absolute;
-  height: 100%;
-  width: 100%;
+.txt-loading .preloader-text .logo-spinner-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 120px;
+  height: 120px;
   display: flex;
-  padding: 0;
-  gap: 10vw;
-  align-items: flex-end;
-  bottom: 91px;
-  left: 50px;
+  align-items: center;
+  justify-content: center;
+}
+.txt-loading .preloader-text .logo-spinner {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgba(3, 9, 23, 0.1);
+  border-top-color: var(--body-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.loading-border-show {
-  background-color: var(--border-color);
-  height: 2px;
+/* Page Transition Loader */
+.page-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 8px;
+  height: 100%;
+  background-color: var(--bg-color);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
-.loading-border-show .loading-border {
-  background-color: var(--body-color);
-  height: 2px;
-  width: 0;
-  border-radius: 4px;
+.page-loader.active {
+  display: flex;
+  opacity: 1;
 }
 
 @media screen and (max-width: 991px) {
   .txt-loading {
     font-size: 42px;
   }
-  .txt-loading .loading-border-content {
-    left: 15px;
+  .txt-loading .preloader-text .logo-spinner-wrapper {
+    width: 100px;
+    height: 100px;
   }
-  .txt-loading .loading-border-content .loading-percent {
-    min-width: 115px;
+  .txt-loading .preloader-text .logo-icon {
+    width: 70px;
   }
 }
 /*--------------------------------------------------------------
