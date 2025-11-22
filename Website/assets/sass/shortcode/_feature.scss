@@ -1,0 +1,132 @@
+/*--------------------------------------------------------------
+18. Feature Content
+----------------------------------------------------------------*/
+
+.feature-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+}
+
+.feature-card {
+  max-width: 317px;
+
+  .feature-icon {
+    margin-bottom: 28px;
+  }
+  .feature-body {
+    .feature-title {
+      margin-bottom: 15px;
+      font-size: 24px;
+      line-height: 135%;
+    }
+  }
+  .feature-desp {
+    margin-bottom: 50px;
+    font-size: 16px;
+  }
+  &.style-2 {
+    padding: 35px;
+    max-width: 100%;
+    background-color: $whiteLite;
+    transition: all 0.3s ease-in-out;
+    &:hover {
+      color: $white;
+      background-color: $secondary;
+      ::after {
+        background-color: $white;
+      }
+      .feature-body {
+        .feature-title {
+          color: $white;
+        }
+        .more-btn {
+          color: $white;
+          .svg-icon {
+            svg {
+              path {
+                stroke: $white !important;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  &.style-3 {
+    padding: 35px;
+    max-width: 100%;
+    background-color: $whiteLite;
+    transition: all 0.3s ease-in-out;
+    &:hover {
+      color: $black;
+      background-color: $brandColorTwo;
+      ::after {
+        background-color: $black;
+      }
+      .feature-body {
+        .feature-title {
+          color: $black;
+        }
+        .more-btn {
+          color: $black;
+          .svg-icon {
+            svg {
+              path {
+                stroke: $black !important;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+.feature-card-two {
+  display: inline-flex;
+  flex-direction: column;
+  height: 208px;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid $darkwhite;
+  .feature-card-info {
+    max-width: 307px;
+    .feature-title {
+      margin-bottom: 30px;
+      font-size: 24px;
+      line-height: 135%;
+    }
+  }
+}
+
+.ak-feature-hr {
+  display: inline-block;
+  height: 310px;
+  width: 1px;
+  background-color: rgba(#030917, 0.1);
+  &.ak-h-100 {
+    height: 100px;
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .ak-feature-hr {
+    display: none;
+  }
+  .feature-content {
+    flex-wrap: wrap;
+    gap: 50px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .feature-card {
+    max-width: 100%;
+    .feature-body {
+      .feature-desp {
+        margin-bottom: 25px;
+      }
+    }
+  }
+}

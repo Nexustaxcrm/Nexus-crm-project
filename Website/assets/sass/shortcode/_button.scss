@@ -1,0 +1,344 @@
+/*--------------------------------------------------------------
+  12. Button style
+----------------------------------------------------------------*/
+
+.common-btn {
+  background-color: var(--primary-color);
+  font-family: var(--body-font-family);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 12px 28px;
+  border-radius: 0px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  overflow: hidden;
+  width: auto;
+  span {
+    color: var(--black-color);
+    position: relative;
+    z-index: 111;
+    transition: all 0.5s;
+  }
+
+  &::before {
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 100%;
+    visibility: hidden;
+    overflow: hidden;
+    background-color: var(--black-color);
+    transition: all 0.3s;
+    z-index: 11;
+  }
+  &:hover {
+    span {
+      color: var(--white-color);
+      path {
+        stroke: var(--white-color);
+      }
+    }
+    &::before {
+      right: 0;
+      visibility: visible;
+    }
+  }
+  &.style-2 {
+    background-color: var(--black-color);
+    &::before {
+      background-color: var(--primary-color);
+    }
+
+    span {
+      color: var(--white-color);
+    }
+    .arrow-cricle {
+      position: relative;
+      display: flex;
+      background-color: var(--white-color);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      justify-content: center;
+      align-items: center;
+      z-index: 111;
+      overflow: hidden;
+
+      > :first-child {
+        transition: all 0.15s;
+        transform: translateX(-150%);
+      }
+      > :last-child {
+        transition: all 0.2s;
+        transform: translateX(-50%);
+      }
+    }
+
+    &:hover {
+      span {
+        color: #000;
+      }
+      .arrow-cricle {
+        path {
+          stroke: var(--black-color);
+        }
+        > :first-child {
+          transform: translateX(50%);
+        }
+        > :last-child {
+          transform: translateX(170%) rotateX(50deg);
+        }
+      }
+    }
+    &.color-2 {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    &.type-2 {
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      padding: 5px 5px;
+    }
+    &.color-3 {
+      background-color: $brandColorTwo;
+      &::before {
+        background-color: var(--black-color);
+      }
+      span {
+        color: var(--black-color);
+      }
+      &:hover span {
+        color: var(--white-color);
+      }
+    }
+  }
+  &.style-3 {
+    background-color: transparent;
+    border: 1px solid rgba(3, 9, 23, 0.1);
+  }
+}
+
+.more-btn {
+  font-family: var(--body-font-family);
+  position: relative;
+  display: inline-flex;
+  color: $black;
+  font-size: 16px;
+  font-weight: 500;
+  min-width: 100px;
+  text-transform: capitalize;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  .svg-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 111;
+    overflow: hidden;
+    > :first-child {
+      transition: all 0.3s;
+      transform: translateX(-150%);
+    }
+    > :last-child {
+      transition: all 0.3s;
+      transform: translateX(-50%);
+    }
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    display: inline;
+    width: 0%;
+    height: 1px;
+    left: 0;
+    bottom: -2px;
+    opacity: 1;
+    transition: all 0.3s;
+    background-color: var(--black-color);
+  }
+
+  &:hover {
+    .svg-icon {
+      &.style-two {
+        transform: rotate3d(0, 0, 1, -45deg);
+      }
+      > :first-child {
+        transform: translateX(50%);
+      }
+      > :last-child {
+        transform: translateX(170%) rotateX(50deg);
+      }
+    }
+    color: var(--black-color);
+
+    &::after {
+      width: 70%;
+    }
+  }
+  &.arrow-left-style {
+    &::after {
+      right: 0;
+      left: auto;
+    }
+    .svg-icon {
+      > :first-child {
+        transition: all 0.3s;
+        transform: translateX(210%);
+      }
+      > :last-child {
+        transition: all 0.3s;
+        transform: translateX(-50%);
+      }
+    }
+    &:hover {
+      .svg-icon {
+        > :first-child {
+          transform: translateX(50%);
+        }
+        > :last-child {
+          transform: translateX(-210%) rotateX(50deg);
+        }
+      }
+    }
+  }
+}
+
+.slider-btn {
+  font-family: var(--heading-font-family);
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba($border, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  transition: background-color 0.3s;
+  svg {
+    transition: transform 0.3s;
+  }
+  &:hover {
+    border: none;
+    background-color: $primary;
+  }
+  &.next {
+    &:hover {
+      svg {
+        transform: translateX(-3px);
+      }
+    }
+  }
+  &.prev {
+    &:hover {
+      svg {
+        transform: translateX(3px);
+      }
+    }
+  }
+  &.color-2 {
+    &:hover {
+      background-color: $brandColorTwo;
+
+      svg {
+        path {
+          stroke: $black;
+        }
+      }
+    }
+  }
+  &.style-2 {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.view-more-button {
+  font-family: var(--heading-font-family);
+  width: 150px;
+  height: 150px;
+  position: relative;
+  border-radius: 50%;
+  .more-button {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: absolute;
+    display: inline;
+    background-color: $primary;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+    &::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background-color: rgba(0, 0, 0, 0.3);
+      opacity: 1;
+      left: -85%;
+      top: 120%;
+      transform: translateY(-50%);
+      transition: all 0.3s ease;
+      opacity: 1;
+    }
+
+    &:hover {
+      &::before {
+        opacity: 1;
+        left: -40%;
+        top: 90%;
+      }
+    }
+    span {
+      font-size: 18px;
+      color: $black;
+      font-weight: 700;
+      z-index: 111;
+    }
+
+    .icon {
+      margin-top: 5px;
+      width: 30px;
+      height: 30px;
+      background-color: var(--white-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: transform 0.3s ease;
+      transform: rotate(-45deg);
+      svg {
+        color: var(--black-color);
+      }
+    }
+
+    &:hover .ak-icon {
+      transform: scale(1.2);
+    }
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .view-more-button {
+    width: 100px;
+    height: 100px;
+    .more-button {
+      span {
+        font-size: 14px;
+      }
+    }
+  }
+}

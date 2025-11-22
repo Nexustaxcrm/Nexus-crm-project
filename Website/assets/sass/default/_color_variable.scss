@@ -1,0 +1,25 @@
+/*--------------------------------------------------------------
+1. Basic Color Variable
+----------------------------------------------------------------*/
+
+$white: #fff;
+$whiteLite: #eaf4f4;
+$black: #030917;
+$primary: #f9d67c;
+$secondary: #063232;
+$border: #485b60;
+$darkwhite: #e7e7e7;
+$brandColorTwo: #9fe970;
+
+:root {
+  --body-font-family: "DM Sans", sans-serif;
+  --heading-font-family: "Lato", sans-serif;
+  --body-color: #485b60;
+  --body-bg-color: #fdfbf7;
+  --body-bg-color-two: #f4ffff;
+  --heading-color: #030917;
+  --border-color: #e4e3e1;
+  --white-color: #ffffff;
+  --black-color: #030917;
+  --primary-color: #f9d67c;
+}

@@ -1,0 +1,179 @@
+/*--------------------------------------------------------------
+  9. Footer
+----------------------------------------------------------------*/
+
+.footer-bg {
+  background-color: $black;
+  .ak-footer-container {
+    position: relative;
+    .footer-bg-img {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      background-repeat: no-repeat;
+      max-width: 695px;
+      width: 100%;
+    }
+  }
+}
+
+.ak-footer.style-1 {
+  .footer-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 110px;
+    .company-info {
+      max-width: 336px;
+      .ak-site_branding {
+        display: inline-block;
+        margin-bottom: 15px;
+      }
+      .text {
+        color: $darkwhite;
+        margin-bottom: 40px;
+      }
+      .social-icon {
+        display: flex;
+        gap: 20px;
+      }
+    }
+    .footer-nav {
+      width: 100%;
+      .new-letter-email {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 30px;
+        margin-bottom: 100px;
+        .new-letter {
+          max-width: 380px;
+          width: 100%;
+          .title {
+            font-size: 24px;
+            line-height: 135%;
+            color: $white;
+            margin-bottom: 20px;
+          }
+          .desp {
+            font-size: 16px;
+            color: $darkwhite;
+            line-height: 165%;
+            margin: 0;
+          }
+        }
+        .email-content {
+          max-width: 372px;
+          width: 100%;
+          .email-input-btn {
+            display: flex;
+            position: relative;
+            .email {
+              padding-bottom: 17px;
+              border: none;
+              background-color: transparent;
+              border-bottom: 1px solid rgba($white, 0.2);
+              width: 100%;
+              color: $white;
+              transition: border-bottom 0.3s;
+              &:focus {
+                outline: none;
+                border-bottom: 1px solid $primary;
+              }
+            }
+            .common-btn {
+              position: absolute;
+              right: 0;
+              span {
+                transform: rotate(-45deg);
+              }
+            }
+          }
+          .text {
+            color: $darkwhite;
+            line-height: 165%;
+            font-size: 16px;
+            margin-top: 15px;
+          }
+        }
+      }
+      .footer-link {
+        display: flex;
+        max-width: 802px;
+        justify-content: space-between;
+        gap: 30px;
+        flex-wrap: wrap;
+        .link-content {
+          .short-title {
+            font-size: 24px;
+            line-height: 135%;
+            color: $white;
+            margin-bottom: 18px;
+          }
+          .linek-all {
+            border-left: 1px solid rgba($white, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            list-style: none;
+            padding-left: 0;
+            a {
+              margin-left: 15px;
+              font-size: 16px;
+              line-height: 165%;
+              color: $darkwhite;
+              position: relative;
+              display: inline-block;
+              &::after {
+                content: "";
+                position: absolute;
+                display: inline-block;
+                width: 0%;
+                height: 1px;
+                left: 0;
+                bottom: -2px;
+                opacity: 1;
+                transition: all 0.3s;
+                background-color: $white;
+              }
+              &:hover::after {
+                width: 100%;
+              }
+              span {
+                color: $white;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  .copy-right {
+    border-top: 1px solid rgba($white, 0.1);
+    padding: 25px 0px;
+    text-align: center;
+    .copyright-text {
+      font-size: 16px;
+      color: $white;
+      margin-bottom: 0;
+    }
+  }
+}
+@media screen and (max-width: 1199px) {
+  .ak-footer.style-1 {
+    .footer-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 50px;
+      .footer-nav {
+        width: 100%;
+        .new-letter-email {
+          margin-bottom: 50px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1199px) {
+}

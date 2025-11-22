@@ -1,0 +1,84 @@
+/*--------------------------------------------------------------
+14. Moving Text
+----------------------------------------------------------------*/
+
+.moving-section-wrap {
+  overflow: hidden;
+}
+
+.moving-section-in {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 10px;
+}
+
+.moving-section {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 5px 0px;
+  animation: slide-left 10s linear infinite;
+  &.ak-stroke-text {
+    margin: 0 10px;
+  }
+  &.style-2 {
+    color: #063232;
+    font-weight: 900;
+    font-size: 130px;
+    text-transform: uppercase;
+  }
+}
+
+.animation-speed-10 {
+  animation: slide-left 10s linear infinite;
+}
+
+.animation-speed-15 {
+  animation: slide-left 15s linear infinite !important;
+}
+
+.animation-speed-20 {
+  animation: slide-left 20s linear infinite;
+}
+
+.animation-speed-30 {
+  animation: slide-left 30s linear infinite;
+}
+
+.animation-speed-40 {
+  animation: slide-left 40s linear infinite;
+}
+
+.animation-speed-50 {
+  animation: slide-left 50s linear infinite;
+}
+
+.moving-section-hover-push:hover .moving-section {
+  animation-play-state: paused;
+}
+
+@keyframes slide-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+.brand-logo {
+  display: inline-flex;
+  width: 100%;
+  height: 208px;
+  flex: 1 1 0%;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid $darkwhite;
+}
+
+@media screen and (max-width: 767px) {
+  .brand-logo {
+    height: auto;
+    padding: 10px;
+  }
+}

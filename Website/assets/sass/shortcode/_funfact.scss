@@ -1,0 +1,117 @@
+/*--------------------------------------------------------------
+  17. Counter Funfact
+----------------------------------------------------------------*/
+
+.funfact-counter {
+  .funfact-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+  .auto-counter-section {
+    display: flex;
+    gap: 30px;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-grow: 1;
+  }
+  .funfact-title-content {
+    max-width: 420px;
+    font-size: 36px;
+    line-height: 125%;
+    @media (max-width: 1199px) {
+      text-align: center;
+    }
+  }
+}
+
+.funfact.style1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  .type_2 {
+    flex-direction: row;
+  }
+  .funfact-number {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: $black;
+    span {
+      font-family: var(--heading-font-family);
+      font-size: 62px;
+      font-weight: 500;
+      margin: 0;
+      line-height: 125%;
+    }
+    &.stroke-number {
+      span {
+        -webkit-text-stroke: 1px var(--black-color);
+        color: transparent;
+      }
+    }
+  }
+  /* .divider-border{
+    display: ;
+  } */
+  .funfact-text {
+    .text {
+      font-family: var(--heading-font-family);
+      color: $black;
+      font-weight: 400;
+      font-size: 20px;
+      text-transform: capitalize;
+      line-height: 135%;
+      margin: 0;
+    }
+  }
+}
+@media screen and (max-width: 991px) {
+  .funfact-counter {
+    .auto-counter-section {
+      .funfact.style1 {
+        .funfact-number {
+          span {
+            font-size: 36px;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .funfact-counter {
+    .funfact-title-content {
+      .funfact-title {
+        font-size: 32px;
+      }
+    }
+    .auto-counter-section {
+      .funfact.style1 {
+        .funfact-number {
+          span {
+            font-size: 32px;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 399px) {
+  .funfact-counter {
+    .funfact-title-content {
+      text-align: start;
+    }
+    .auto-counter-section {
+      .funfact.style1 {
+        align-items: start;
+      }
+    }
+  }
+}

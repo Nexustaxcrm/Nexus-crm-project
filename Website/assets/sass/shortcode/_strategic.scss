@@ -1,0 +1,310 @@
+/*--------------------------------------------------------------
+21. Strategic
+----------------------------------------------------------------*/
+
+.strategic {
+  background-color: #f7f3ec;
+  padding: 75px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  background-repeat: no-repeat;
+  margin-top: 80px;
+  &.single-card {
+    padding: 0px;
+    background-color: transparent;
+    &:last-child {
+      margin-bottom: 0px;
+    }
+    .strategic-img {
+      position: relative;
+      overflow: hidden;
+      img {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        z-index: 111;
+        padding-right: 50px;
+        padding-bottom: 50px;
+      }
+      &::after {
+        position: absolute;
+        z-index: 11;
+        content: "";
+        left: 50px;
+        top: 50px;
+        width: 100%;
+        height: 100%;
+        background: #f7f3ec;
+      }
+    }
+    &.style-2 {
+      flex-direction: row;
+      background-color: transparent;
+    }
+    .atd-skills {
+      flex-wrap: nowrap;
+    }
+  }
+  &.spacer128 {
+    margin-bottom: 128px !important;
+  }
+
+  &:first-child {
+    margin-top: 0px;
+  }
+  &:last-child {
+    margin-bottom: 80px;
+  }
+  .strategic-info {
+    max-width: 600px;
+    width: 100%;
+    .personalized-long-term {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+      .personalized {
+        .icon {
+          margin-bottom: 16px;
+          max-width: 40px;
+          max-height: 40px;
+        }
+        .title {
+          font-size: 20px;
+          margin-bottom: 10px;
+        }
+        .desp {
+          margin-bottom: 0;
+        }
+      }
+      .personalized-divder {
+        display: block;
+        width: 1px;
+        height: 81px;
+        align-self: flex-end;
+        background-color: $black;
+        opacity: 0.2;
+      }
+      .long-term {
+        @extend .personalized;
+      }
+    }
+  }
+  .strategic-img {
+    max-width: 550px;
+    flex-grow: 2;
+    img {
+      width: inherit;
+      height: 100%;
+    }
+  }
+  &.style-2 {
+    background-color: transparent;
+    flex-direction: row-reverse;
+    .strategic-info {
+      .personalized-long-term {
+        .personalized {
+          display: flex;
+          gap: 20px;
+          align-items: center;
+          color: $white;
+          p {
+            font-size: 20px;
+          }
+          .cricle {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 2px solid;
+            border-color: #f9d67c #fff #f9d67c #f9d67c;
+            border-style: solid;
+          }
+        }
+      }
+    }
+  }
+
+  &.type-2 {
+    flex-direction: row;
+    padding: 0;
+    @media (min-width: 1499px) {
+      gap: 0;
+      width: calc(100vw - 300px);
+    }
+    margin: 0;
+    background-color: transparent;
+
+    &.row-reverse {
+      flex-direction: row-reverse;
+    }
+    &.color-1 {
+      background-color: $whiteLite !important;
+    }
+    .strategic-img {
+      max-width: 962px;
+      width: 100%;
+      height: 700px;
+      flex-grow: 2;
+      img {
+        width: inherit;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+.strategic-anim.bg-color {
+  background-color: $whiteLite !important;
+}
+.ak-skill-box {
+  margin-bottom: 20px;
+  &.type-2 {
+    .ak-skill-bar {
+      .ak-skill-fill {
+        background-color: var(--black-color);
+      }
+    }
+  }
+  .ak-skill-text {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+
+    .ak-skill-title {
+      font-size: 16px;
+      color: var(--heading-color);
+    }
+
+    .ak-skill-per {
+      font-size: 16px;
+      color: var(--black-color);
+      font-weight: 400;
+    }
+  }
+
+  .ak-skill-bar {
+    background-color: var(--border-color);
+    height: 8px;
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+
+    .ak-skill-fill {
+      background-color: var(--primary-color);
+      height: 100%;
+      width: 0;
+      border-radius: 4px;
+    }
+  }
+}
+
+@media screen and (max-width: 1400px) {
+  .strategic {
+    &.type-2 {
+      max-width: 100%;
+      width: 100%;
+      .strategic-img {
+        max-width: 100%;
+        height: 600px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .strategic {
+    flex-direction: column-reverse;
+    padding: 50px 15px;
+    .strategic-info {
+      .personalized-long-term {
+        align-items: flex-start;
+      }
+    }
+    &.style-2 {
+      flex-direction: column-reverse;
+      padding: 50px 15px;
+      .strategic-info {
+        .personalized-long-term {
+          align-items: flex-start;
+        }
+      }
+    }
+    &.single-card {
+      flex-direction: row;
+      .strategic-info {
+        max-width: 100%;
+      }
+      .strategic-img {
+        display: none;
+      }
+    }
+  }
+  .strategic-slider {
+    .strategic-swiper-controller {
+      position: relative;
+    }
+  }
+}
+@media screen and (max-width: 991px) {
+  .strategic {
+    align-items: flex-start;
+    &.type-2 {
+      flex-direction: column-reverse;
+      max-width: 100%;
+      width: 100%;
+      align-items: flex-start;
+      padding: 80px 0;
+      .strategic-img {
+        max-width: 100%;
+        height: 400px;
+      }
+      &.row-reverse {
+        flex-direction: column-reverse;
+      }
+    }
+    .strategic-img {
+      max-width: 100%;
+      width: 100%;
+      height: 400px;
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+@media screen and (max-width: 767px) {
+  .strategic {
+    .strategic-info {
+      .personalized-long-term {
+        flex-direction: column;
+        .personalized-divder {
+          display: none;
+        }
+      }
+    }
+    &.single-card {
+      .atd-skills {
+        flex-wrap: wrap !important;
+        gap: 30px;
+      }
+    }
+  }
+  .strategic {
+    &.type-2 {
+      .strategic-info {
+        .atd-skills {
+          flex-wrap: wrap !important;
+        }
+      }
+    }
+  }
+}

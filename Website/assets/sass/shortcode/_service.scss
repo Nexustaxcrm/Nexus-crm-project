@@ -1,0 +1,159 @@
+/*--------------------------------------------------------------
+14. Service
+----------------------------------------------------------------*/
+
+.service-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.service-bg {
+  position: relative;
+  background-color: $secondary;
+  z-index: 10;
+  .ak-white-bg-service {
+    position: absolute;
+    z-index: 11;
+    width: 100%;
+    background-color: var(--body-bg-color);
+    height: 150px;
+  }
+}
+
+.service-card {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+  .service-thumb {
+    margin-bottom: 30px;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background-repeat: no-repeat;
+    }
+    .overlay-image {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      right: 0px;
+      bottom: 0px;
+      transform: translatex(50%) scaleX(1.5);
+      opacity: 0;
+      filter: blur(10px);
+      transition: opacity 0.3s ease;
+      transition: background-color 0.3s ease;
+      transition: all 0.5s ease;
+      z-index: 1;
+      border-radius: 50%;
+    }
+  }
+  &:hover .service-thumb .overlay-image {
+    transform: translatex(0) scaleX(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+  .service-info {
+    margin-top: 8px;
+    margin-bottom: 25px;
+    flex: 1 1 auto;
+    .service-title {
+      font-size: 28px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 125%;
+      color: $white;
+      margin-bottom: 12px;
+      position: relative;
+      display: inline-block;
+      transition: all 0.5s;
+      &:hover {
+        color: $white;
+      }
+      &::after {
+        content: "";
+        position: absolute;
+        display: inline-block;
+        width: 100%;
+        height: 1px;
+        right: 0;
+        bottom: -2px;
+        background-color: $white;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.5s;
+      }
+
+      &:hover::after {
+        transform: scaleX(1); /* Full width on hover */
+        transform-origin: left; /* Slide out to the right */
+      }
+    }
+
+    .service-desp {
+      font-size: 16px;
+      line-height: 165%;
+      font-weight: 400;
+      color: #e7e7e7;
+    }
+  }
+  &.style-two {
+    @media (min-width: 1199px) {
+      &.mb-10 {
+        bottom: 50px;
+      }
+    }
+
+    .service-info {
+      flex: 0 1 auto;
+
+      .service-title {
+        transition: opacity 0.1s;
+        color: $black;
+        &:hover {
+          opacity: 0.7;
+        }
+        &::after {
+          display: none;
+        }
+      }
+      .service-desp {
+        color: $black;
+        margin: 0;
+      }
+    }
+  }
+}
+
+.case-content-info {
+  display: flex;
+  max-width: 1114px;
+  justify-content: space-between;
+  gap: 30px;
+  flex-wrap: wrap;
+  .short-info {
+    max-width: 300px;
+    .short-title {
+      font-size: 20px;
+    }
+    .title {
+      font-size: 20px;
+      color: $black;
+    }
+  }
+}
+
+@media screen and (max-width: 575px) {
+  .service-card {
+    .service-info {
+      margin-top: 0px;
+    }
+  }
+}

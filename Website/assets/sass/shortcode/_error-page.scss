@@ -1,0 +1,74 @@
+/*--------------------------------------------------------------
+29. Error Page Content
+----------------------------------------------------------------*/
+
+.ak-error-content {
+  min-height: 65vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  .error-info {
+    max-width: 840px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    .error-title {
+      font-size: 129px;
+      font-weight: 900;
+    }
+    .error-description {
+      margin-bottom: 40px;
+    }
+  }
+}
+
+.section-all-item-center {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  .ak-date-section {
+    margin-top: 75px;
+    background-color: $white;
+    width: calc(100vw - 33vw);
+    height: 605px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    .ak-timer {
+      text-align: center;
+    }
+    .comming-info {
+      max-width: 434px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 30px;
+      margin-bottom: 45px;
+    }
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .section-all-item-center {
+    .ak-date-section {
+      width: 100%;
+      align-content: center;
+    }
+  }
+
+  .ak-error-content {
+    justify-content: flex-end;
+    .error-info {
+      .error-title {
+        font-size: 90px;
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+/*--------------------------------------------------------------
+11. Section Heading Title
+----------------------------------------------------------------*/
+
+.ak-section-heading-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.ak-section-heading.ak-style-1 {
+  .ak-section-title {
+    font-size: 50px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 125%;
+  }
+  .ak-section-subtitle {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1px 15px;
+    font-size: 16px;
+    gap: 10px;
+    font-weight: 500;
+    border-radius: 50px;
+    border: 1px solid rgba(3, 9, 23, 0.1);
+    color: $black;
+    margin-bottom: 10px;
+  }
+  .ak-section-desp {
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 200%;
+  }
+  &.color-2 {
+    .ak-section-title {
+      color: $white;
+    }
+    .ak-section-subtitle {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: $white;
+    }
+    .ak-section-desp {
+      color: #e7e7e7;
+    }
+  }
+}
+@media screen and (max-width: 991px) {
+  .ak-section-heading-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ak-section-heading.ak-style-1 {
+    .ak-section-title {
+      font-size: 42px;
+    }
+    .ak-section-subtitle {
+      font-size: 18px;
+    }
+  }
+}
+@media screen and (max-width: 767px) {
+  .ak-section-heading.ak-style-1 {
+    .ak-section-title {
+      font-size: 32px;
+    }
+  }
+}

@@ -1,0 +1,228 @@
+/*--------------------------------------------------------------
+26. Contact Form
+----------------------------------------------------------------*/
+
+.comments-box-content {
+  background-color: $white;
+  padding: 57px 70px;
+}
+
+.contact-form-content {
+  display: flex;
+  gap: 100px;
+  background-color: $white;
+  .contact-form-img {
+    max-width: 860px;
+    img {
+      height: 100%;
+      width: 100%;
+      object-fit: cover;
+    }
+  }
+  .contact-form {
+    max-width: 645px;
+    align-self: center;
+    padding: 15px;
+  }
+}
+
+.contact-form {
+  .contact-title {
+    font-size: 24px;
+    line-height: 135%;
+  }
+  .form-inputs {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+    .type_1 {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      position: relative;
+      label {
+        text-transform: uppercase;
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: $black;
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+      input,
+      select {
+        flex-shrink: 0;
+        background-color: transparent;
+        padding: 0px 10px 15px 0px;
+        outline: none;
+        border: none;
+        border-bottom: 1px solid rgba($black, 0.1);
+        &:focus {
+          border-bottom: 1px solid $primary;
+        }
+      }
+    }
+  }
+  .form-textarea {
+    display: flex;
+    .type_1 {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      label {
+        font-size: 14px;
+        text-transform: capitalize;
+        color: $black;
+        font-weight: 600;
+      }
+      textarea {
+        color: $black;
+        background-color: transparent;
+        border: none;
+        border-bottom: 1px solid rgba($black, 0.1);
+        &:focus {
+          border-bottom: 1px solid rgba($black, 0.1);
+        }
+      }
+    }
+  }
+}
+
+.comments-content {
+  .comments-title {
+    margin-bottom: 25px;
+  }
+  .comments-info {
+    display: flex;
+    gap: 15px;
+    .comment-person-img {
+      flex-shrink: 0;
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    .person-info {
+      .person-desp {
+        margin-top: 15px;
+        margin-bottom: 15px;
+      }
+      .comment-reply-btn {
+        background-color: transparent;
+        border: none;
+        color: $black;
+        font-weight: 500;
+        &:hover {
+          color: $primary;
+        }
+      }
+    }
+  }
+}
+
+.contact-section-home-three {
+  display: flex;
+  justify-content: space-between;
+  gap: 50px;
+  .contact-info-section {
+    max-width: 391px;
+    width: 100%;
+    .contact-social-info {
+      display: flex;
+      flex-direction: column;
+      gap: 33px;
+      .social-info-item {
+        display: flex;
+        gap: 20px;
+        .icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background-color: $white;
+          transition: all 0.5s ease-in-out;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          path {
+            fill: $black;
+          }
+        }
+
+        .text {
+          color: $black;
+          font-size: 16px;
+          .short-title {
+            font-size: 20px;
+          }
+          .title {
+            font-size: 28px;
+            font-weight: 500;
+          }
+        }
+        &:hover > .icon {
+          background-color: $brandColorTwo;
+          transform: scale(1.2);
+          transition-timing-function: cubic-bezier(0.47, 2.02, 0.31, -0.36);
+          svg {
+            path {
+              fill: $black;
+            }
+          }
+        }
+      }
+    }
+  }
+  .contact-form {
+    max-width: 645px;
+    width: 100%;
+  }
+}
+@media screen and (max-width: 1199px) {
+  .contact-form-content {
+    gap: 50px;
+  }
+}
+@media screen and (max-width: 991px) {
+  .comments-box-content {
+    padding: 30px 20px;
+  }
+  .contact-form-content {
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 80px;
+    .contact-form-img {
+      max-width: 100%;
+      flex-basis: 450px;
+      overflow: hidden;
+    }
+    .contact-form {
+      max-width: 100%;
+      margin-bottom: 20px;
+    }
+  }
+
+  .contact-section-home-three {
+    flex-direction: column;
+    .contact-info-section {
+      .contact-social-info {
+        .social-info-item {
+          .text {
+            .short-title {
+              font-size: 16px;
+            }
+            .title {
+              font-size: 18px;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+@media screen and (max-width: 576px) {
+  .contact-form {
+    .form-inputs {
+      flex-direction: column;
+    }
+  }
+}
