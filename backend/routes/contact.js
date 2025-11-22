@@ -36,8 +36,11 @@ const createTransporter = () => {
 
 // Contact form submission endpoint
 router.post('/', async (req, res) => {
+    console.log('📧 Contact form submission received');
+    console.log('Request body:', req.body);
     try {
         const { fullname, phone, email, description } = req.body;
+        console.log('Parsed form data:', { fullname, phone, email, description: description ? 'provided' : 'empty' });
 
         // Validate required fields
         if (!fullname || !phone || !email) {
@@ -104,7 +107,9 @@ This email was sent from the Nexus Tax Filing website contact form.
         };
 
         // Send email
+        console.log('📨 Sending email to nexustaxfiling@gmail.com...');
         await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully');
 
         // Automatically create customer in CRM with "interested" status
         try {
@@ -116,6 +121,15 @@ This email was sent from the Nexus Tax Filing website contact form.
                 console.error('Pool from app.locals:', req.app.locals.pool ? 'exists' : 'null');
             } else {
                 console.log('✅ Database pool available, creating customer...');
+                
+                // Test database connection first
+                try {
+                    await dbPool.query('SELECT NOW()');
+                    console.log('✅ Database connection verified');
+                } catch (testError) {
+                    console.error('❌ Database connection test failed:', testError.message);
+                    throw testError;
+                }
                 
                 // Check if customer already exists (by email or phone)
                 const existingCustomer = await dbPool.query(
