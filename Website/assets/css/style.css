@@ -1890,10 +1890,13 @@ kbd {
   justify-content: space-between;
   position: relative;
   margin: 0px;
+  gap: 20px;
 }
 .ak-site_header.ak-style1 .ak-main-header-left {
   flex: 0 0 auto;
   margin-right: auto;
+  padding-left: 0;
+  margin-left: 0;
 }
 .ak-site_header.ak-style1 .ak-main-header-center {
   display: flex;
@@ -2067,12 +2070,11 @@ kbd {
   }
   .ak-site_header.ak-style1 .ak-main_header_center {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
     height: 100%;
-    width: 100%;
-    margin-left: auto;
-    padding-right: 20px;
+    flex: 1;
+    margin: 0 auto;
   }
   .ak-nav {
     display: flex;
@@ -2086,7 +2088,8 @@ kbd {
     flex-wrap: wrap;
     height: inherit;
     padding-left: 0;
-    margin-left: auto;
+    margin-left: 0;
+    justify-content: center;
   }
   .ak-nav .ak-nav_list > li {
     margin-right: 50px;
@@ -2677,6 +2680,18 @@ kbd {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.ak-site_header.ak-style1 .ak-main-header-right {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-right: 0;
+  margin-right: 0;
+}
+@media screen and (min-width: 1199px) {
+  .ak-site_header.ak-style1 .ak-main-header-right {
+    position: relative;
+    z-index: 10;
+  }
 }
 
 .common-btn {
