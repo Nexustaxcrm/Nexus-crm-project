@@ -37,7 +37,14 @@ const createTransporter = () => {
 // Contact form submission endpoint
 router.post('/', async (req, res) => {
     console.log('📧 Contact form submission received');
+    console.log('Request method:', req.method);
+    console.log('Request path:', req.path);
     console.log('Request body:', req.body);
+    console.log('Request headers:', {
+        'content-type': req.headers['content-type'],
+        'origin': req.headers['origin'],
+        'user-agent': req.headers['user-agent']
+    });
     try {
         const { fullname, phone, email, description } = req.body;
         console.log('Parsed form data:', { fullname, phone, email, description: description ? 'provided' : 'empty' });
@@ -131,42 +138,100 @@ This email was sent from the Nexus Tax Filing website contact form.
                     throw testError;
                 }
                 
-                // Check if customer already exists (by email or phone)
-                const existingCustomer = await dbPool.query(
-                    'SELECT id FROM customers WHERE email = $1 OR phone = $2 LIMIT 1',
-                    [email, phone]
-                );
+                // Use a transaction with row-level locking to prevent duplicate inserts
+                // This handles race conditions when multiple form submissions happen simultaneously
+                const client = await dbPool.connect();
+                try {
+                    await client.query('BEGIN');
+                    
+                    // Check if customer already exists (with row lock to prevent duplicates)
+                    // Lock rows to prevent concurrent inserts
+                    const existingCustomer = await client.query(
+                        `SELECT id, status, name FROM customers 
+                         WHERE (LOWER(email) = LOWER($1) OR phone = $2)
+                         AND (email IS NOT NULL OR phone IS NOT NULL)
+                         FOR UPDATE
+                         LIMIT 1`,
+                        [email, phone]
+                    );
 
-                if (existingCustomer.rows.length === 0) {
-                    // Create new customer with "interested" status
-                    // Note: created_at and updated_at are handled by database defaults
-                    const result = await dbPool.query(
-                        `INSERT INTO customers (name, email, phone, status, notes, archived) 
-                         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, phone, status`,
-                        [
-                            fullname,
-                            email,
-                            phone,
-                            'interested', // Set status to "interested"
-                            description || null,
-                            false // Not archived
-                        ]
-                    );
-                    console.log(`✅ New customer created from contact form:`, result.rows[0]);
-                } else {
-                    // Update existing customer status to "interested" if not already
-                    const updateResult = await dbPool.query(
-                        `UPDATE customers 
-                         SET status = $1, notes = COALESCE($2, notes), updated_at = NOW() 
-                         WHERE (email = $3 OR phone = $4) AND status != 'interested'
-                         RETURNING id`,
-                        ['interested', description || null, email, phone]
-                    );
-                    if (updateResult.rows.length > 0) {
-                        console.log(`✅ Existing customer updated to "interested" status: ${fullname} (${email}) - ID: ${updateResult.rows[0].id}`);
+                    if (existingCustomer.rows.length === 0) {
+                        // Double-check after lock (handle race condition)
+                        const doubleCheck = await client.query(
+                            `SELECT id FROM customers 
+                             WHERE (LOWER(email) = LOWER($1) OR phone = $2)
+                             AND (email IS NOT NULL OR phone IS NOT NULL)
+                             LIMIT 1`,
+                            [email, phone]
+                        );
+                        
+                        if (doubleCheck.rows.length === 0) {
+                            // Create new customer with "interested" status
+                            const result = await client.query(
+                                `INSERT INTO customers (name, email, phone, status, notes, archived) 
+                                 VALUES ($1, $2, $3, $4, $5, $6)
+                                 RETURNING id, name, email, phone, status`,
+                                [
+                                    fullname,
+                                    email,
+                                    phone,
+                                    'interested', // Set status to "interested"
+                                    description || null,
+                                    false // Not archived
+                                ]
+                            );
+                            console.log(`✅ New customer created from contact form:`, result.rows[0]);
+                        } else {
+                            // Race condition: customer was inserted by another request
+                            const existing = await client.query(
+                                `SELECT id, status FROM customers WHERE id = $1`,
+                                [doubleCheck.rows[0].id]
+                            );
+                            if (existing.rows.length > 0) {
+                                console.log(`ℹ️ Customer already exists (race condition handled): ID ${existing.rows[0].id}`);
+                                // Update status to interested if not already
+                                await client.query(
+                                    `UPDATE customers SET status = 'interested', updated_at = NOW() 
+                                     WHERE id = $1 AND status != 'interested'`,
+                                    [existing.rows[0].id]
+                                );
+                            }
+                        }
                     } else {
-                        console.log(`ℹ️ Customer already has "interested" status: ${fullname} (${email})`);
+                        // Customer exists - update status to "interested" and notes
+                        const customerId = existingCustomer.rows[0].id;
+                        const currentStatus = existingCustomer.rows[0].status;
+                        
+                        if (currentStatus !== 'interested') {
+                            await client.query(
+                                `UPDATE customers 
+                                 SET status = 'interested', 
+                                     notes = COALESCE($1, notes), 
+                                     updated_at = NOW() 
+                                 WHERE id = $2`,
+                                [description || null, customerId]
+                            );
+                            console.log(`✅ Existing customer updated to "interested" status: ${fullname} (${email}) - ID: ${customerId}`);
+                        } else {
+                            // Already interested, just update notes if provided
+                            if (description) {
+                                await client.query(
+                                    `UPDATE customers 
+                                     SET notes = COALESCE($1, notes), updated_at = NOW() 
+                                     WHERE id = $2`,
+                                    [description, customerId]
+                                );
+                            }
+                            console.log(`ℹ️ Customer already has "interested" status: ${fullname} (${email}) - ID: ${customerId}`);
+                        }
                     }
+                    
+                    await client.query('COMMIT');
+                } catch (dbError) {
+                    await client.query('ROLLBACK');
+                    throw dbError;
+                } finally {
+                    client.release();
                 }
             }
         } catch (dbError) {
