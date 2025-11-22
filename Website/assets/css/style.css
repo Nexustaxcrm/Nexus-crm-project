@@ -2691,6 +2691,8 @@ kbd {
   .ak-site_header.ak-style1 .ak-main-header-right {
     position: relative;
     z-index: 10;
+    margin-left: 40px;
+    padding-right: 20px;
   }
 }
 
