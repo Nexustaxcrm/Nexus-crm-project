@@ -78,6 +78,7 @@
     fixedFooter();
     atdCircle();
     atdCircletypeTwo();
+    scrollToContactForm();
   });
 
   let previousWidth = $(window).width();
@@ -87,6 +88,51 @@
     titleAnimation();
     fixedFooter();
     previousWidth = currentWidth;
+  });
+
+  /*--------------------------------------------------------------
+    Scroll to Contact Form
+  --------------------------------------------------------------*/
+  function scrollToContactForm() {
+    // Check if URL has #contactForm hash
+    if (window.location.hash === '#contactForm') {
+      // Wait a bit for page to fully render (especially if coming from another page)
+      setTimeout(function() {
+        const form = document.getElementById('contactForm');
+        if (form) {
+          // Get the form's position
+          const formPosition = form.getBoundingClientRect().top + window.pageYOffset;
+          const offset = 100; // Offset from top of page
+          
+          // Scroll to form with smooth behavior
+          window.scrollTo({
+            top: formPosition - offset,
+            behavior: 'smooth'
+          });
+          
+          // Focus on first input field after scroll
+          setTimeout(function() {
+            const firstInput = form.querySelector('input[type="text"]');
+            if (firstInput) {
+              firstInput.focus();
+            }
+          }, 800);
+        }
+      }, 300);
+    }
+  }
+
+  // Handle hash on page load (immediate check)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scrollToContactForm);
+  } else {
+    // DOM is already loaded
+    scrollToContactForm();
+  }
+
+  // Also handle hash change (if user clicks link while on same page)
+  $(window).on('hashchange', function() {
+    scrollToContactForm();
   });
 
   /*--------------------------------------------------------------
