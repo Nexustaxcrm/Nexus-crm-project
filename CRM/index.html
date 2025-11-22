@@ -1735,13 +1735,17 @@
             background: #f8f9fa;
         }
 
-        .filter-checkbox-item input[type="checkbox"] {
+        .filter-checkbox-item input[type="checkbox"],
+        .filter-checkbox-item input[type="radio"] {
             margin: 0;
             margin-right: 8px;
-            opacity: 0;
-            position: absolute;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
         }
-
+        
+        /* Keep checkmark for other dropdowns that still use it */
         .checkmark {
             width: 16px;
             height: 16px;
@@ -1752,12 +1756,12 @@
             background: white;
             transition: all 0.2s ease;
         }
-
+        
         .filter-checkbox-item input[type="checkbox"]:checked + .checkmark {
             background: var(--primary-color);
             border-color: var(--primary-color);
         }
-
+        
         .filter-checkbox-item input[type="checkbox"]:checked + .checkmark::after {
             content: '';
             position: absolute;
@@ -1769,7 +1773,7 @@
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
         }
-
+        
         .filter-checkbox-item input[type="checkbox"]:focus + .checkmark {
             box-shadow: 0 0 0 2px rgba(6, 50, 50, 0.25);
         }
