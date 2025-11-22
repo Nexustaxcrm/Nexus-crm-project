@@ -8,6 +8,11 @@ let pool = null;
 // Initialize pool from app (called from server.js)
 router.init = function(app) {
     pool = app.locals.pool;
+    if (pool) {
+        console.log('✅ Contact route initialized with database pool');
+    } else {
+        console.error('❌ Contact route initialized but pool is null!');
+    }
 };
 
 // Create reusable transporter object using Gmail SMTP
@@ -104,7 +109,14 @@ This email was sent from the Nexus Tax Filing website contact form.
         // Automatically create customer in CRM with "interested" status
         try {
             const dbPool = pool || req.app.locals.pool;
-            if (dbPool) {
+            
+            if (!dbPool) {
+                console.error('❌ Database pool not available in contact route');
+                console.error('Pool from module:', pool ? 'exists' : 'null');
+                console.error('Pool from app.locals:', req.app.locals.pool ? 'exists' : 'null');
+            } else {
+                console.log('✅ Database pool available, creating customer...');
+                
                 // Check if customer already exists (by email or phone)
                 const existingCustomer = await dbPool.query(
                     'SELECT id FROM customers WHERE email = $1 OR phone = $2 LIMIT 1',
@@ -113,9 +125,10 @@ This email was sent from the Nexus Tax Filing website contact form.
 
                 if (existingCustomer.rows.length === 0) {
                     // Create new customer with "interested" status
-                    await dbPool.query(
-                        `INSERT INTO customers (name, email, phone, status, notes, archived, created_at, updated_at) 
-                         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
+                    // Note: created_at and updated_at are handled by database defaults
+                    const result = await dbPool.query(
+                        `INSERT INTO customers (name, email, phone, status, notes, archived) 
+                         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, phone, status`,
                         [
                             fullname,
                             email,
@@ -125,21 +138,32 @@ This email was sent from the Nexus Tax Filing website contact form.
                             false // Not archived
                         ]
                     );
-                    console.log(`✅ New customer created from contact form: ${fullname} (${email})`);
+                    console.log(`✅ New customer created from contact form:`, result.rows[0]);
                 } else {
                     // Update existing customer status to "interested" if not already
-                    await dbPool.query(
+                    const updateResult = await dbPool.query(
                         `UPDATE customers 
                          SET status = $1, notes = COALESCE($2, notes), updated_at = NOW() 
-                         WHERE (email = $3 OR phone = $4) AND status != 'interested'`,
+                         WHERE (email = $3 OR phone = $4) AND status != 'interested'
+                         RETURNING id`,
                         ['interested', description || null, email, phone]
                     );
-                    console.log(`✅ Existing customer updated to "interested" status: ${fullname} (${email})`);
+                    if (updateResult.rows.length > 0) {
+                        console.log(`✅ Existing customer updated to "interested" status: ${fullname} (${email}) - ID: ${updateResult.rows[0].id}`);
+                    } else {
+                        console.log(`ℹ️ Customer already has "interested" status: ${fullname} (${email})`);
+                    }
                 }
             }
         } catch (dbError) {
             // Log error but don't fail the email send
-            console.error('Error creating customer from contact form:', dbError);
+            console.error('❌ Error creating customer from contact form:', dbError);
+            console.error('Error details:', {
+                message: dbError.message,
+                code: dbError.code,
+                detail: dbError.detail,
+                stack: dbError.stack
+            });
             // Continue - email was sent successfully
         }
 
