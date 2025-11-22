@@ -1,7 +1,7 @@
 {
-  "name": "nexus-tax-filing",
+  "name": "nexus-crm",
   "version": "1.0.0",
-  "description": "Nexus Tax Filing - Website and CRM Application",
+  "description": "Nexus Tax Filing CRM - Full Stack Application",
   "main": "backend/server.js",
   "scripts": {
     "start": "cd backend && node server.js",
@@ -16,10 +16,10 @@
     "url": "."
   },
   "keywords": [
-    "tax-filing",
     "crm",
-    "website"
+    "tax-filing"
   ],
   "author": "",
   "license": "ISC"
 }
+

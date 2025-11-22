@@ -254,84 +254,115 @@ app.get('/test', (req, res) => {
     res.json({ message: 'Server is working!' });
 });
 
-// Serve static files from parent directory (frontend)
+// Serve static files from parent directory (project root)
 // Railway Root Directory MUST be set to project root (.) not backend
-// If Root Directory = ., then __dirname = /app/backend, so parent = /app (where index.html is)
-// If Root Directory = backend, then __dirname = /app, and parent = / (which doesn't have index.html)
-const frontendPath = path.join(__dirname, '..');
+// If Root Directory = ., then __dirname = /app/backend, so parent = /app
+const projectRoot = path.join(__dirname, '..');
+const websitePath = path.join(projectRoot, 'Website');
+const crmPath = path.join(projectRoot, 'CRM');
 
 // Log paths for debugging
 console.log('Server starting...');
 console.log('Current directory (__dirname):', __dirname);
-console.log('Frontend path:', frontendPath);
-console.log('Looking for index.html at:', path.join(frontendPath, 'index.html'));
-console.log('index.html exists:', fs.existsSync(path.join(frontendPath, 'index.html')));
+console.log('Project root:', projectRoot);
+console.log('Website path:', websitePath);
+console.log('CRM path:', crmPath);
+console.log('Website index.html exists:', fs.existsSync(path.join(websitePath, 'index.html')));
+console.log('CRM index.html exists:', fs.existsSync(path.join(crmPath, 'index.html')));
 
-// Serve static files (CSS, JS, images, etc.) from parent directory
-app.use(express.static(frontendPath, {
-    // Don't fail if directory doesn't exist
+// Serve website static files (CSS, JS, images, etc.) from Website folder at root
+app.use(express.static(websitePath, {
     fallthrough: true
 }));
 
-// Serve index.html for all non-API routes (SPA routing)
-// This catch-all MUST come AFTER all API routes
-app.get('*', (req, res) => {
+// Serve CRM static files from CRM folder at /crm path
+app.use('/crm', express.static(crmPath, {
+    fallthrough: true
+}));
+
+// Serve website index.html for root path
+app.get('/', (req, res) => {
+    const websiteIndexPath = path.join(websitePath, 'index.html');
+    if (fs.existsSync(websiteIndexPath)) {
+        return res.sendFile(websiteIndexPath);
+    }
+    res.status(404).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Website Not Found</title>
+            <style>
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+                h1 { color: #d32f2f; }
+            </style>
+        </head>
+        <body>
+            <h1>⚠️ Website Not Found</h1>
+            <p>Please add <code>index.html</code> to the <code>Website</code> folder.</p>
+            <p>Looking for: <code>${websiteIndexPath}</code></p>
+        </body>
+        </html>
+    `);
+});
+
+// Serve CRM index.html for /crm path
+app.get('/crm', (req, res) => {
+    const crmIndexPath = path.join(crmPath, 'index.html');
+    if (fs.existsSync(crmIndexPath)) {
+        return res.sendFile(crmIndexPath);
+    }
+    res.status(404).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>CRM Not Found</title>
+            <style>
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+                h1 { color: #d32f2f; }
+            </style>
+        </head>
+        <body>
+            <h1>⚠️ CRM Not Found</h1>
+            <p>Please check the <code>CRM</code> folder.</p>
+            <p>Looking for: <code>${crmIndexPath}</code></p>
+        </body>
+        </html>
+    `);
+});
+
+// Serve CRM for all /crm/* routes (SPA routing for CRM)
+app.get('/crm/*', (req, res) => {
     // Skip API routes (shouldn't reach here, but safety check)
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'API endpoint not found' });
     }
     
-    // Try to serve index.html from parent directory
-    const indexPath = path.join(frontendPath, 'index.html');
-    
-    // Check if file exists before sending
-    if (fs.existsSync(indexPath)) {
-        return res.sendFile(indexPath);
+    const crmIndexPath = path.join(crmPath, 'index.html');
+    if (fs.existsSync(crmIndexPath)) {
+        return res.sendFile(crmIndexPath);
+    }
+    res.status(404).send('CRM not found.');
+});
+
+// Catch-all for website routes (SPA routing for website)
+app.get('*', (req, res) => {
+    // Skip API routes
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
     }
     
-    // If index.html not found, provide clear instructions
-    res.status(404).send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Configuration Error</title>
-            <style>
-                body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-                h1 { color: #d32f2f; }
-                code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
-                .instruction { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
-            </style>
-        </head>
-        <body>
-            <h1>⚠️ Railway Configuration Error</h1>
-            <p><strong>index.html not found.</strong> Railway Root Directory is incorrectly configured.</p>
-            
-            <div class="instruction">
-                <h3>🔧 Fix Railway Settings:</h3>
-                <ol>
-                    <li>Go to Railway Dashboard → Your Service → <strong>Settings</strong></li>
-                    <li>Find <strong>"Source"</strong> or <strong>"Root Directory"</strong></li>
-                    <li>Change from: <code>backend</code></li>
-                    <li>Change to: <code>.</code> (dot) or leave <strong>empty</strong></li>
-                    <li>Go to <strong>Deploy</strong> section</li>
-                    <li>Set <strong>Start Command</strong> to: <code>cd backend && node server.js</code></li>
-                    <li><strong>Save</strong> and Railway will auto-redeploy</li>
-                </ol>
-            </div>
-            
-            <p><strong>Current paths:</strong></p>
-            <ul>
-                <li>Current directory: <code>${__dirname}</code></li>
-                <li>Frontend path: <code>${frontendPath}</code></li>
-                <li>Looking for: <code>${indexPath}</code></li>
-            </ul>
-            
-            <p><strong>Why this happens:</strong></p>
-            <p>When Root Directory = <code>backend</code>, Railway only deploys files from the backend folder. 
-            The <code>index.html</code> file is in the parent directory, which Railway can't access.</p>
-        </body>
-        </html>
-    `);
+    // Skip CRM routes (already handled above)
+    if (req.path.startsWith('/crm')) {
+        return res.status(404).send('CRM route not found.');
+    }
+    
+    // Try to serve website index.html for all other routes (for website SPA routing)
+    const websiteIndexPath = path.join(websitePath, 'index.html');
+    if (fs.existsSync(websiteIndexPath)) {
+        return res.sendFile(websiteIndexPath);
+    }
+    
+    res.status(404).send('Page not found.');
 });
 
 // Check for required environment variables
