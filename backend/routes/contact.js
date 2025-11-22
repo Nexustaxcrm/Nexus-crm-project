@@ -195,5 +195,16 @@ This email was sent from the Nexus Tax Filing website contact form.
     }
 });
 
+// Test endpoint to verify route is working
+router.get('/test', (req, res) => {
+    console.log('✅ Contact route test endpoint hit');
+    res.json({ 
+        success: true, 
+        message: 'Contact route is working!',
+        poolAvailable: pool ? 'yes' : 'no',
+        appLocalsPool: req.app && req.app.locals && req.app.locals.pool ? 'yes' : 'no'
+    });
+});
+
 module.exports = router;
 

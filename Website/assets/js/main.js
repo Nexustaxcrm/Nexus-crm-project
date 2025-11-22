@@ -1190,13 +1190,18 @@
 
       // Get API base URL (works with both custom domain and Railway domain)
       var apiBaseUrl = window.location.origin + '/api';
+      var contactUrl = apiBaseUrl + "/contact";
+      
+      console.log('📧 Submitting contact form to:', contactUrl);
+      console.log('📧 Form data:', values);
 
       $.ajax({
         type: "POST",
-        url: apiBaseUrl + "/contact",
+        url: contactUrl,
         contentType: "application/json",
         data: JSON.stringify(values),
         success: function (response) {
+          console.log('✅ Contact form response:', response);
           if (response.success) {
             alert(response.message || "Thank you for contacting us! We will get back to you soon.");
             // Reset form
@@ -1209,6 +1214,13 @@
           submitBtn.html('<span>Send Message</span><span><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15" fill="none"><g clip-path="url(#clip0_201_978343789)"><path d="M1.42236 6.99728H13.089M13.089 6.99728L7.48903 1.39728M13.089 6.99728L7.48903 12.5973" stroke="#030917" stroke-linecap="round" stroke-linejoin="round"/></g></svg></span>');
         },
         error: function (xhr, status, error) {
+          console.error('❌ Contact form error:', {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            responseText: xhr.responseText,
+            error: error,
+            url: contactUrl
+          });
           var errorMessage = "An error occurred. Please try again later.";
           if (xhr.responseJSON && xhr.responseJSON.message) {
             errorMessage = xhr.responseJSON.message;

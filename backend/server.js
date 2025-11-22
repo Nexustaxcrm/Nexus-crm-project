@@ -240,10 +240,23 @@ if (userRoutes.init) userRoutes.init(app);
 if (contactRoutes.init) contactRoutes.init(app);
 
 // Use API routes (must come before static file serving)
+// Add logging middleware to track API requests
+app.use('/api', (req, res, next) => {
+    console.log(`📡 API Request: ${req.method} ${req.path}`);
+    next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contact', contactRoutes);
+
+// Log registered routes for debugging
+console.log('✅ API routes registered:');
+console.log('  - /api/auth');
+console.log('  - /api/customers');
+console.log('  - /api/users');
+console.log('  - /api/contact');
 
 // Health check route at /api (must come before catch-all)
 app.get('/api', (req, res) => {
@@ -251,6 +264,16 @@ app.get('/api', (req, res) => {
         message: 'Nexus CRM Backend API is working!',
         status: 'ok',
         timestamp: new Date().toISOString()
+    });
+});
+
+// Direct test route for contact (before catch-all)
+app.get('/api/contact/test', (req, res) => {
+    console.log('✅ Direct /api/contact/test route hit');
+    res.json({ 
+        success: true, 
+        message: 'Direct contact test route is working!',
+        note: 'This confirms routing is working before catch-all'
     });
 });
 
@@ -350,9 +373,11 @@ app.get('/crm/*', (req, res) => {
 });
 
 // Catch-all for website routes (SPA routing for website)
+// NOTE: This should NOT match /api routes as they are handled above
 app.get('*', (req, res) => {
-    // Skip API routes
+    // This should never be reached for /api routes, but safety check
     if (req.path.startsWith('/api')) {
+        console.error(`❌ API route ${req.path} reached catch-all - this should not happen!`);
         return res.status(404).json({ error: 'API endpoint not found' });
     }
     
