@@ -69,9 +69,11 @@
     showScrollUp();
   });
 
+  // Initialize preloader immediately (it will check if page is loaded)
+  initPreloader();
+  initPageTransitionLoader();
+
   $(window).on("load", function () {
-    initPreloader();
-    initPageTransitionLoader();
     titleAnimation();
     fixedFooter();
     atdCircle();
@@ -95,8 +97,8 @@
       const logoImg = document.querySelector(".preloader-text .logo-icon");
       const preloader = document.getElementById("preloader");
 
-      // Wait for page to load, then hide preloader
-      window.addEventListener("load", function () {
+      // Function to hide preloader
+      function hidePreloader() {
         setTimeout(function () {
           gsap.to(preloader, {
             duration: 1,
@@ -108,7 +110,18 @@
             },
           });
         }, 500); // Small delay to show spinner
-      });
+      }
+
+      // Check if page is already loaded
+      if (document.readyState === "complete") {
+        // Page already loaded, hide preloader immediately
+        hidePreloader();
+      } else {
+        // Wait for page to load, then hide preloader
+        window.addEventListener("load", function () {
+          hidePreloader();
+        });
+      }
 
       // Logo stays static, only spinner rotates (handled by CSS animation)
     }
