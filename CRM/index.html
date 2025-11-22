@@ -865,11 +865,35 @@
         
         /* Ensure table fits container and removes extra space */
         .assign-work-table .table {
-            width: max-content;
-            min-width: 100%;
-            table-layout: auto;
+            width: 100% !important;
+            min-width: 100% !important;
+            table-layout: fixed;
             margin: 0;
             border-collapse: collapse;
+        }
+        
+        /* Ensure table-responsive maintains full width even when empty */
+        .assign-work-table .table-responsive {
+            width: 100% !important;
+            min-width: 100% !important;
+            display: block;
+        }
+        
+        /* When table is empty, ensure it still maintains full width */
+        .assign-work-table .table tbody:empty {
+            display: table-row-group;
+        }
+        
+        .assign-work-table .table tbody:empty::after {
+            content: '';
+            display: table-row;
+            height: 200px;
+        }
+        
+        /* Ensure data-table container maintains full width */
+        .data-table.assign-work-table {
+            width: 100% !important;
+            min-width: 100% !important;
         }
         
         /* Ensure columns maintain their widths */
@@ -3733,8 +3757,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="table-responsive" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
-                            <table class="table table-hover mb-0" style="table-layout: auto; width: max-content; min-width: 100%;">
+                        <div class="table-responsive" style="overflow-x: auto; overflow-y: auto; max-height: 600px; width: 100%;">
+                            <table class="table table-hover mb-0 assign-work-table" style="table-layout: fixed; width: 100%; min-width: 100%;">
                                 <thead>
                                     <tr>
                                         <th style="width: 140px; min-width: 140px;">Name</th>
@@ -3967,8 +3991,8 @@
                                     </div>
                             </div>
                         </div>
-                        <div class="table-responsive" style="overflow-x: auto; overflow-y: auto; max-height: 600px;">
-                            <table class="table table-hover mb-0" style="table-layout: auto; width: max-content; min-width: 100%;">
+                        <div class="table-responsive" style="overflow-x: auto; overflow-y: auto; max-height: 600px; width: 100%;">
+                            <table class="table table-hover mb-0 assign-work-table" style="table-layout: fixed; width: 100%; min-width: 100%;">
                                 <thead>
                                     <tr>
                                         <th style="width: 45px; min-width: 45px; max-width: 45px;"><input type="checkbox" onchange="toggleAllSelection(this)"></th>
