@@ -2656,6 +2656,13 @@ kbd {
 /*--------------------------------------------------------------
   12. Button style
 ----------------------------------------------------------------*/
+/* Header Auth Buttons Container */
+.header-auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .common-btn {
   background-color: var(--primary-color);
   font-family: var(--body-font-family);
