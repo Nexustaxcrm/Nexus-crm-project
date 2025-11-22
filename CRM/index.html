@@ -3045,7 +3045,7 @@
                 // If we can't determine user role, warn but continue (backend will verify)
                 if (!user) {
                     console.warn('⚠️ Could not determine user role from frontend. Proceeding - backend will verify.');
-                    const proceed = confirm('Warning: Could not verify admin status. The backend will verify your permissions. Continue?');
+                    const proceed = await showCrmConfirm('Warning', 'Could not verify admin status. The backend will verify your permissions. Continue?');
                     if (!proceed) {
                         return;
                     }
@@ -3053,21 +3053,21 @@
                 
                 // Double confirmation
                 console.log('Showing first confirmation...');
-                const confirm1 = confirm('⚠️ WARNING: This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
+                const confirm1 = await showCrmConfirm('⚠️ WARNING', 'This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
                 if (!confirm1) {
                     console.log('User cancelled at first confirmation');
                     return;
                 }
                 
                 console.log('Showing second confirmation...');
-                const confirm2 = confirm('⚠️ FINAL WARNING: You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
+                const confirm2 = await showCrmConfirm('⚠️ FINAL WARNING', 'You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
                 if (!confirm2) {
                     console.log('User cancelled at second confirmation');
                     return;
                 }
                 
                 console.log('Showing text prompt...');
-                const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
+                const confirmText = await showCrmPrompt('Confirm Deletion', 'Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:', '');
                 if (confirmText !== 'DELETE ALL') {
                     console.log('User did not type "DELETE ALL" correctly:', confirmText);
                     showCrmModal('warning', 'Deletion Cancelled', 'You must type "DELETE ALL" exactly to confirm.');
@@ -3869,9 +3869,77 @@
                                         </a></li>
                                     </ul>
                                 </div>
-                                    <button id="archiveSelectedBtn" class="btn btn-sm btn-outline-secondary assign-toolbar-btn" style="display:none;" onclick="archiveSelected()">
-                                        <i class="fas fa-archive"></i> Move to Archive
-                                    </button>
+                                    <div class="excel-filter-container" style="display:none;" id="moveToContainer">
+                                        <button class="excel-filter-btn assign-toolbar-btn" id="moveToStatusBtn" onclick="toggleMoveToStatusDropdown()">
+                                            <i class="fas fa-arrow-right"></i>
+                                            <span id="moveToStatusText">Move To</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="excel-filter-dropdown" id="moveToStatusDropdown" style="display: none;">
+                                            <div class="filter-dropdown-header">
+                                                <div class="filter-options">
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="pending">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="interested">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-success">Interested</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="voice_mail">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-secondary">Voice Mail</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="w2_received">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-info">W2 Received</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="follow_up">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-warning">Follow-Up</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="call_back">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-info">Call Back</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="potential">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-primary">Potential</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="not_in_service">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-secondary">Not in Service</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="citizen">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-info">Citizen</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="dnd">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-danger">DND</span>
+                                                    </label>
+                                                    <label class="filter-checkbox-item">
+                                                        <input type="radio" name="moveToStatus" class="move-to-status-radio" value="archived">
+                                                        <span class="checkmark"></span>
+                                                        <span class="badge bg-dark">Archived</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="filter-dropdown-footer">
+                                                <button class="btn btn-sm btn-primary" onclick="moveSelectedCustomersToStatus()">Move</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <button id="restoreSelectedBtn" class="btn btn-sm btn-outline-success assign-toolbar-btn" style="display:none;" onclick="restoreFromArchiveSelected()">
                                         <i class="fas fa-undo"></i> Restore to Assign Work
                                     </button>
@@ -5011,6 +5079,55 @@
     </div>
     <!-- End Modern Pop-up Modal -->
     
+    <!-- Confirm Modal -->
+    <div id="crmConfirmModal" class="crm-modal" style="display: none;">
+      <div class="crm-modal-overlay"></div>
+      <div class="crm-modal-content">
+        <div class="crm-modal-header">
+          <div class="crm-modal-icon-wrapper warning">
+            <i class="crm-modal-icon fas fa-exclamation-triangle"></i>
+          </div>
+          <button class="crm-modal-close" onclick="closeCrmConfirmModal(false)" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="crm-modal-body">
+          <h3 class="crm-modal-title" id="crmConfirmTitle"></h3>
+          <p class="crm-modal-message" id="crmConfirmMessage"></p>
+        </div>
+        <div class="crm-modal-footer">
+          <button class="crm-modal-button secondary" id="crmConfirmCancel" onclick="closeCrmConfirmModal(false)">Cancel</button>
+          <button class="crm-modal-button" id="crmConfirmOK" onclick="closeCrmConfirmModal(true)">OK</button>
+        </div>
+      </div>
+    </div>
+    <!-- End Confirm Modal -->
+    
+    <!-- Prompt Modal -->
+    <div id="crmPromptModal" class="crm-modal" style="display: none;">
+      <div class="crm-modal-overlay"></div>
+      <div class="crm-modal-content">
+        <div class="crm-modal-header">
+          <div class="crm-modal-icon-wrapper warning">
+            <i class="crm-modal-icon fas fa-exclamation-triangle"></i>
+          </div>
+          <button class="crm-modal-close" onclick="closeCrmPromptModal(null)" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="crm-modal-body">
+          <h3 class="crm-modal-title" id="crmPromptTitle"></h3>
+          <p class="crm-modal-message" id="crmPromptMessage"></p>
+          <input type="text" class="crm-prompt-input" id="crmPromptInput" placeholder="" autocomplete="off">
+        </div>
+        <div class="crm-modal-footer">
+          <button class="crm-modal-button secondary" id="crmPromptCancel" onclick="closeCrmPromptModal(null)">Cancel</button>
+          <button class="crm-modal-button" id="crmPromptOK" onclick="submitCrmPrompt()">OK</button>
+        </div>
+      </div>
+    </div>
+    <!-- End Prompt Modal -->
+    
     <style>
       /* CRM Modal Styles - Matching CRM Color Scheme */
       .crm-modal {
@@ -5199,6 +5316,30 @@
         background-color: #454545;
       }
       
+      .crm-prompt-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border-color, #e0e0e0);
+        border-radius: 6px;
+        font-size: 15px;
+        margin-top: 16px;
+        background-color: var(--bg-color, #faf0e6);
+        color: var(--text-color, #545454);
+        transition: border-color 0.2s ease;
+      }
+      
+      [data-theme="dark"] .crm-prompt-input {
+        background-color: var(--bg-color, #000000);
+        border-color: var(--border-color, #333333);
+        color: var(--text-color, #ffffff);
+      }
+      
+      .crm-prompt-input:focus {
+        outline: none;
+        border-color: var(--primary-color, #063232);
+        box-shadow: 0 0 0 3px rgba(6, 50, 50, 0.1);
+      }
+      
       /* Responsive */
       @media (max-width: 768px) {
         .crm-modal-content {
@@ -5282,9 +5423,99 @@
         }
       });
       
+      // Confirm Modal Functions
+      let confirmResolve = null;
+      
+      function showCrmConfirm(title, message) {
+        return new Promise((resolve) => {
+          confirmResolve = resolve;
+          const modal = document.getElementById('crmConfirmModal');
+          const titleEl = document.getElementById('crmConfirmTitle');
+          const messageEl = document.getElementById('crmConfirmMessage');
+          
+          titleEl.textContent = title;
+          messageEl.textContent = message;
+          
+          modal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        });
+      }
+      
+      function closeCrmConfirmModal(result) {
+        const modal = document.getElementById('crmConfirmModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        if (confirmResolve) {
+          confirmResolve(result);
+          confirmResolve = null;
+        }
+      }
+      
+      // Prompt Modal Functions
+      let promptResolve = null;
+      
+      function showCrmPrompt(title, message, defaultValue = '') {
+        return new Promise((resolve) => {
+          promptResolve = resolve;
+          const modal = document.getElementById('crmPromptModal');
+          const titleEl = document.getElementById('crmPromptTitle');
+          const messageEl = document.getElementById('crmPromptMessage');
+          const input = document.getElementById('crmPromptInput');
+          
+          titleEl.textContent = title;
+          messageEl.textContent = message;
+          input.value = defaultValue;
+          
+          modal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+          
+          // Focus input after modal appears
+          setTimeout(() => {
+            input.focus();
+            input.select();
+          }, 100);
+        });
+      }
+      
+      function submitCrmPrompt() {
+        const input = document.getElementById('crmPromptInput');
+        const value = input.value;
+        closeCrmPromptModal(value);
+      }
+      
+      function closeCrmPromptModal(result) {
+        const modal = document.getElementById('crmPromptModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        if (promptResolve) {
+          promptResolve(result);
+          promptResolve = null;
+        }
+      }
+      
+      // Handle Enter key in prompt input
+      document.addEventListener('DOMContentLoaded', function() {
+        const promptInput = document.getElementById('crmPromptInput');
+        if (promptInput) {
+          promptInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submitCrmPrompt();
+            }
+          });
+        }
+      });
+      
       // Make functions globally available
       window.showCrmModal = showCrmModal;
       window.closeCrmModal = closeCrmModal;
+      window.showCrmConfirm = showCrmConfirm;
+      window.closeCrmConfirmModal = closeCrmConfirmModal;
+      window.showCrmPrompt = showCrmPrompt;
+      window.closeCrmPromptModal = closeCrmPromptModal;
+      window.submitCrmPrompt = submitCrmPrompt;
       
       // Replace alert() function globally
       const originalAlert = window.alert;
@@ -5308,6 +5539,73 @@
         
         showCrmModal(type, title, msg);
       };
+      
+      // Replace confirm() function globally
+      const originalConfirm = window.confirm;
+      window.confirm = async function(message) {
+        // Parse message to determine title
+        let title = 'Confirm';
+        let msg = message;
+        
+        // Remove emoji and extract title if present
+        if (message.includes('⚠️') || message.includes('WARNING')) {
+          title = 'Warning';
+          msg = message.replace(/⚠️\s*/g, '').trim();
+        }
+        
+        return await showCrmConfirm(title, msg);
+      };
+      
+      // Replace prompt() function globally
+      const originalPrompt = window.prompt;
+      window.prompt = async function(message, defaultValue = '') {
+        // Parse message to determine title
+        let title = 'Input Required';
+        let msg = message;
+        
+        // Remove emoji and extract title if present
+        if (message.includes('⚠️') || message.includes('WARNING')) {
+          title = 'Warning';
+          msg = message.replace(/⚠️\s*/g, '').trim();
+        }
+        
+        return await showCrmPrompt(title, msg, defaultValue);
+      };
+      
+      // Close confirm modal when clicking overlay
+      document.addEventListener('click', function(e) {
+        const confirmModal = document.getElementById('crmConfirmModal');
+        if (e.target.classList.contains('crm-modal-overlay') && confirmModal.style.display === 'flex') {
+          closeCrmConfirmModal(false);
+        }
+        
+        const promptModal = document.getElementById('crmPromptModal');
+        if (e.target.classList.contains('crm-modal-overlay') && promptModal.style.display === 'flex') {
+          closeCrmPromptModal(null);
+        }
+      });
+      
+      // Close modals with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const confirmModal = document.getElementById('crmConfirmModal');
+          if (confirmModal.style.display === 'flex') {
+            closeCrmConfirmModal(false);
+            return;
+          }
+          
+          const promptModal = document.getElementById('crmPromptModal');
+          if (promptModal.style.display === 'flex') {
+            closeCrmPromptModal(null);
+            return;
+          }
+          
+          const alertModal = document.getElementById('crmModal');
+          if (alertModal.style.display === 'flex') {
+            closeCrmModal();
+          }
+        }
+      });
     </script>
     
     </body></html>

@@ -1009,27 +1009,79 @@ function exportAssignedCustomers() {
 function filterByStatus(status) {
     showTab('assignWork');
     
-    // Store filter status globally to use in loadAssignWorkTable
-    if (!window.currentFilter) {
-        window.currentFilter = null;
-    }
+    // Reset pagination when filtering
+    window.assignCurrentPage = 1;
     
     if (status === 'follow_up') {
         // Filter for follow-up customers
         const followUpCustomers = getFollowUpCustomers();
         loadAssignWorkTableWithFilter(followUpCustomers);
     } else if (status === 'all') {
-        // Show all customers
+        // Show all customers - clear status filter
+        window.assignStatusFilter = null;
         window.currentFilter = null;
-        loadAssignWorkTable();
+        // Update status dropdown to show "All Statuses"
+        updateStatusDropdownFilter([]);
+        renderAssignWorkPage();
     } else {
-        // Filter by status
+        // Filter by specific status
+        // Set assignStatusFilter as array (what renderAssignWorkPage expects)
+        window.assignStatusFilter = [status];
         window.currentFilter = status;
-        loadAssignWorkTable();
+        
+        // Update status dropdown to show only this status selected
+        updateStatusDropdownFilter([status]);
+        
+        // Render the page with the filter applied
+        renderAssignWorkPage();
     }
     
     // Scroll to top
     window.scrollTo(0, 0);
+}
+
+// Helper function to update status dropdown filter UI
+function updateStatusDropdownFilter(selectedStatuses) {
+    // Find all status checkboxes in the dropdown
+    const statusCheckboxes = document.querySelectorAll('.status-checkbox');
+    if (statusCheckboxes.length > 0) {
+        statusCheckboxes.forEach(checkbox => {
+            const statusValue = checkbox.value;
+            if (selectedStatuses.length === 0) {
+                // Show all - check all boxes
+                checkbox.checked = true;
+            } else {
+                // Show only selected - check only matching boxes
+                checkbox.checked = selectedStatuses.includes(statusValue);
+            }
+        });
+    }
+    
+    // Update the dropdown button text if needed
+    const dropdownButton = document.querySelector('#statusFilterDropdown');
+    if (dropdownButton && selectedStatuses.length === 1) {
+        // Find the label for this status
+        const statusLabels = {
+            'interested': 'Interested',
+            'called': 'Called',
+            'voice_mail': 'Voice Mail',
+            'w2_received': 'W2 Received',
+            'not_called': 'Not Called',
+            'pending': 'Pending'
+        };
+        const statusLabel = statusLabels[selectedStatuses[0]] || selectedStatuses[0];
+        // Update button text (if it has a span or text node)
+        const buttonText = dropdownButton.querySelector('span') || dropdownButton;
+        if (buttonText) {
+            buttonText.textContent = statusLabel;
+        }
+    } else if (dropdownButton && selectedStatuses.length === 0) {
+        // Reset to "All Statuses"
+        const buttonText = dropdownButton.querySelector('span') || dropdownButton;
+        if (buttonText) {
+            buttonText.textContent = 'All Statuses';
+        }
+    }
 }
 
 function loadAssignWorkTableWithFilter(filteredCustomers) {
@@ -2161,21 +2213,21 @@ window.deleteAllCustomers = async function deleteAllCustomers() {
         
         // Double confirmation
         console.log('Showing first confirmation...');
-        const confirm1 = confirm('⚠️ WARNING: This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
+        const confirm1 = await showCrmConfirm('⚠️ WARNING', 'This will delete ALL customers from the database!\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?');
         if (!confirm1) {
             console.log('User cancelled at first confirmation');
             return;
         }
         
         console.log('Showing second confirmation...');
-        const confirm2 = confirm('⚠️ FINAL WARNING: You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
+        const confirm2 = await showCrmConfirm('⚠️ FINAL WARNING', 'You are about to delete ALL customers!\n\nType "DELETE ALL" in the next prompt to confirm.');
         if (!confirm2) {
             console.log('User cancelled at second confirmation');
             return;
         }
         
         console.log('Showing text prompt...');
-        const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
+        const confirmText = await showCrmPrompt('Confirm Deletion', 'Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:', '');
         if (confirmText !== 'DELETE ALL') {
             console.log('User did not type "DELETE ALL" correctly:', confirmText);
             showNotification('error', 'Cancelled', 'Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
@@ -2732,12 +2784,158 @@ document.addEventListener('keydown', function(e) {
 });
 
 function updateAssignArchiveButtonsVisibility() {
-    const archiveBtn = document.getElementById('archiveSelectedBtn');
-    if (!archiveBtn) return;
+    const moveToContainer = document.getElementById('moveToContainer');
+    if (!moveToContainer) return;
     const isAdmin = currentUser && currentUser.role === 'admin';
-    // Archive button is always visible for admin in Assign Work (archived customers are in modal only)
-    archiveBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+    // Move To dropdown is always visible for admin in Assign Work
+    moveToContainer.style.display = isAdmin ? 'block' : 'none';
 }
+
+// Toggle Move To status dropdown
+function toggleMoveToStatusDropdown() {
+    const dropdown = document.getElementById('moveToStatusDropdown');
+    if (!dropdown) return;
+    const isVisible = dropdown.style.display === 'block';
+    dropdown.style.display = isVisible ? 'none' : 'block';
+}
+
+// Move selected customers to a specific status
+async function moveSelectedCustomersToStatus() {
+    if (!currentUser || currentUser.role !== 'admin') {
+        showNotification('error', 'Not allowed', 'Only admin can move customers.');
+        return;
+    }
+    
+    // Get selected status
+    const selectedRadio = document.querySelector('input[name="moveToStatus"]:checked');
+    if (!selectedRadio) {
+        showNotification('info', 'No Status Selected', 'Please select a status to move customers to.');
+        return;
+    }
+    
+    const targetStatus = selectedRadio.value;
+    const ids = getSelectedCustomerIds();
+    if (ids.length === 0) {
+        showNotification('info', 'No Selection', 'Select customers to move.');
+        return;
+    }
+    
+    // Close dropdown
+    document.getElementById('moveToStatusDropdown').style.display = 'none';
+    
+    // Show confirmation
+    const statusDisplayName = getStatusDisplayName(targetStatus);
+    const confirmed = await showCrmConfirm(
+        'Confirm Move',
+        `Move ${ids.length} customer(s) to "${statusDisplayName}" status?`
+    );
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to move customers');
+            return;
+        }
+        
+        // Determine if this is an archive operation
+        const isArchive = targetStatus === 'archived';
+        
+        // Move each customer via API
+        const movePromises = ids.map(async (id) => {
+            const customer = customers.find(c => c.id === id);
+            if (!customer) return;
+            
+            const updateData = {
+                name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
+                email: customer.email || null,
+                phone: customer.phone || null,
+                status: targetStatus,
+                assigned_to: isArchive ? null : customer.assigned_to, // Clear assignment when archiving
+                notes: customer.comments || customer.notes || null,
+                archived: isArchive
+            };
+            
+            const response = await fetch(API_BASE_URL + '/customers/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (response.ok) {
+                const updated = await response.json();
+                // Update local array
+                const index = customers.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    customers[index] = { 
+                        ...customers[index], 
+                        ...updated, 
+                        status: targetStatus,
+                        archived: isArchive,
+                        assignedTo: isArchive ? null : customers[index].assignedTo
+                    };
+                }
+            }
+        });
+        
+        await Promise.all(movePromises);
+        
+        // Refresh the page
+        renderAssignWorkPage();
+        
+        // Refresh archive modal if it's open
+        const archiveModalEl = document.getElementById('archiveModal');
+        if (archiveModalEl && archiveModalEl.classList.contains('show')) {
+            renderArchiveModal();
+        }
+        
+        loadDashboard();
+        
+        showNotification('success', 'Moved', `Moved ${ids.length} customer(s) to "${statusDisplayName}".`);
+        
+        // Clear selection
+        const checkboxes = document.querySelectorAll('#assignWorkTable .customer-checkbox:checked');
+        checkboxes.forEach(cb => cb.checked = false);
+        
+        // Reset radio selection
+        if (selectedRadio) {
+            selectedRadio.checked = false;
+        }
+        document.getElementById('moveToStatusText').textContent = 'Move To';
+        
+    } catch (error) {
+        console.error('Error moving customers:', error);
+        showNotification('error', 'Error', 'Failed to move customers. Please try again.');
+    }
+}
+
+// Update Move To button text when status is selected
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('move-to-status-radio') && e.target.checked) {
+            const statusDisplayName = getStatusDisplayName(e.target.value);
+            const textEl = document.getElementById('moveToStatusText');
+            if (textEl) {
+                textEl.textContent = `Move To: ${statusDisplayName}`;
+            }
+        }
+    });
+});
+
+// Close Move To dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('moveToStatusDropdown');
+    const btn = document.getElementById('moveToStatusBtn');
+    if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.style.display = 'none';
+    }
+});
 
 async function renderAssignWorkPage() {
     const tbody = document.getElementById('assignWorkTable');
