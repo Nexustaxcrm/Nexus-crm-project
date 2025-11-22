@@ -2075,7 +2075,7 @@ kbd {
     height: inherit;
   }
   .ak-nav .ak-nav_list > li {
-    margin-right: 50px;
+    margin-right: 40px;
     height: 80px;
   }
   .ak-nav .ak-nav_list > li:last-child {
