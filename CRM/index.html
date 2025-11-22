@@ -3037,7 +3037,7 @@
                 
                 // Check if user is admin - but let backend verify too
                 if (user && user.role !== 'admin') {
-                    alert('Access Denied: Only administrators can delete all customers.');
+                    showCrmModal('error', 'Access Denied', 'Only administrators can delete all customers.');
                     console.error('❌ User is not admin. Role:', user.role, 'User:', user);
                     return;
                 }
@@ -3070,7 +3070,7 @@
                 const confirmText = prompt('Type "DELETE ALL" (in uppercase) to confirm deletion of all customers:');
                 if (confirmText !== 'DELETE ALL') {
                     console.log('User did not type "DELETE ALL" correctly:', confirmText);
-                    alert('Deletion cancelled. You must type "DELETE ALL" exactly to confirm.');
+                    showCrmModal('warning', 'Deletion Cancelled', 'You must type "DELETE ALL" exactly to confirm.');
                     return;
                 }
                 
@@ -3099,7 +3099,7 @@
                 if (!token || token.trim() === '') {
                     console.error('❌ No auth token found in sessionStorage or localStorage');
                     console.error('Full sessionStorage:', JSON.stringify(sessionStorage, null, 2));
-                    alert('Error: Not authenticated. Please check:\n\n1. Are you logged in?\n2. Try logging out and logging back in\n3. Check browser console (F12) for details');
+                    showCrmModal('error', 'Authentication Error', 'Not authenticated. Please check:\n\n1. Are you logged in?\n2. Try logging out and logging back in\n3. Check browser console (F12) for details');
                     return;
                 }
                 
@@ -3112,7 +3112,7 @@
                 if (typeof showNotification === 'function') {
                     showNotification('info', 'Deleting...', 'Deleting all customers. This may take a moment...');
                 } else {
-                    alert('Deleting all customers. This may take a moment...');
+                    showCrmModal('info', 'Deleting Customers', 'Deleting all customers. This may take a moment...');
                 }
                 console.log('Making DELETE request to:', API_BASE_URL + '/customers/all');
                 console.log('Request headers:', {
@@ -3179,7 +3179,7 @@
                 if (typeof showNotification === 'function') {
                     showNotification('success', 'Deleted Successfully', `Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
                 } else {
-                    alert(`Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
+                    showCrmModal('success', 'Deletion Successful', `Successfully deleted ${data.deletedCount.toLocaleString()} customers!`);
                 }
                 
                 // Refresh dashboard and assign work tab
@@ -3208,7 +3208,7 @@
                 if (typeof showNotification === 'function') {
                     showNotification('error', 'Delete Failed', errorMsg);
                 } else {
-                    alert('Error: ' + errorMsg);
+                    showCrmModal('error', 'Error', errorMsg);
                 }
             }
         };
@@ -3835,7 +3835,7 @@
                         <h6 class="alert-heading mb-2" style="font-size: 16px; margin-bottom: 8px;"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h6>
                         <p class="mb-2" style="font-size: 14px; margin-bottom: 8px;"><strong>Delete ALL Customers</strong></p>
                         <p class="mb-3" style="font-size: 13px; margin-bottom: 10px;">This will permanently delete ALL customers from the database. This action cannot be undone!</p>
-                        <button type="button" class="btn btn-danger btn-sm" id="deleteAllCustomersBtn" onclick="if(typeof window.deleteAllCustomers === 'function') { window.deleteAllCustomers(); } else { alert('Error: deleteAllCustomers function not found. Please refresh the page.'); console.error('deleteAllCustomers function not available'); }">
+                        <button type="button" class="btn btn-danger btn-sm" id="deleteAllCustomersBtn" onclick="if(typeof window.deleteAllCustomers === 'function') { window.deleteAllCustomers(); } else { showCrmModal('error', 'Error', 'deleteAllCustomers function not found. Please refresh the page.'); console.error('deleteAllCustomers function not available'); }">
                             <i class="fas fa-trash-alt"></i> Delete All Customers
                         </button>
                     </div>
@@ -4773,7 +4773,7 @@
                 const validExtensions = ['pdf', 'jpeg', 'jpg', 'png'];
                 
                 if (!validExtensions.includes(fileExtension)) {
-                    alert(`File "${file.name}" is not a valid format. Please upload PDF, JPEG, or PNG files only.`);
+                    showCrmModal('error', 'Invalid File Format', `File "${file.name}" is not a valid format. Please upload PDF, JPEG, or PNG files only.`);
                     return;
                 }
                 
@@ -4873,7 +4873,7 @@
             sessionStorage.setItem('customerFiles', JSON.stringify(fileDataArray));
             
             // Show success message
-            alert('Your information has been submitted successfully! Your tax advisor will review your details and update your refund status.');
+            showCrmModal('success', 'Submission Successful', 'Your information has been submitted successfully! Your tax advisor will review your details and update your refund status.');
             
             // Reset form
             document.getElementById('customerForm').reset();
@@ -4988,4 +4988,326 @@
 
 
 
-</body></html>
+    <!-- Modern Pop-up Modal -->
+    <div id="crmModal" class="crm-modal" style="display: none;">
+      <div class="crm-modal-overlay"></div>
+      <div class="crm-modal-content">
+        <div class="crm-modal-header">
+          <div class="crm-modal-icon-wrapper">
+            <i class="crm-modal-icon" id="crmModalIcon"></i>
+          </div>
+          <button class="crm-modal-close" onclick="closeCrmModal()" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="crm-modal-body">
+          <h3 class="crm-modal-title" id="crmModalTitle"></h3>
+          <p class="crm-modal-message" id="crmModalMessage"></p>
+        </div>
+        <div class="crm-modal-footer">
+          <button class="crm-modal-button" id="crmModalButton" onclick="closeCrmModal()">OK</button>
+        </div>
+      </div>
+    </div>
+    <!-- End Modern Pop-up Modal -->
+    
+    <style>
+      /* CRM Modal Styles - Matching CRM Color Scheme */
+      .crm-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: modalFadeIn 0.2s ease-out;
+      }
+      
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      
+      .crm-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+      }
+      
+      .crm-modal-content {
+        position: relative;
+        background: var(--card-bg, #f8f9fa);
+        border-radius: 12px;
+        max-width: 480px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(6, 50, 50, 0.25);
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease-out;
+        border: 1px solid var(--border-color, #e0e0e0);
+      }
+      
+      [data-theme="dark"] .crm-modal-content {
+        background: var(--card-bg, #1a1a1a);
+        border-color: var(--border-color, #333333);
+      }
+      
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-30px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      
+      .crm-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 24px 16px;
+        border-bottom: 1px solid var(--border-color, #e0e0e0);
+      }
+      
+      .crm-modal-icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      
+      .crm-modal-icon-wrapper.success {
+        background-color: rgba(6, 50, 50, 0.1);
+        color: var(--primary-color, #063232);
+      }
+      
+      .crm-modal-icon-wrapper.error {
+        background-color: rgba(251, 99, 64, 0.1);
+        color: var(--warning-color, #fb6340);
+      }
+      
+      .crm-modal-icon-wrapper.warning {
+        background-color: rgba(251, 99, 64, 0.1);
+        color: var(--warning-color, #fb6340);
+      }
+      
+      .crm-modal-icon-wrapper.info {
+        background-color: rgba(17, 205, 239, 0.1);
+        color: var(--info-color, #11cdef);
+      }
+      
+      .crm-modal-icon {
+        font-size: 28px;
+      }
+      
+      .crm-modal-close {
+        background: none;
+        border: none;
+        color: var(--text-secondary, #707070);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+      }
+      
+      .crm-modal-close:hover {
+        background-color: var(--border-color, #e0e0e0);
+        color: var(--text-color, #545454);
+      }
+      
+      [data-theme="dark"] .crm-modal-close:hover {
+        background-color: var(--border-color, #333333);
+        color: var(--text-color, #ffffff);
+      }
+      
+      .crm-modal-body {
+        padding: 24px;
+      }
+      
+      .crm-modal-title {
+        color: var(--text-color, #545454);
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 12px 0;
+        line-height: 1.3;
+      }
+      
+      .crm-modal-message {
+        color: var(--text-secondary, #707070);
+        font-size: 15px;
+        line-height: 1.6;
+        margin: 0;
+        white-space: pre-line;
+      }
+      
+      .crm-modal-footer {
+        padding: 16px 24px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+      
+      .crm-modal-button {
+        background-color: var(--primary-color, #063232);
+        color: #ffffff;
+        border: none;
+        padding: 10px 32px;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(6, 50, 50, 0.2);
+      }
+      
+      .crm-modal-button:hover {
+        background-color: #052525;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(6, 50, 50, 0.3);
+      }
+      
+      .crm-modal-button:active {
+        transform: translateY(0);
+      }
+      
+      .crm-modal-button.secondary {
+        background-color: var(--secondary-color, #545454);
+      }
+      
+      .crm-modal-button.secondary:hover {
+        background-color: #454545;
+      }
+      
+      /* Responsive */
+      @media (max-width: 768px) {
+        .crm-modal-content {
+          max-width: 95%;
+          margin: 20px;
+        }
+        
+        .crm-modal-header,
+        .crm-modal-body,
+        .crm-modal-footer {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+        
+        .crm-modal-title {
+          font-size: 20px;
+        }
+        
+        .crm-modal-message {
+          font-size: 14px;
+        }
+      }
+    </style>
+    
+    <script>
+      // CRM Modal Functions
+      function showCrmModal(type, title, message, buttonText = 'OK') {
+        const modal = document.getElementById('crmModal');
+        const iconWrapper = modal.querySelector('.crm-modal-icon-wrapper');
+        const icon = document.getElementById('crmModalIcon');
+        const titleEl = document.getElementById('crmModalTitle');
+        const messageEl = document.getElementById('crmModalMessage');
+        const button = document.getElementById('crmModalButton');
+        
+        // Set icon based on type
+        iconWrapper.className = 'crm-modal-icon-wrapper ' + type;
+        
+        if (type === 'success') {
+          icon.className = 'crm-modal-icon fas fa-check-circle';
+        } else if (type === 'error') {
+          icon.className = 'crm-modal-icon fas fa-exclamation-circle';
+        } else if (type === 'warning') {
+          icon.className = 'crm-modal-icon fas fa-exclamation-triangle';
+        } else if (type === 'info') {
+          icon.className = 'crm-modal-icon fas fa-info-circle';
+        } else {
+          icon.className = 'crm-modal-icon fas fa-info-circle';
+        }
+        
+        // Set content
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        button.textContent = buttonText;
+        
+        // Show modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function closeCrmModal() {
+        const modal = document.getElementById('crmModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+      
+      // Close modal when clicking overlay
+      document.addEventListener('click', function(e) {
+        const modal = document.getElementById('crmModal');
+        if (e.target.classList.contains('crm-modal-overlay')) {
+          closeCrmModal();
+        }
+      });
+      
+      // Close modal with Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('crmModal');
+          if (modal.style.display === 'flex') {
+            closeCrmModal();
+          }
+        }
+      });
+      
+      // Make functions globally available
+      window.showCrmModal = showCrmModal;
+      window.closeCrmModal = closeCrmModal;
+      
+      // Replace alert() function globally
+      const originalAlert = window.alert;
+      window.alert = function(message) {
+        // Parse message to determine type and title
+        let type = 'info';
+        let title = 'Notification';
+        let msg = message;
+        
+        // Check for common patterns
+        if (message.includes('Error') || message.includes('error') || message.includes('Failed') || message.includes('failed')) {
+          type = 'error';
+          title = 'Error';
+        } else if (message.includes('Success') || message.includes('success') || message.includes('Successfully')) {
+          type = 'success';
+          title = 'Success';
+        } else if (message.includes('Warning') || message.includes('warning')) {
+          type = 'warning';
+          title = 'Warning';
+        }
+        
+        showCrmModal(type, title, msg);
+      };
+    </script>
+    
+    </body></html>
