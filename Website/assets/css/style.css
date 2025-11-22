@@ -2058,8 +2058,11 @@ kbd {
     position: relative;
   }
   .ak-main_header .container-fluid {
-    padding-right: 40px;
+    padding-right: 0;
     padding-left: 40px;
+  }
+  .ak-main_header .container {
+    padding-right: 0;
   }
   .ak-main_header_center,
   .ak-top_header_center {
@@ -2692,7 +2695,8 @@ kbd {
     position: relative;
     z-index: 10;
     margin-left: 40px;
-    padding-right: 20px;
+    padding-right: 0;
+    margin-right: 0;
   }
 }
 
