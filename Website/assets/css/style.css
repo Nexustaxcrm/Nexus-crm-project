@@ -2510,6 +2510,23 @@ kbd {
   display: inline-block;
   margin-bottom: 15px;
 }
+.ak-footer.style-1 .footer-content .company-info .ak-site_branding img {
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transform: translateZ(0);
+  will-change: auto;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  -o-transform: translateZ(0);
+  filter: none;
+  -webkit-filter: none;
+}
 .ak-footer.style-1 .footer-content .company-info .text {
   color: #e7e7e7;
   margin-bottom: 40px;
