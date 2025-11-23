@@ -176,13 +176,46 @@ router.get('/me', authenticateToken, async (req, res) => {
         }
         
         // Find customer by user_id
-        const result = await dbPool.query(
+        let result = await dbPool.query(
             'SELECT * FROM customers WHERE user_id = $1 LIMIT 1',
             [userId]
         );
         
+        // If not found by user_id, try to find by username (for existing customers not yet linked)
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Customer record not found' });
+            const username = req.user.username;
+            // Try to find customer by matching username to email or name
+            // This is a fallback for customers who registered before user_id linking was implemented
+            result = await dbPool.query(
+                `SELECT * FROM customers 
+                 WHERE LOWER(email) LIKE LOWER($1) 
+                    OR LOWER(name) LIKE LOWER($1)
+                 ORDER BY created_at DESC 
+                 LIMIT 1`,
+                [`%${username}%`]
+            );
+            
+            // If found, link the customer to the user account
+            if (result.rows.length > 0) {
+                const customerId = result.rows[0].id;
+                await dbPool.query(
+                    'UPDATE customers SET user_id = $1, updated_at = NOW() WHERE id = $2',
+                    [userId, customerId]
+                );
+                console.log(`✅ Linked customer ID ${customerId} to user ID ${userId}`);
+                // Re-fetch the updated customer record
+                result = await dbPool.query(
+                    'SELECT * FROM customers WHERE id = $1',
+                    [customerId]
+                );
+            }
+        }
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                error: 'Customer record not found. Please contact support to link your account.',
+                details: 'Your user account exists but no customer record is linked. Please register through the website or contact support.'
+            });
         }
         
         res.json(result.rows[0]);
