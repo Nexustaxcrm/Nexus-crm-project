@@ -189,8 +189,8 @@ This email was sent from the Nexus Tax Filing website contact form.
         // Send email to company (only if transporter is available)
         if (transporter) {
             try {
-                console.log('📨 Sending email to nexustaxfiling@gmail.com...');
-                await transporter.sendMail(mailOptions);
+        console.log('📨 Sending email to nexustaxfiling@gmail.com...');
+        await transporter.sendMail(mailOptions);
                 console.log('✅ Email sent successfully to company');
             } catch (emailError) {
                 console.error('⚠️ Error sending email to company:', emailError);
@@ -201,10 +201,10 @@ This email was sent from the Nexus Tax Filing website contact form.
         // Send thank you email to customer (only if transporter is available)
         if (transporter) {
             try {
-            const thankYouMailOptions = {
-                from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
-                to: email,
-                subject: 'Thank You for Registering with Nexus Tax Filing',
+                const thankYouMailOptions = {
+                    from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
+                    to: email,
+                    subject: 'Thank You for Registering with Nexus Tax Filing',
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                         <div style="background-color: #063232; color: #ffffff; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
@@ -285,16 +285,17 @@ The Nexus Tax Filing Team
 ---
 This is an automated email. Please do not reply directly to this message.
                 `
-            };
+                };
 
-            console.log('📨 Sending thank you email to customer:', email);
-            await transporter.sendMail(thankYouMailOptions);
-            console.log('✅ Thank you email sent successfully to customer');
-        } catch (thankYouError) {
-            // Log error but don't fail the entire request if thank you email fails
-            console.error('⚠️ Error sending thank you email to customer:', thankYouError);
-            console.error('Customer email was:', email);
-            // Continue - the main email was sent successfully
+                console.log('📨 Sending thank you email to customer:', email);
+                await transporter.sendMail(thankYouMailOptions);
+                console.log('✅ Thank you email sent successfully to customer');
+            } catch (thankYouError) {
+                // Log error but don't fail the entire request if thank you email fails
+                console.error('⚠️ Error sending thank you email to customer:', thankYouError);
+                console.error('Customer email was:', email);
+                // Continue - user account was created successfully
+            }
         }
 
         // Automatically create customer in CRM with "interested" status
