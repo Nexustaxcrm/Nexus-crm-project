@@ -113,10 +113,90 @@ This email was sent from the Nexus Tax Filing website contact form.
             `
         };
 
-        // Send email
+        // Send email to company
         console.log('📨 Sending email to nexustaxfiling@gmail.com...');
         await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully');
+        console.log('✅ Email sent successfully to company');
+
+        // Send thank you email to customer
+        try {
+            const thankYouMailOptions = {
+                from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
+                to: email,
+                subject: 'Thank You for Registering with Nexus Tax Filing',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="background-color: #063232; color: #ffffff; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                            <h1 style="margin: 0; font-size: 28px;">Thank You for Registering!</h1>
+                        </div>
+                        <div style="background-color: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 5px 5px;">
+                            <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
+                                Dear ${fullname},
+                            </p>
+                            <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
+                                Thank you for registering with <strong>Nexus Tax Filing</strong>! We appreciate your interest in our tax filing services.
+                            </p>
+                            <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
+                                Our team has received your registration and will reach out to you soon to discuss how we can help you with your tax filing needs.
+                            </p>
+                            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                                <p style="margin: 0; font-size: 14px; color: #666666;">
+                                    <strong>What's Next?</strong><br>
+                                    Our certified tax professionals will review your information and contact you within 1-2 business days to schedule a consultation.
+                                </p>
+                            </div>
+                            <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 20px 0 0 0;">
+                                If you have any immediate questions, please feel free to contact us at:
+                            </p>
+                            <p style="font-size: 14px; color: #063232; margin: 10px 0;">
+                                <strong>Email:</strong> <a href="mailto:info@nexustaxfiling.com" style="color: #063232;">info@nexustaxfiling.com</a><br>
+                                <strong>Phone:</strong> (123) 456-7890
+                            </p>
+                            <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 30px 0 0 0;">
+                                Best regards,<br>
+                                <strong style="color: #063232;">The Nexus Tax Filing Team</strong>
+                            </p>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+                            <p style="font-size: 12px; color: #666666; margin: 0;">
+                                This is an automated email. Please do not reply directly to this message.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                text: `
+Thank You for Registering with Nexus Tax Filing!
+
+Dear ${fullname},
+
+Thank you for registering with Nexus Tax Filing! We appreciate your interest in our tax filing services.
+
+Our team has received your registration and will reach out to you soon to discuss how we can help you with your tax filing needs.
+
+What's Next?
+Our certified tax professionals will review your information and contact you within 1-2 business days to schedule a consultation.
+
+If you have any immediate questions, please feel free to contact us at:
+Email: info@nexustaxfiling.com
+Phone: (123) 456-7890
+
+Best regards,
+The Nexus Tax Filing Team
+
+---
+This is an automated email. Please do not reply directly to this message.
+                `
+            };
+
+            console.log('📨 Sending thank you email to customer:', email);
+            await transporter.sendMail(thankYouMailOptions);
+            console.log('✅ Thank you email sent successfully to customer');
+        } catch (thankYouError) {
+            // Log error but don't fail the entire request if thank you email fails
+            console.error('⚠️ Error sending thank you email to customer:', thankYouError);
+            console.error('Customer email was:', email);
+            // Continue - the main email was sent successfully
+        }
 
         // Automatically create customer in CRM with "interested" status
         try {
