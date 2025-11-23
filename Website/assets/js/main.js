@@ -1160,11 +1160,13 @@
       var name = $.trim($("#contactForm #fullname").val());
       var phone = $.trim($("#contactForm #YourPhone").val());
       var email = $.trim($("#contactForm #emailInput").val());
+      var username = $.trim($("#contactForm #usernameInput").val());
+      var password = $("#contactForm #passwordInput").val();
       var description = $.trim($("#contactForm #textareaInput").val());
 
       // Validate required fields
-      if (!name || !phone || !email) {
-        alert("Please fill in all required fields (Name, Phone, and Email).");
+      if (!name || !phone || !email || !username || !password) {
+        alert("Please fill in all required fields (Name, Phone, Email, Username, and Password).");
         return;
       }
 
@@ -1172,6 +1174,19 @@
       var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         alert("Please enter a valid email address.");
+        return;
+      }
+
+      // Validate username (alphanumeric and underscore, 3-30 characters)
+      var usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+      if (!usernameRegex.test(username)) {
+        alert("Username must be 3-30 characters and contain only letters, numbers, and underscores.");
+        return;
+      }
+
+      // Validate password (minimum 6 characters)
+      if (password.length < 6) {
+        alert("Password must be at least 6 characters long.");
         return;
       }
 
@@ -1185,6 +1200,8 @@
         fullname: name,
         phone: phone,
         email: email,
+        username: username,
+        password: password,
         description: description || ""
       };
 

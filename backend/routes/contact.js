@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
 
 // Get shared pool from app.locals (set in server.js)
 let pool = null;
@@ -46,14 +47,14 @@ router.post('/', async (req, res) => {
         'user-agent': req.headers['user-agent']
     });
     try {
-        const { fullname, phone, email, description } = req.body;
-        console.log('Parsed form data:', { fullname, phone, email, description: description ? 'provided' : 'empty' });
+        const { fullname, phone, email, username, password, description } = req.body;
+        console.log('Parsed form data:', { fullname, phone, email, username: username ? 'provided' : 'missing', password: password ? 'provided' : 'missing', description: description ? 'provided' : 'empty' });
 
         // Validate required fields
-        if (!fullname || !phone || !email) {
+        if (!fullname || !phone || !email || !username || !password) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Name, Phone, and Email are required fields.' 
+                message: 'Name, Phone, Email, Username, and Password are required fields.' 
             });
         }
 
@@ -66,16 +67,88 @@ router.post('/', async (req, res) => {
             });
         }
 
+        // Validate username (alphanumeric and underscore, 3-30 characters)
+        const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+        if (!usernameRegex.test(username)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Username must be 3-30 characters and contain only letters, numbers, and underscores.' 
+            });
+        }
+
+        // Validate password (minimum 6 characters)
+        if (password.length < 6) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Password must be at least 6 characters long.' 
+            });
+        }
+
+        // Create user account for customer login (do this first to fail early if username exists)
+        let userId = null;
+        try {
+            const dbPool = pool || req.app.locals.pool;
+            
+            if (!dbPool) {
+                console.error('❌ Database pool not available in contact route');
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Database service is not available. Please try again later.' 
+                });
+            }
+            
+            console.log('✅ Database pool available, creating user account...');
+            
+            // Check if username already exists (case-insensitive)
+            const usernameLower = username.toLowerCase().trim();
+            const existingUser = await dbPool.query(
+                'SELECT id FROM users WHERE LOWER(username) = $1',
+                [usernameLower]
+            );
+            
+            if (existingUser.rows.length > 0) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Username already exists. Please choose a different username.' 
+                });
+            }
+            
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+            
+            // Create user account with 'customer' role
+            const userResult = await dbPool.query(
+                'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role',
+                [username.trim(), hashedPassword, 'customer']
+            );
+            
+            userId = userResult.rows[0].id;
+            console.log(`✅ User account created for customer: ${username} (ID: ${userId})`);
+        } catch (userError) {
+            console.error('❌ Error creating user account:', userError);
+            // Check if it's a duplicate username error
+            if (userError.code === '23505') {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Username already exists. Please choose a different username.' 
+                });
+            }
+            // For other database errors, return error
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Failed to create user account. Please try again later.' 
+            });
+        }
+
         // Create transporter (check credentials first)
         let transporter;
         try {
             transporter = createTransporter();
         } catch (error) {
             console.error('Email configuration error:', error.message);
-            return res.status(500).json({ 
-                success: false, 
-                message: 'Email service is not configured. Please contact the administrator.' 
-            });
+            // If email fails but user was created, we should still succeed
+            // But log the error
+            console.error('⚠️ Email service not configured, but user account was created');
         }
 
         // Email content
@@ -113,13 +186,21 @@ This email was sent from the Nexus Tax Filing website contact form.
             `
         };
 
-        // Send email to company
-        console.log('📨 Sending email to nexustaxfiling@gmail.com...');
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully to company');
+        // Send email to company (only if transporter is available)
+        if (transporter) {
+            try {
+                console.log('📨 Sending email to nexustaxfiling@gmail.com...');
+                await transporter.sendMail(mailOptions);
+                console.log('✅ Email sent successfully to company');
+            } catch (emailError) {
+                console.error('⚠️ Error sending email to company:', emailError);
+                // Continue - user account was created successfully
+            }
+        }
 
-        // Send thank you email to customer
-        try {
+        // Send thank you email to customer (only if transporter is available)
+        if (transporter) {
+            try {
             const thankYouMailOptions = {
                 from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
                 to: email,
@@ -139,6 +220,18 @@ This email was sent from the Nexus Tax Filing website contact form.
                             <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
                                 Our team has received your registration and will reach out to you soon to discuss how we can help you with your tax filing needs.
                             </p>
+                            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #063232;">
+                                <p style="margin: 0 0 15px 0; font-size: 16px; color: #063232; font-weight: bold;">
+                                    🔐 Your Customer Dashboard Access
+                                </p>
+                                <p style="margin: 0 0 10px 0; font-size: 14px; color: #333333;">
+                                    <strong>Username:</strong> ${username}<br>
+                                    <strong>Password:</strong> [The password you created]
+                                </p>
+                                <p style="margin: 10px 0 0 0; font-size: 14px; color: #666666;">
+                                    You can now login to your customer dashboard at: <a href="${process.env.FRONTEND_URL || 'https://nexustaxfiling.com'}/crm" style="color: #063232; text-decoration: underline;">${process.env.FRONTEND_URL || 'https://nexustaxfiling.com'}/crm</a>
+                                </p>
+                            </div>
                             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
                                 <p style="margin: 0; font-size: 14px; color: #666666;">
                                     <strong>What's Next?</strong><br>
@@ -172,6 +265,12 @@ Dear ${fullname},
 Thank you for registering with Nexus Tax Filing! We appreciate your interest in our tax filing services.
 
 Our team has received your registration and will reach out to you soon to discuss how we can help you with your tax filing needs.
+
+Your Customer Dashboard Access
+Username: ${username}
+Password: [The password you created]
+
+You can now login to your customer dashboard at: ${process.env.FRONTEND_URL || 'https://nexustaxfiling.com'}/crm
 
 What's Next?
 Our certified tax professionals will review your information and contact you within 1-2 business days to schedule a consultation.
