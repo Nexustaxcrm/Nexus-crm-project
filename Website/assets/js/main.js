@@ -1371,4 +1371,168 @@
     });
 
   }
+
+  /*--------------------------------------------------------------
+    Dynamic Text Color Based on Video Background
+  --------------------------------------------------------------*/
+  // Store cleanup functions
+  let videoDetectionCleanup = null;
+
+  function initVideoTextColorDetection() {
+    const heroVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .ak-hero-bg');
+    const heroTitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-main-title');
+    const heroSubtitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-main-title-1.style-2');
+    const miniTitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .mini-title');
+    const mainDesp = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .main-desp');
+    const heroSliderInfo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-slider-info');
+
+    if (!heroVideo || !heroTitle || !heroSliderInfo) return;
+
+    // Create canvas for video frame analysis
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    let animationFrameId = null;
+
+    function checkVideoBackground() {
+      if (!heroVideo || heroVideo.readyState < 2) return;
+
+      try {
+        // Set canvas size to match video
+        canvas.width = heroVideo.videoWidth || heroVideo.clientWidth;
+        canvas.height = heroVideo.videoHeight || heroVideo.clientHeight;
+
+        // Draw current video frame to canvas
+        ctx.drawImage(heroVideo, 0, 0, canvas.width, canvas.height);
+
+        // Get the position of the text element relative to the video
+        const textRect = heroSliderInfo.getBoundingClientRect();
+        const videoRect = heroVideo.getBoundingClientRect();
+
+        // Calculate the position on the video where the text is
+        const x = Math.floor((textRect.left - videoRect.left) * (canvas.width / videoRect.width));
+        const y = Math.floor((textRect.top - videoRect.top) * (canvas.height / videoRect.height));
+
+        // Sample a region around the text (sample multiple points for better accuracy)
+        const sampleSize = 50;
+        const samples = [];
+        
+        for (let i = 0; i < 5; i++) {
+          const sampleX = Math.max(0, Math.min(canvas.width - 1, x + (Math.random() - 0.5) * sampleSize));
+          const sampleY = Math.max(0, Math.min(canvas.height - 1, y + (Math.random() - 0.5) * sampleSize));
+          const pixelData = ctx.getImageData(sampleX, sampleY, 1, 1).data;
+          samples.push(pixelData);
+        }
+
+        // Calculate average brightness
+        let totalBrightness = 0;
+        samples.forEach(pixel => {
+          // Use luminance formula: 0.299*R + 0.587*G + 0.114*B
+          const brightness = (pixel[0] * 0.299 + pixel[1] * 0.587 + pixel[2] * 0.114);
+          totalBrightness += brightness;
+        });
+        
+        const avgBrightness = totalBrightness / samples.length;
+        
+        // Threshold: if brightness is below 128 (midpoint), consider it dark
+        const isDark = avgBrightness < 128;
+
+        // Toggle white text class based on background darkness
+        if (isDark) {
+          heroTitle?.classList.add('text-white');
+          heroSubtitle?.classList.add('text-white');
+          miniTitle?.classList.add('text-white');
+          mainDesp?.classList.add('text-white');
+        } else {
+          heroTitle?.classList.remove('text-white');
+          heroSubtitle?.classList.remove('text-white');
+          miniTitle?.classList.remove('text-white');
+          mainDesp?.classList.remove('text-white');
+        }
+      } catch (e) {
+        // Silently handle errors (video might not be ready or CORS issues)
+        console.log('Video analysis:', e.message);
+      }
+    }
+
+    // Start checking when video is ready
+    function startDetection() {
+      if (heroVideo.readyState >= 2) {
+        checkVideoBackground();
+        animationFrameId = requestAnimationFrame(function animate() {
+          checkVideoBackground();
+          animationFrameId = requestAnimationFrame(animate);
+        });
+      }
+    }
+
+    // Wait for video to be ready
+    if (heroVideo.readyState >= 2) {
+      startDetection();
+    } else {
+      heroVideo.addEventListener('loadeddata', startDetection, { once: true });
+    }
+
+    // Re-initialize when slide changes (for Swiper)
+    const swiperElement = document.querySelector('.ak-slider-hero-1');
+    if (swiperElement) {
+      // Try to get Swiper instance from jQuery or DOM
+      const swiperInstance = swiperElement.swiper || $(swiperElement).data('swiper');
+      if (swiperInstance) {
+        swiperInstance.on('slideChange', function() {
+          // Small delay to ensure new slide is active
+          setTimeout(() => {
+            // Clean up previous detection
+            if (videoDetectionCleanup) {
+              videoDetectionCleanup();
+            }
+            // Re-initialize for new slide
+            videoDetectionCleanup = initVideoTextColorDetection();
+          }, 100);
+        });
+      } else {
+        // Fallback: use MutationObserver to detect slide changes
+        const observer = new MutationObserver(function(mutations) {
+          const activeSlide = document.querySelector('.ak-slider-hero-1 .swiper-slide-active');
+          if (activeSlide) {
+            setTimeout(() => {
+              if (videoDetectionCleanup) {
+                videoDetectionCleanup();
+              }
+              videoDetectionCleanup = initVideoTextColorDetection();
+            }, 100);
+          }
+        });
+        observer.observe(swiperElement, { childList: true, subtree: true });
+      }
+    }
+
+    // Return cleanup function
+    return function cleanup() {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    };
+  }
+
+  // Initialize on page load
+  $(window).on('load', function() {
+    setTimeout(function() {
+      if (videoDetectionCleanup) {
+        videoDetectionCleanup();
+      }
+      videoDetectionCleanup = initVideoTextColorDetection();
+    }, 500);
+  });
+
+  // Re-initialize when Swiper is ready
+  $(document).ready(function() {
+    setTimeout(function() {
+      if (videoDetectionCleanup) {
+        videoDetectionCleanup();
+      }
+      videoDetectionCleanup = initVideoTextColorDetection();
+    }, 1000);
+  });
+
 })(jQuery);

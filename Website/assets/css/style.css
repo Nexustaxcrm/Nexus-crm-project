@@ -3200,7 +3200,7 @@ kbd {
   transition-delay: 0.5s;
   opacity: 0;
   visibility: hidden;
-  transition: all 500ms ease-in-out;
+  transition: all 500ms ease-in-out, color 0.3s ease-in-out;
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .mini-title {
   transform: translatey(-20px);
@@ -3214,7 +3214,7 @@ kbd {
   transition-delay: 0.7s;
   opacity: 0;
   visibility: hidden;
-  transition: all 500ms ease-in-out;
+  transition: all 500ms ease-in-out, color 0.3s ease-in-out;
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .common-btn.style-2 {
   transform: translateX(50px);
@@ -3249,6 +3249,7 @@ kbd {
   border-radius: 50px;
   border: 1px solid rgba(3, 9, 23, 0.1);
   color: #030917;
+  transition: all 500ms ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
 }
 .ak-slider-hero-1 .swiper-slide-active .ak-hero.ak-style1 {
   z-index: 1;
@@ -3284,6 +3285,21 @@ kbd {
   transition-delay: 1s;
   opacity: 1;
   visibility: visible;
+}
+
+/* Dynamic text color based on video background - White text state */
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .hero-main-title.text-white,
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .hero-main-title-1.style-2.text-white {
+  color: #ffffff !important;
+}
+
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .mini-title.text-white {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .main-desp.text-white {
+  color: #ffffff !important;
 }
 
 .ak-slider-hero-2 {
