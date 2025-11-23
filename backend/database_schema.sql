@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS customers (
     phone VARCHAR(50),
     status VARCHAR(50) DEFAULT 'pending',
     assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     notes TEXT,
     archived BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -48,6 +49,8 @@ CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone) WHERE phone I
 CREATE INDEX IF NOT EXISTS idx_customers_status_archived ON customers(status, archived);
 -- Composite index for assigned work queries (assigned_to + status + archived)
 CREATE INDEX IF NOT EXISTS idx_customers_assigned_status ON customers(assigned_to, status, archived) WHERE assigned_to IS NOT NULL;
+-- Index for customer user_id (for customer dashboard lookups)
+CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id) WHERE user_id IS NOT NULL;
 
 -- Indexes for customer_actions table (for fast lookups)
 CREATE INDEX IF NOT EXISTS idx_customer_actions_customer_id ON customer_actions(customer_id);

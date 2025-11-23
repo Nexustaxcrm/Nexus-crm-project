@@ -346,10 +346,10 @@ This is an automated email. Please do not reply directly to this message.
                         );
                         
                         if (doubleCheck.rows.length === 0) {
-                            // Create new customer with "interested" status
+                            // Create new customer with "interested" status and link to user account
                             const result = await client.query(
-                                `INSERT INTO customers (name, email, phone, status, notes, archived) 
-                                 VALUES ($1, $2, $3, $4, $5, $6)
+                                `INSERT INTO customers (name, email, phone, status, notes, archived, user_id) 
+                                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                                  RETURNING id, name, email, phone, status`,
                                 [
                                     fullname,
@@ -357,7 +357,8 @@ This is an automated email. Please do not reply directly to this message.
                                     phone,
                                     'interested', // Set status to "interested"
                                     description || null,
-                                    false // Not archived
+                                    false, // Not archived
+                                    userId // Link to user account
                                 ]
                             );
                             console.log(`✅ New customer created from contact form:`, result.rows[0]);
@@ -371,9 +372,9 @@ This is an automated email. Please do not reply directly to this message.
                                 console.log(`ℹ️ Customer already exists (race condition handled): ID ${existing.rows[0].id}`);
                                 // Update status to interested if not already
                                 await client.query(
-                                    `UPDATE customers SET status = 'interested', updated_at = NOW() 
-                                     WHERE id = $1 AND status != 'interested'`,
-                                    [existing.rows[0].id]
+                                    `UPDATE customers SET status = 'interested', user_id = $1, updated_at = NOW() 
+                                     WHERE id = $2 AND status != 'interested'`,
+                                    [userId, existing.rows[0].id]
                                 );
                             }
                         }
@@ -387,22 +388,23 @@ This is an automated email. Please do not reply directly to this message.
                                 `UPDATE customers 
                                  SET status = 'interested', 
                                      notes = COALESCE($1, notes), 
+                                     user_id = $2,
                                      updated_at = NOW() 
-                                 WHERE id = $2`,
-                                [description || null, customerId]
+                                 WHERE id = $3`,
+                                [description || null, userId, customerId]
                             );
-                            console.log(`✅ Existing customer updated to "interested" status: ${fullname} (${email}) - ID: ${customerId}`);
+                            console.log(`✅ Existing customer updated to "interested" status and linked user: ${fullname} (${email}) - ID: ${customerId}, User ID: ${userId}`);
                         } else {
-                            // Already interested, just update notes if provided
-                            if (description) {
-                                await client.query(
-                                    `UPDATE customers 
-                                     SET notes = COALESCE($1, notes), updated_at = NOW() 
-                                     WHERE id = $2`,
-                                    [description, customerId]
-                                );
-                            }
-                            console.log(`ℹ️ Customer already has "interested" status: ${fullname} (${email}) - ID: ${customerId}`);
+                            // Already interested, just update notes and user_id if provided
+                            await client.query(
+                                `UPDATE customers 
+                                 SET notes = COALESCE($1, notes), 
+                                     user_id = $2,
+                                     updated_at = NOW() 
+                                 WHERE id = $3`,
+                                [description || null, userId, customerId]
+                            );
+                            console.log(`ℹ️ Customer already has "interested" status, updated user link: ${fullname} (${email}) - ID: ${customerId}, User ID: ${userId}`);
                         }
                     }
                     

@@ -159,6 +159,39 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
+// Get current customer's own information (for customer role)
+router.get('/me', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        
+        // Only allow customer role to access this endpoint
+        if (userRole !== 'customer') {
+            return res.status(403).json({ error: 'Access denied. This endpoint is only for customers.' });
+        }
+        
+        // Find customer by user_id
+        const result = await dbPool.query(
+            'SELECT * FROM customers WHERE user_id = $1 LIMIT 1',
+            [userId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Customer record not found' });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error fetching customer information:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Get statistics for all customers (for dashboard)
 router.get('/stats', authenticateToken, async (req, res) => {
     try {

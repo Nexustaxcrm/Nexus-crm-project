@@ -545,6 +545,20 @@ function showLogin() {
 
 async function showDashboard() {
     document.getElementById('loginPage').style.display = 'none';
+    
+    // Check if user is a customer - show customer dashboard instead
+    if (currentUser.role === 'customer') {
+        document.getElementById('dashboardPage').style.display = 'none';
+        const customerDashboard = document.getElementById('customerDashboardPage');
+        if (customerDashboard) {
+            customerDashboard.style.display = 'block';
+            // Load customer information
+            await loadCustomerDashboard();
+        }
+        return;
+    }
+    
+    // For admin, employee, and preparation roles - show regular dashboard
     document.getElementById('dashboardPage').style.display = 'block';
     // Hide customer dashboard if it exists
     const customerDashboard = document.getElementById('customerDashboardPage');
@@ -724,8 +738,72 @@ function showTab(tabName, clickedElement) {
 function loadDashboard() {
     if (currentUser.role === 'admin') {
         loadAdminDashboard();
+    } else if (currentUser.role === 'customer') {
+        loadCustomerDashboard();
     } else {
         loadEmployeeDashboard();
+    }
+}
+
+// Load customer dashboard with customer's own information
+async function loadCustomerDashboard() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+        
+        // Fetch customer information from API
+        const response = await fetch(API_BASE_URL + '/customers/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                showNotification('warning', 'No Customer Record', 'Your customer record was not found. Please contact support.');
+                return;
+            }
+            throw new Error('Failed to fetch customer information');
+        }
+        
+        const customer = await response.json();
+        
+        // Populate customer form with data
+        if (customer.name) {
+            const nameParts = customer.name.split(' ');
+            document.getElementById('customerFirstName').value = nameParts[0] || '';
+            document.getElementById('customerLastName').value = nameParts.slice(1).join(' ') || '';
+        }
+        if (customer.phone) document.getElementById('customerPhone').value = customer.phone;
+        if (customer.email) document.getElementById('customerEmail').value = customer.email;
+        
+        // Parse address if stored in notes or separate fields
+        // For now, we'll assume address might be in notes or we'll add address fields later
+        if (customer.notes) {
+            // Try to parse address from notes if it's stored there
+            // This is a placeholder - you may need to adjust based on your data structure
+        }
+        
+        // Set refund status
+        if (customer.status) {
+            const statusSelect = document.getElementById('customerRefundStatus');
+            if (statusSelect) {
+                statusSelect.value = customer.status;
+            }
+        }
+        
+        // Update user avatar with customer initial
+        const customerAvatar = document.getElementById('customerUserAvatar');
+        if (customerAvatar && customer.name) {
+            customerAvatar.textContent = customer.name.charAt(0).toUpperCase();
+        }
+        
+        console.log('✅ Customer dashboard loaded successfully');
+    } catch (error) {
+        console.error('❌ Error loading customer dashboard:', error);
+        showNotification('error', 'Error', 'Failed to load customer information. Please try again.');
     }
 }
 

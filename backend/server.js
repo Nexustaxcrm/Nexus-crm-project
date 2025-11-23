@@ -153,12 +153,23 @@ async function initializeDatabase() {
                     phone VARCHAR(50),
                     status VARCHAR(50) DEFAULT 'pending',
                     assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
                     notes TEXT,
                     archived BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `);
+            // Add user_id column if it doesn't exist (for existing databases)
+            try {
+                await pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL');
+                await pool.query('CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id) WHERE user_id IS NOT NULL');
+            } catch (alterError) {
+                // Column might already exist, ignore error
+                if (!alterError.message.includes('already exists') && !alterError.message.includes('duplicate')) {
+                    console.warn('Warning adding user_id column:', alterError.message);
+                }
+            }
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS customer_actions (
                     id SERIAL PRIMARY KEY,

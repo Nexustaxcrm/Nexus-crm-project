@@ -4856,8 +4856,13 @@
         
         // Customer logout
         function customerLogout() {
+            // Clear authentication
+            sessionStorage.removeItem('authToken');
             sessionStorage.removeItem('customerLoggedIn');
             sessionStorage.removeItem('customerUsername');
+            if (typeof currentUser !== 'undefined') {
+                currentUser = null;
+            }
             
             // Hide customer dashboard
             const customerDashboard = document.getElementById('customerDashboardPage');
@@ -4865,11 +4870,17 @@
                 customerDashboard.style.display = 'none';
             }
             
+            // Hide regular dashboard
+            const dashboardPage = document.getElementById('dashboardPage');
+            if (dashboardPage) {
+                dashboardPage.style.display = 'none';
+            }
+            
             // Reset form
             const customerForm = document.getElementById('customerForm');
             if (customerForm) customerForm.reset();
             
-            // Show admin login page
+            // Show login page
             const loginPage = document.getElementById('loginPage');
             if (loginPage) {
                 loginPage.style.display = 'flex';
@@ -4947,53 +4958,82 @@
         async function handleCustomerSubmit(event) {
             event.preventDefault();
             
-            // Collect form data
-            const customerData = {
-                firstName: document.getElementById('customerFirstName').value,
-                lastName: document.getElementById('customerLastName').value,
-                phone: document.getElementById('customerPhone').value,
-                email: document.getElementById('customerEmail').value,
-                address1: document.getElementById('customerAddress1').value,
-                address2: document.getElementById('customerAddress2').value,
-                city: document.getElementById('customerCity').value,
-                state: document.getElementById('customerState').value,
-                zipCode: document.getElementById('customerZipCode').value,
-                refundStatus: document.getElementById('customerRefundStatus').value,
-                files: uploadedFiles.map(f => ({
-                    name: f.name,
-                    size: f.size,
-                    type: f.type
-                }))
-            };
-            
-            // Save customer data to localStorage
-            sessionStorage.setItem('customerData', JSON.stringify(customerData));
-            
-            // Save uploaded files (as base64 for demo purposes)
-            const filePromises = uploadedFiles.map(fileData => {
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        resolve({
-                            name: fileData.name,
-                            data: e.target.result,
-                            type: fileData.type
-                        });
-                    };
-                    reader.readAsDataURL(fileData.file);
+            try {
+                const token = sessionStorage.getItem('authToken');
+                if (!token) {
+                    showCrmModal('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+                    return;
+                }
+                
+                // First, get the customer ID from /me endpoint
+                const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
-            });
-            
-            const fileDataArray = await Promise.all(filePromises);
-            sessionStorage.setItem('customerFiles', JSON.stringify(fileDataArray));
-            
-            // Show success message
-            showCrmModal('success', 'Submission Successful', 'Your information has been submitted successfully! Your tax advisor will review your details and update your refund status.');
-            
-            // Reset form
-            document.getElementById('customerForm').reset();
-            uploadedFiles = [];
-            updateFileList();
+                
+                if (!meResponse.ok) {
+                    throw new Error('Failed to fetch customer information');
+                }
+                
+                const customer = await meResponse.json();
+                const customerId = customer.id;
+                
+                // Collect form data
+                const firstName = document.getElementById('customerFirstName').value.trim();
+                const lastName = document.getElementById('customerLastName').value.trim();
+                const name = `${firstName} ${lastName}`.trim();
+                const phone = document.getElementById('customerPhone').value.trim();
+                const email = document.getElementById('customerEmail').value.trim();
+                const address1 = document.getElementById('customerAddress1').value.trim();
+                const address2 = document.getElementById('customerAddress2').value.trim();
+                const city = document.getElementById('customerCity').value.trim();
+                const state = document.getElementById('customerState').value;
+                const zipCode = document.getElementById('customerZipCode').value.trim();
+                
+                // Build address string
+                let address = address1;
+                if (address2) address += ', ' + address2;
+                if (city) address += ', ' + city;
+                if (state) address += ', ' + state;
+                if (zipCode) address += ' ' + zipCode;
+                
+                // Prepare update data
+                const updateData = {
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    notes: address || customer.notes || '',
+                    updated_at: customer.updated_at
+                };
+                
+                // Update customer via API
+                const updateResponse = await fetch(API_BASE_URL + '/customers/' + customerId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    throw new Error(errorData.error || 'Failed to update customer information');
+                }
+                
+                // Show success message
+                showCrmModal('success', 'Update Successful', 'Your information has been updated successfully!');
+                
+                // Reload customer data to reflect changes
+                if (typeof loadCustomerDashboard === 'function') {
+                    await loadCustomerDashboard();
+                }
+                
+            } catch (error) {
+                console.error('Error updating customer information:', error);
+                showCrmModal('error', 'Update Failed', error.message || 'Failed to update your information. Please try again.');
+            }
         }
         
         // Load customer data if exists
