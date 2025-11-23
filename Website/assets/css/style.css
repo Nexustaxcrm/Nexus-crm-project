@@ -2739,14 +2739,17 @@ kbd {
 .header-auth-buttons {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 20px;
   flex-wrap: nowrap;
   white-space: nowrap;
 }
 .header-auth-buttons .common-btn {
   flex: 0 0 auto;
   white-space: nowrap;
-  min-width: fit-content;
+  min-width: 120px;
+  width: 120px;
+  justify-content: center;
+  padding: 12px 20px;
 }
 .ak-site_header.ak-style1 .ak-main-header-right {
   flex: 0 0 auto;
