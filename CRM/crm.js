@@ -243,13 +243,6 @@ function initializeApp() {
         }
     }
     
-    // Load users from database
-    loadUsers();
-    // Load customers from database
-    loadCustomers();
-    // Load user profiles from sessionStorage
-    loadUserProfiles();
-    
     // Check if customer is logged in first - if so, don't initialize admin app
     const customerLoggedIn = sessionStorage.getItem('customerLoggedIn');
     if (customerLoggedIn === 'true') {
@@ -261,6 +254,23 @@ function initializeApp() {
         // Customer page will be shown by checkCustomerLogin() in customer script
         return;
     }
+    
+    // Check if user is a customer - don't load admin/employee data
+    if (currentUser && currentUser.role === 'customer') {
+        console.log('✅ Customer user detected, showing customer dashboard');
+        console.log('Customer user info:', { id: currentUser.id, username: currentUser.username, role: currentUser.role });
+        showDashboard();
+        // Setup event listeners
+        setupEventListeners();
+        return;
+    }
+    
+    // Load users from database (only for admin/employee)
+    loadUsers();
+    // Load customers from database (only for admin/employee)
+    loadCustomers();
+    // Load user profiles from sessionStorage
+    loadUserProfiles();
     
     // Check if user is already logged in (from sessionStorage)
     if (currentUser && sessionStorage.getItem('authToken')) {
@@ -547,16 +557,21 @@ async function showDashboard() {
     document.getElementById('loginPage').style.display = 'none';
     
     // Check if user is a customer - show customer dashboard instead
-    if (currentUser.role === 'customer') {
+    if (currentUser && currentUser.role === 'customer') {
+        console.log('🎯 showDashboard: Customer role detected, showing customer dashboard');
         document.getElementById('dashboardPage').style.display = 'none';
         const customerDashboard = document.getElementById('customerDashboardPage');
         if (customerDashboard) {
             customerDashboard.style.display = 'block';
             // Load customer information
             await loadCustomerDashboard();
+        } else {
+            console.error('❌ Customer dashboard element not found!');
         }
         return;
     }
+    
+    console.log('🎯 showDashboard: Admin/Employee role, showing regular dashboard');
     
     // For admin, employee, and preparation roles - show regular dashboard
     document.getElementById('dashboardPage').style.display = 'block';
