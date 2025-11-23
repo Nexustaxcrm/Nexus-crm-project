@@ -161,14 +161,27 @@ async function initializeDatabase() {
                 )
             `);
             // Add user_id column if it doesn't exist (for existing databases)
+            // PostgreSQL doesn't support IF NOT EXISTS for ADD COLUMN, so we check first
             try {
-                await pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE SET NULL');
+                const columnCheck = await pool.query(`
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='customers' AND column_name='user_id'
+                `);
+                
+                if (columnCheck.rows.length === 0) {
+                    console.log('Adding user_id column to customers table...');
+                    await pool.query('ALTER TABLE customers ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL');
+                    console.log('✅ user_id column added successfully');
+                } else {
+                    console.log('✅ user_id column already exists');
+                }
+                
+                // Create index if it doesn't exist
                 await pool.query('CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id) WHERE user_id IS NOT NULL');
             } catch (alterError) {
-                // Column might already exist, ignore error
-                if (!alterError.message.includes('already exists') && !alterError.message.includes('duplicate')) {
-                    console.warn('Warning adding user_id column:', alterError.message);
-                }
+                console.error('❌ Error adding user_id column:', alterError.message);
+                // Don't fail the server startup, but log the error
             }
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS customer_actions (
