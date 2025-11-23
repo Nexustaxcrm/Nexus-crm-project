@@ -198,18 +198,42 @@ router.get('/me', authenticateToken, async (req, res) => {
         // If not found by user_id, try to find by username (for existing customers not yet linked)
         if (result.rows.length === 0 && username) {
             console.log(`🔍 Customer not found by user_id, trying fallback search with username: ${username}`);
-            // Try to find customer by matching username to email or name
-            // This is a fallback for customers who registered before user_id linking was implemented
+            
+            // Try multiple fallback strategies:
+            // 1. Find customers with username in email (common pattern: username@domain.com)
+            // 2. Find customers with username in name
+            // 3. Find customers with no user_id (unlinked customers) - most recent first
+            
+            // Strategy 1 & 2: Match username to email or name
             result = await dbPool.query(
                 `SELECT * FROM customers 
-                 WHERE LOWER(email) LIKE LOWER($1) 
+                 WHERE (LOWER(email) LIKE LOWER($1) 
                     OR LOWER(name) LIKE LOWER($1)
+                    OR LOWER(email) LIKE LOWER($2))
                  ORDER BY created_at DESC 
                  LIMIT 1`,
-                [`%${username}%`]
+                [`%${username}%`, `${username}@%`]
             );
             
-            console.log(`📊 Fallback search found ${result.rows.length} customer(s)`);
+            console.log(`📊 Fallback search (email/name match) found ${result.rows.length} customer(s)`);
+            
+            // Strategy 3: If still not found, find any unlinked customer (for manual linking)
+            if (result.rows.length === 0) {
+                console.log(`🔍 Trying to find any unlinked customer for manual linking...`);
+                // This is a last resort - find customers without user_id
+                // We'll link the most recently created one as a fallback
+                const unlinkedResult = await dbPool.query(
+                    `SELECT * FROM customers 
+                     WHERE user_id IS NULL 
+                     ORDER BY created_at DESC 
+                     LIMIT 5`
+                );
+                
+                if (unlinkedResult.rows.length > 0) {
+                    console.log(`📊 Found ${unlinkedResult.rows.length} unlinked customer(s), but cannot auto-link without email/name match`);
+                    console.log(`ℹ️ Customer needs to be manually linked via admin panel or SQL`);
+                }
+            }
             
             // If found, link the customer to the user account
             if (result.rows.length > 0) {
@@ -230,9 +254,18 @@ router.get('/me', authenticateToken, async (req, res) => {
         
         if (result.rows.length === 0) {
             console.log(`❌ No customer record found for user ID ${userId}`);
+            
+            // Check if there are any customers at all (for debugging)
+            const anyCustomerCheck = await dbPool.query('SELECT COUNT(*) as count FROM customers LIMIT 1');
+            console.log(`📊 Total customers in database: ${anyCustomerCheck.rows[0]?.count || 0}`);
+            
             return res.status(404).json({ 
-                error: 'Customer record not found. Please contact support to link your account.',
-                details: 'Your user account exists but no customer record is linked. Please register through the website or contact support.'
+                error: 'Customer record not found',
+                message: 'Your user account exists but no customer record is linked.',
+                details: 'This may happen if you registered before the customer linking feature was added. Please contact support to link your account, or re-register through the website contact form.',
+                userId: userId,
+                username: username,
+                suggestion: 'An administrator can link your account using: UPDATE customers SET user_id = $1 WHERE email = \'YOUR_EMAIL\' OR phone = \'YOUR_PHONE\''
             });
         }
         

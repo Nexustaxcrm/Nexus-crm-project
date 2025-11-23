@@ -347,10 +347,11 @@ This is an automated email. Please do not reply directly to this message.
                         
                         if (doubleCheck.rows.length === 0) {
                             // Create new customer with "interested" status and link to user account
+                            console.log(`📝 Creating new customer record with user_id: ${userId}`);
                             const result = await client.query(
                                 `INSERT INTO customers (name, email, phone, status, notes, archived, user_id) 
                                  VALUES ($1, $2, $3, $4, $5, $6, $7)
-                                 RETURNING id, name, email, phone, status`,
+                                 RETURNING id, name, email, phone, status, user_id`,
                                 [
                                     fullname,
                                     email,
@@ -362,6 +363,7 @@ This is an automated email. Please do not reply directly to this message.
                                 ]
                             );
                             console.log(`✅ New customer created from contact form:`, result.rows[0]);
+                            console.log(`✅ Customer ID ${result.rows[0].id} linked to User ID ${userId}`);
                         } else {
                             // Race condition: customer was inserted by another request
                             const existing = await client.query(
@@ -419,6 +421,8 @@ This is an automated email. Please do not reply directly to this message.
         } catch (dbError) {
             // Log error but don't fail the email send
             console.error('❌ Error creating customer from contact form:', dbError);
+            console.error('Error message:', dbError.message);
+            console.error('Error code:', dbError.code);
             console.error('Error details:', {
                 message: dbError.message,
                 code: dbError.code,
