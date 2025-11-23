@@ -162,28 +162,42 @@ router.get('/', authenticateToken, async (req, res) => {
 // Get current customer's own information (for customer role)
 router.get('/me', authenticateToken, async (req, res) => {
     try {
+        console.log('📡 /customers/me endpoint called');
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
+            console.error('❌ Database pool not available');
             return res.status(500).json({ error: 'Database not initialized' });
         }
         
-        const userId = req.user.userId;
-        const userRole = req.user.role;
+        const userId = req.user?.userId;
+        const userRole = req.user?.role;
+        const username = req.user?.username;
+        
+        console.log(`📋 User info - ID: ${userId}, Role: ${userRole}, Username: ${username}`);
+        
+        if (!userId) {
+            console.error('❌ No userId in token');
+            return res.status(401).json({ error: 'Invalid token: missing user ID' });
+        }
         
         // Only allow customer role to access this endpoint
         if (userRole !== 'customer') {
+            console.log(`⚠️ Access denied - user role is ${userRole}, not customer`);
             return res.status(403).json({ error: 'Access denied. This endpoint is only for customers.' });
         }
         
         // Find customer by user_id
+        console.log(`🔍 Searching for customer with user_id: ${userId}`);
         let result = await dbPool.query(
             'SELECT * FROM customers WHERE user_id = $1 LIMIT 1',
             [userId]
         );
         
+        console.log(`📊 Found ${result.rows.length} customer(s) by user_id`);
+        
         // If not found by user_id, try to find by username (for existing customers not yet linked)
-        if (result.rows.length === 0) {
-            const username = req.user.username;
+        if (result.rows.length === 0 && username) {
+            console.log(`🔍 Customer not found by user_id, trying fallback search with username: ${username}`);
             // Try to find customer by matching username to email or name
             // This is a fallback for customers who registered before user_id linking was implemented
             result = await dbPool.query(
@@ -195,9 +209,12 @@ router.get('/me', authenticateToken, async (req, res) => {
                 [`%${username}%`]
             );
             
+            console.log(`📊 Fallback search found ${result.rows.length} customer(s)`);
+            
             // If found, link the customer to the user account
             if (result.rows.length > 0) {
                 const customerId = result.rows[0].id;
+                console.log(`🔗 Linking customer ID ${customerId} to user ID ${userId}`);
                 await dbPool.query(
                     'UPDATE customers SET user_id = $1, updated_at = NOW() WHERE id = $2',
                     [userId, customerId]
@@ -212,16 +229,19 @@ router.get('/me', authenticateToken, async (req, res) => {
         }
         
         if (result.rows.length === 0) {
+            console.log(`❌ No customer record found for user ID ${userId}`);
             return res.status(404).json({ 
                 error: 'Customer record not found. Please contact support to link your account.',
                 details: 'Your user account exists but no customer record is linked. Please register through the website or contact support.'
             });
         }
         
+        console.log(`✅ Returning customer data for customer ID: ${result.rows[0].id}`);
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error fetching customer information:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('❌ Error fetching customer information:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 });
 
