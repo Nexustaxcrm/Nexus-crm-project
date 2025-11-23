@@ -105,6 +105,32 @@ pool.on('error', (err, client) => {
     // Don't crash the server, just log the error
 });
 
+// Migration function to add user_id column to customers table
+async function addUserIdColumnMigration(pool) {
+    try {
+        const columnCheck = await pool.query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='customers' AND column_name='user_id'
+        `);
+        
+        if (columnCheck.rows.length === 0) {
+            console.log('🔄 Adding user_id column to customers table...');
+            await pool.query('ALTER TABLE customers ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL');
+            console.log('✅ user_id column added successfully');
+        } else {
+            console.log('✅ user_id column already exists');
+        }
+        
+        // Create index if it doesn't exist
+        await pool.query('CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id) WHERE user_id IS NOT NULL');
+    } catch (alterError) {
+        console.error('❌ Error adding user_id column:', alterError.message);
+        // Don't fail the server startup, but log the error
+        throw alterError; // Re-throw so we know if migration fails
+    }
+}
+
 // Initialize database schema and create admin user if needed
 async function initializeDatabase() {
     try {
@@ -160,29 +186,8 @@ async function initializeDatabase() {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `);
-            // Add user_id column if it doesn't exist (for existing databases)
-            // PostgreSQL doesn't support IF NOT EXISTS for ADD COLUMN, so we check first
-            try {
-                const columnCheck = await pool.query(`
-                    SELECT column_name 
-                    FROM information_schema.columns 
-                    WHERE table_name='customers' AND column_name='user_id'
-                `);
-                
-                if (columnCheck.rows.length === 0) {
-                    console.log('Adding user_id column to customers table...');
-                    await pool.query('ALTER TABLE customers ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL');
-                    console.log('✅ user_id column added successfully');
-                } else {
-                    console.log('✅ user_id column already exists');
-                }
-                
-                // Create index if it doesn't exist
-                await pool.query('CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id) WHERE user_id IS NOT NULL');
-            } catch (alterError) {
-                console.error('❌ Error adding user_id column:', alterError.message);
-                // Don't fail the server startup, but log the error
-            }
+            // Add user_id column migration (runs after manual table creation)
+            await addUserIdColumnMigration(pool);
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS customer_actions (
                     id SERIAL PRIMARY KEY,
@@ -201,6 +206,14 @@ async function initializeDatabase() {
             // Create composite index for assigned work queries
             await pool.query('CREATE INDEX IF NOT EXISTS idx_customers_assigned_status ON customers(assigned_to, status, archived) WHERE assigned_to IS NOT NULL');
             console.log('Database tables created');
+        }
+        
+        // Run migration to add user_id column (runs after schema initialization in both paths)
+        try {
+            await addUserIdColumnMigration(pool);
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
         }
 
         // Check if admin user exists, create if not (case-insensitive check)
