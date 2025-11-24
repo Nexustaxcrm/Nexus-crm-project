@@ -1603,6 +1603,7 @@ router.get('/documents/:customerId', authenticateToken, async (req, res) => {
         }
         
         // Get documents for customer
+        console.log(`📋 Fetching documents for customer ID: ${customerId}`);
         const result = await dbPool.query(
             `SELECT id, file_name, file_path, file_size, file_type, uploaded_at
              FROM customer_documents
@@ -1610,6 +1611,11 @@ router.get('/documents/:customerId', authenticateToken, async (req, res) => {
              ORDER BY uploaded_at DESC`,
             [customerId]
         );
+        
+        console.log(`📊 Found ${result.rows.length} document(s) for customer ID ${customerId}`);
+        if (result.rows.length > 0) {
+            console.log(`📄 Document IDs: ${result.rows.map(d => d.id).join(', ')}`);
+        }
         
         res.json(result.rows);
         
@@ -1631,36 +1637,47 @@ router.get('/documents/:documentId/download', authenticateToken, async (req, res
         const userId = req.user.userId;
         const userRole = req.user.role;
         
+        console.log(`📄 Download request - Document ID: ${documentId}, User ID: ${userId}, Role: ${userRole}`);
+        
         // Get document info
         const docResult = await dbPool.query(
-            `SELECT cd.*, c.user_id as customer_user_id
+            `SELECT cd.*, c.user_id as customer_user_id, c.id as customer_id
              FROM customer_documents cd
              JOIN customers c ON cd.customer_id = c.id
              WHERE cd.id = $1`,
             [documentId]
         );
         
+        console.log(`📊 Document query result: Found ${docResult.rows.length} document(s) with ID ${documentId}`);
+        
         if (docResult.rows.length === 0) {
+            console.log(`❌ Document ID ${documentId} not found in database`);
             return res.status(404).json({ error: 'Document not found' });
         }
         
         const document = docResult.rows[0];
+        console.log(`📄 Document found - ID: ${document.id}, Customer ID: ${document.customer_id}, File: ${document.file_name}, Path: ${document.file_path}`);
         
         // For customers, verify they can only download their own documents
         if (userRole === 'customer' && document.customer_user_id !== userId) {
+            console.log(`⚠️ Access denied - Document customer_user_id (${document.customer_user_id}) does not match user ID (${userId})`);
             return res.status(403).json({ error: 'Access denied. You can only download your own documents.' });
         }
         
         // Check if file exists
+        console.log(`🔍 Checking if file exists at path: ${document.file_path}`);
         if (!fs.existsSync(document.file_path)) {
+            console.log(`❌ File not found on server at path: ${document.file_path}`);
             return res.status(404).json({ error: 'File not found on server' });
         }
         
+        console.log(`✅ File exists, sending download for: ${document.file_name}`);
         // Send file
         res.download(document.file_path, document.file_name);
         
     } catch (error) {
         console.error('❌ Error downloading document:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ error: 'Server error downloading document', details: error.message });
     }
 });

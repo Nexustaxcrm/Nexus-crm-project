@@ -983,6 +983,7 @@ async function loadCustomerUploadedDocuments(customerId) {
             return;
         }
         
+        console.log(`📋 Fetching documents for customer ID: ${customerId}`);
         const response = await fetch(API_BASE_URL + `/customers/documents/${customerId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -991,6 +992,12 @@ async function loadCustomerUploadedDocuments(customerId) {
         
         if (response.ok) {
             const documents = await response.json();
+            
+            console.log(`📄 Loaded ${documents.length} document(s) for customer ID ${customerId}`);
+            if (documents.length > 0) {
+                console.log(`📄 Document IDs: ${documents.map(d => d.id).join(', ')}`);
+                console.log(`📄 Document names: ${documents.map(d => d.file_name).join(', ')}`);
+            }
             
             if (documents.length === 0) {
                 documentsList.innerHTML = '<div class="text-center text-muted"><i class="fas fa-file-alt"></i> No documents uploaded yet</div>';
@@ -1004,7 +1011,18 @@ async function loadCustomerUploadedDocuments(customerId) {
                     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
                 };
                 
-                documentsList.innerHTML = documents.map(doc => {
+                // Filter out any documents with invalid IDs
+                const validDocuments = documents.filter(doc => doc.id && !isNaN(doc.id) && doc.id > 0);
+                if (validDocuments.length !== documents.length) {
+                    console.warn(`⚠️ Filtered out ${documents.length - validDocuments.length} document(s) with invalid IDs`);
+                }
+                
+                if (validDocuments.length === 0) {
+                    documentsList.innerHTML = '<div class="text-center text-muted"><i class="fas fa-file-alt"></i> No valid documents found</div>';
+                    return;
+                }
+                
+                documentsList.innerHTML = validDocuments.map(doc => {
                     const uploadDate = new Date(doc.uploaded_at).toLocaleString();
                     const fileSize = formatFileSize(doc.file_size);
                     const fileIcon = doc.file_type.includes('pdf') ? 'fa-file-pdf text-danger' : 
