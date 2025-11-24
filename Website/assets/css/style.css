@@ -1977,14 +1977,22 @@ kbd {
   display: block;
 }
 .irs-logo-placeholder {
-  display: none;
-  font-size: 11px;
+  display: inline-block;
+  font-size: 10px;
   color: #063232;
   font-weight: 600;
   white-space: nowrap;
-  padding: 5px 10px;
-  background: #f0f0f0;
-  border-radius: 4px;
+  padding: 4px 8px;
+  background: #e8e8e8;
+  border-radius: 3px;
+  border: 1px solid #d0d0d0;
+  line-height: 1.2;
+}
+.irs-logo-link img[src*="irs-authorized-logo.png"]:not([src=""]) {
+  display: block;
+}
+.irs-logo-link img[src*="irs-authorized-logo.png"]:not([src=""]) ~ .irs-logo-placeholder {
+  display: none;
 }
 @media (max-width: 1199px) {
   .irs-logo-item {
