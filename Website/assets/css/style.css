@@ -1884,14 +1884,6 @@ kbd {
   object-fit: contain;
   display: block;
 }
-/* Make logo smaller when header is sticky */
-.ak-sticky_header .ak-site_branding {
-  max-width: 180px;
-  min-width: 140px;
-}
-.ak-sticky_header .ak-site_branding img {
-  max-height: 45px;
-}
 
 .ak-site_header.ak-style1 .ak-main_header_in,
 .ak-site_header.ak-style1 .ak-top_header_in {
@@ -1909,15 +1901,6 @@ kbd {
   padding-left: 0;
   margin-left: 0;
   justify-self: start;
-}
-/* Adjust header layout when sticky - reduce logo space */
-.ak-sticky_header.ak-style1 .ak-main-header-left {
-  min-width: 140px;
-  max-width: 180px;
-}
-/* Ensure content flows better next to smaller logo when sticky */
-.ak-sticky_header.ak-style1 .ak-main_header_in {
-  gap: 15px;
 }
 .ak-site_header.ak-style1 .ak-main-header-center {
   display: flex;
@@ -6041,11 +6024,6 @@ kbd {
   max-height: 75px;
   height: auto;
   object-fit: contain;
-}
-/* Override logo size when sticky header is active */
-.ak-sticky_header .ak-site_branding img {
-  width: 150px;
-  max-height: 45px;
 }
 .services_ntf li{
   color: #fff;
