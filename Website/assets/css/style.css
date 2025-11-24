@@ -2036,7 +2036,7 @@ kbd {
   align-items: center;
   position: relative;
   margin: 0px;
-  gap: 20px;
+  gap: 0;
   width: 100%;
   padding: 12px 0;
   min-height: 75px;
@@ -2088,7 +2088,7 @@ kbd {
 @media screen and (min-width: 1200px) {
   .ak-site_header.ak-style1 .ak-main_header_in {
     grid-template-columns: auto 1fr;
-    gap: 20px;
+    gap: 0;
   }
   .ak-site_header.ak-style1 .ak-main-header-left {
     min-width: 200px;
@@ -2709,7 +2709,7 @@ kbd {
     min-height: 75px;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 15px;
+    gap: 0;
     margin: 0px;
     padding: 12px 0;
   }
