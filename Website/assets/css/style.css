@@ -1861,7 +1861,7 @@ kbd {
 /* Top Bar Styles */
 .ak-top-bar {
   background-color: #063232;
-  padding: 10px 0;
+  padding: 6px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .ak-top-bar-in {
@@ -1888,16 +1888,19 @@ kbd {
   gap: 8px;
   color: #ffffff;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   transition: opacity 0.3s ease;
 }
-.top-bar-contact-item img,
+.top-bar-contact-item img {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+}
 .top-bar-contact-item svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-}
-.top-bar-contact-item svg {
   fill: currentColor;
 }
 .top-bar-contact-item:hover {
@@ -1928,7 +1931,7 @@ kbd {
 }
 @media (max-width: 768px) {
   .ak-top-bar {
-    padding: 8px 0;
+    padding: 6px 0;
   }
   .ak-top-bar-in {
     flex-direction: column;
@@ -1955,17 +1958,33 @@ kbd {
 /* IRS Logo in Navbar */
 .irs-logo-item {
   margin-left: 20px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
 }
 .irs-logo-link {
   display: flex;
   align-items: center;
   padding: 0 !important;
+  height: 100%;
+  text-decoration: none;
 }
 .irs-logo {
-  height: 50px;
+  height: 45px;
   width: auto;
-  max-width: 180px;
+  max-width: 160px;
   object-fit: contain;
+  display: block;
+}
+.irs-logo-placeholder {
+  display: none;
+  font-size: 11px;
+  color: #063232;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 5px 10px;
+  background: #f0f0f0;
+  border-radius: 4px;
 }
 @media (max-width: 1199px) {
   .irs-logo-item {
@@ -2025,45 +2044,59 @@ kbd {
   justify-self: center;
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   max-width: 100%;
 }
 /* Ensure navigation links don't wrap and auto-adjust spacing */
 @media screen and (min-width: 1200px) {
   .ak-site_header.ak-style1 .ak-main_header_in {
     grid-template-columns: auto 1fr auto;
-    gap: 30px;
+    gap: 20px;
   }
   .ak-site_header.ak-style1 .ak-main-header-left {
-    min-width: 220px;
+    min-width: 200px;
+    max-width: 250px;
     flex: 0 0 auto;
   }
   .ak-site_header.ak-style1 .ak-main-header-right {
-    min-width: 220px;
+    min-width: 0;
     flex: 0 0 auto;
   }
   .ak-nav .ak-nav_list {
     width: 100%;
     justify-content: center;
     flex-wrap: nowrap;
+    gap: 0;
   }
   .ak-nav .ak-nav_list li {
     flex: 0 0 auto;
     margin: 0;
   }
   .ak-nav .ak-nav_list li a {
-    padding: 0 15px;
+    padding: 0 12px;
     white-space: nowrap;
+    font-size: 16px;
+  }
+  .irs-logo-item {
+    margin-left: 15px;
   }
 }
 @media screen and (min-width: 1400px) {
   .ak-nav .ak-nav_list li a {
-    padding: 0 20px;
+    padding: 0 18px;
+    font-size: 17px;
+  }
+  .irs-logo-item {
+    margin-left: 20px;
   }
 }
 @media screen and (min-width: 1600px) {
   .ak-nav .ak-nav_list li a {
-    padding: 0 25px;
+    padding: 0 22px;
+    font-size: 18px;
+  }
+  .irs-logo-item {
+    margin-left: 25px;
   }
 }
 
