@@ -4531,6 +4531,13 @@ let currentViewingDocument = null;
 // View customer document in pop-up
 async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
     try {
+        // Validate inputs
+        if (!documentId || isNaN(documentId)) {
+            console.error('❌ Invalid document ID:', documentId);
+            showNotification('error', 'Invalid Document', 'Invalid document ID. Please refresh the page and try again.');
+            return;
+        }
+        
         const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
@@ -4539,6 +4546,8 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
         
         // Store document info for download button
         currentViewingDocument = { id: documentId, fileName: fileName };
+        
+        console.log(`📄 Attempting to view document: ID=${documentId}, Name=${fileName}, isImage=${isImage}, isPDF=${isPDF}`);
         
         // Update modal title
         const modalTitle = document.getElementById('documentViewerTitle');
@@ -4564,11 +4573,17 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
         modal.show();
         
         // Fetch document
-        const response = await fetch(API_BASE_URL + `/customers/documents/${documentId}/download`, {
+        console.log(`📡 Fetching document ID ${documentId} for viewing`);
+        const downloadUrl = API_BASE_URL + `/customers/documents/${documentId}/download`;
+        console.log(`📡 Document URL: ${downloadUrl}`);
+        
+        const response = await fetch(downloadUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+        
+        console.log(`📡 Document fetch response status: ${response.status}`);
         
         if (response.ok) {
             const blob = await response.blob();
@@ -4617,12 +4632,27 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
             }, { once: true });
             
         } else {
-            const error = await response.json();
+            // Handle error response
+            let errorMessage = 'Failed to load document';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+                console.error('❌ Document fetch error:', errorData);
+            } catch (jsonError) {
+                // If response is not JSON, use status text
+                errorMessage = response.statusText || `Server returned status ${response.status}`;
+                console.error('❌ Document fetch error (non-JSON):', response.status, response.statusText);
+            }
+            
             viewerContent.innerHTML = `
                 <div class="text-center p-5">
                     <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
                     <h5>Error Loading Document</h5>
-                    <p class="text-muted">${error.error || 'Failed to load document'}</p>
+                    <p class="text-muted">${errorMessage}</p>
+                    ${response.status === 404 ? '<p class="text-muted small">The document may have been deleted or moved.</p>' : ''}
+                    <button type="button" class="btn btn-secondary mt-3" onclick="bootstrap.Modal.getInstance(document.getElementById('documentViewerModal')).hide()">
+                        Close
+                    </button>
                 </div>
             `;
         }
