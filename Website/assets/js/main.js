@@ -1420,7 +1420,7 @@
 
     // Create canvas for video frame analysis
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let animationFrameId = null;
 
     function checkVideoBackground() {
