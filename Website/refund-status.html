@@ -75,15 +75,16 @@
       }
       .refund-status-btn {
         display: inline-block;
-        padding: 11px 28px;
+        padding: 14px 36px;
         background: #063232;
         color: #ffffff;
         text-decoration: none;
-        border-radius: 6px;
-        font-size: 11px;
+        border-radius: 8px;
+        font-size: 14px;
         font-weight: 600;
         transition: all 0.3s ease;
         border: 2px solid #063232;
+        min-width: 140px;
       }
       .refund-status-btn:hover {
         background: #2dce89;
@@ -364,6 +365,40 @@
     </div>
     <!-- Page Transition Loader -->
 
+    <!-- Start Top Bar Section -->
+    <div class="ak-top-bar">
+      <div class="container">
+        <div class="ak-top-bar-in">
+          <div class="ak-top-bar-left">
+            <a href="tel:+1234567890" class="top-bar-contact-item">
+              <img src="assets/img/icon/phone.svg" alt="Phone" />
+              <span>(123) 456-7890</span>
+            </a>
+            <a href="mailto:info@nexustaxfiling.com" class="top-bar-contact-item">
+              <img src="assets/img/icon/email.svg" alt="Email" />
+              <span>info@nexustaxfiling.com</span>
+            </a>
+            <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer" class="top-bar-contact-item">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 0C3.58 0 0 3.58 0 8C0 9.77 0.65 11.38 1.75 12.6L0.5 15.5L3.4 14.25C4.62 15.35 6.23 16 8 16C12.42 16 16 12.42 16 8C16 3.58 12.42 0 8 0Z" fill="currentColor"/>
+                <path d="M12.5 9.5C12.3 9.2 11.1 8.7 10.7 8.6C10.3 8.5 10.1 8.45 9.9 8.75C9.7 9.05 9.1 9.65 8.95 9.8C8.8 9.95 8.65 10 8.4 9.75C8.15 9.5 7.7 8.95 7.2 8.45C6.8 8.05 6.45 7.7 6.2 7.45C5.95 7.2 6.1 7.05 6.25 6.85C6.4 6.65 6.5 6.5 6.65 6.3C6.8 6.1 6.85 5.95 7 5.75C7.15 5.55 7.1 5.4 7 5.25C6.9 5.1 6.5 4.1 6.3 3.65C6.1 3.2 5.9 3.25 5.75 3.25C5.6 3.25 5.4 3.25 5.2 3.25C5 3.25 4.75 3.3 4.55 3.5C4.35 3.7 3.85 4.2 3.85 5.2C3.85 6.2 4.6 7.15 4.75 7.35C4.9 7.55 6.3 9.45 8.3 10.25C9.1 10.6 9.7 10.8 10.2 10.95C10.7 11.1 11.15 11.05 11.5 10.95C11.85 10.85 12.5 10.4 12.7 9.9C12.9 9.4 12.9 8.95 12.85 8.85C12.8 8.75 12.7 8.8 12.5 9.5Z" fill="white"/>
+              </svg>
+              <span>WhatsApp</span>
+            </a>
+          </div>
+          <div class="ak-top-bar-right">
+            <a href="/crm" class="top-bar-btn login-btn" target="_blank" rel="noopener noreferrer">
+              <span>SIGN IN</span>
+            </a>
+            <a href="contact.html#contactForm" class="top-bar-btn signup-btn">
+              <span>SIGN UP</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Top Bar Section -->
+
     <!-- Start Header Section -->
     <header class="ak-site_header ak-style1 ak-sticky_header">
       <div class="ak-main_header">
@@ -383,8 +418,19 @@
                   <li>
                     <a href="about.html">About</a>
                   </li>
-                  <li>
+                  <li class="menu-item-has-children">
                     <a href="services.html">Services</a>
+                    <ul>
+                      <li><a href="services.html">Strategic Tax Planning</a></li>
+                      <li><a href="services.html">US Individual Tax</a></li>
+                      <li><a href="services.html">Services Extension Tax Filing</a></li>
+                      <li><a href="services.html">FBAR & FATCA Services</a></li>
+                      <li><a href="services.html">ITIN Assistance</a></li>
+                      <li><a href="services.html">Representation Services</a></li>
+                      <li><a href="services.html">W4 Submission & Guidelines</a></li>
+                      <li><a href="services.html">Entity Formation</a></li>
+                      <li><a href="services.html">Small & Medium Business</a></li>
+                    </ul>
                   </li>
                   <li>
                     <a href="refund-status.html">Refund Status</a>
@@ -392,74 +438,15 @@
                   <li>
                     <a href="contact.html">Contact</a>
                   </li>
+                  <li class="irs-logo-item">
+                    <a href="#" class="irs-logo-link">
+                      <img src="assets/img/irs-authorized-logo.png" alt="IRS Authorized E-File Provider" class="irs-logo" />
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
             <div class="ak-main-header-right">
-              <div class="header-auth-buttons">
-                <a href="/crm" class="common-btn login-btn" target="_blank" rel="noopener noreferrer">
-                  <span>Login</span>
-                  <span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                    >
-                      <g clip-path="url(#clip0_201_978435345)">
-                        <path
-                          d="M1.42236 6.99728H13.089M13.089 6.99728L7.48903 1.39728M13.089 6.99728L7.48903 12.5973"
-                          stroke="#030917"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_201_978435345">
-                          <rect
-                            width="14"
-                            height="14"
-                            fill="white"
-                            transform="translate(0.00927734)"
-                          />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </span>
-                </a>
-                <a href="contact.html#contactForm" class="common-btn register-btn">
-                  <span>Register</span>
-                  <span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                    >
-                      <g clip-path="url(#clip0_201_978435346)">
-                        <path
-                          d="M1.42236 6.99728H13.089M13.089 6.99728L7.48903 1.39728M13.089 6.99728L7.48903 12.5973"
-                          stroke="#030917"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_201_978435346">
-                          <rect
-                            width="14"
-                            height="14"
-                            fill="white"
-                            transform="translate(0.00927734)"
-                          />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </span>
-                </a>
-              </div>
             </div>
           </div>
         </div>
