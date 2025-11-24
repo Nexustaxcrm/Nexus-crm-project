@@ -2399,7 +2399,7 @@ kbd {
   }
   .ak-nav .ak-nav_list > li {
     margin-right: 0;
-    height: 80px;
+    height: 60px;
     flex: 0 0 auto;
   }
   .ak-nav .ak-nav_list > li:last-child {
@@ -3511,9 +3511,17 @@ kbd {
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-main-title {
   font-size: 80px;
   text-transform: capitalize;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+               0 0 20px rgba(255, 255, 255, 0.6),
+               0 0 30px rgba(255, 255, 255, 0.4),
+               0 0 40px rgba(255, 255, 255, 0.3);
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-main-title .hero-main-title-1 {
   font-size: 70px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+               0 0 20px rgba(255, 255, 255, 0.6),
+               0 0 30px rgba(255, 255, 255, 0.4),
+               0 0 40px rgba(255, 255, 255, 0.3);
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .main-desp {
   max-width: 560px;
