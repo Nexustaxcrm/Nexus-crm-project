@@ -1889,22 +1889,32 @@ kbd {
   color: #ffffff;
   text-decoration: none;
   font-size: 12px;
-  transition: opacity 0.3s ease;
+  transition: transform 0.3s ease;
 }
 .top-bar-contact-item img {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
   filter: brightness(0) invert(1);
+  transition: transform 0.3s ease;
 }
 .top-bar-contact-item svg {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
   fill: currentColor;
+  transition: transform 0.3s ease;
+}
+.top-bar-contact-item svg path[fill="#25D366"] {
+  fill: #25D366 !important;
 }
 .top-bar-contact-item:hover {
-  opacity: 0.8;
+  transform: scale(1.1);
+  color: #ffffff;
+}
+.top-bar-contact-item:hover img,
+.top-bar-contact-item:hover svg {
+  transform: scale(1.15);
 }
 .top-bar-btn {
   padding: 5px 16px;
