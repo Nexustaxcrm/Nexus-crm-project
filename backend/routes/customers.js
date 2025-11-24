@@ -1682,4 +1682,73 @@ router.get('/documents/:documentId/download', authenticateToken, async (req, res
     }
 });
 
+// Delete customer document endpoint
+router.delete('/documents/:documentId', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const documentId = parseInt(req.params.documentId);
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        
+        console.log(`🗑️ Delete request - Document ID: ${documentId}, User ID: ${userId}, Role: ${userRole}`);
+        
+        // Get document info to verify ownership and get file path
+        const docResult = await dbPool.query(
+            `SELECT cd.*, c.user_id as customer_user_id, c.id as customer_id
+             FROM customer_documents cd
+             JOIN customers c ON cd.customer_id = c.id
+             WHERE cd.id = $1`,
+            [documentId]
+        );
+        
+        console.log(`📊 Document query result: Found ${docResult.rows.length} document(s) with ID ${documentId}`);
+        
+        if (docResult.rows.length === 0) {
+            console.log(`❌ Document ID ${documentId} not found in database`);
+            return res.status(404).json({ error: 'Document not found' });
+        }
+        
+        const document = docResult.rows[0];
+        console.log(`📄 Document found - ID: ${document.id}, Customer ID: ${document.customer_id}, File: ${document.file_name}`);
+        
+        // For customers, verify they can only delete their own documents
+        if (userRole === 'customer' && document.customer_user_id !== userId) {
+            console.log(`⚠️ Access denied - Document customer_user_id (${document.customer_user_id}) does not match user ID (${userId})`);
+            return res.status(403).json({ error: 'Access denied. You can only delete your own documents.' });
+        }
+        
+        // Delete file from filesystem if it exists
+        if (fs.existsSync(document.file_path)) {
+            try {
+                fs.unlinkSync(document.file_path);
+                console.log(`✅ File deleted from filesystem: ${document.file_path}`);
+            } catch (fileError) {
+                console.error(`⚠️ Error deleting file from filesystem: ${fileError.message}`);
+                // Continue with database deletion even if file deletion fails
+            }
+        } else {
+            console.log(`⚠️ File not found on filesystem: ${document.file_path} (continuing with database deletion)`);
+        }
+        
+        // Delete document record from database
+        await dbPool.query('DELETE FROM customer_documents WHERE id = $1', [documentId]);
+        console.log(`✅ Document ID ${documentId} deleted from database`);
+        
+        res.json({ 
+            success: true, 
+            message: 'Document deleted successfully',
+            documentId: documentId
+        });
+        
+    } catch (error) {
+        console.error('❌ Error deleting document:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({ error: 'Server error deleting document', details: error.message });
+    }
+});
+
 module.exports = router;

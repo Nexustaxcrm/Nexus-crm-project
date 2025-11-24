@@ -1052,6 +1052,12 @@ async function loadCustomerUploadedDocuments(customerId) {
                                         title="Download document">
                                     <i class="fas fa-download"></i> Download
                                 </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-danger" 
+                                        onclick="deleteCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}', ${customerId})"
+                                        title="Delete document">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
                         </div>
                     `;
@@ -4529,6 +4535,12 @@ async function loadCustomerDocuments(customerId) {
                                         title="Download document">
                                     <i class="fas fa-download"></i> Download
                                 </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-danger" 
+                                        onclick="event.stopPropagation(); deleteCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}', ${customerId})"
+                                        title="Delete document">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
                         </div>
                     `;
@@ -4728,6 +4740,59 @@ async function downloadCustomerDocument(documentId, fileName) {
     } catch (error) {
         console.error('Error downloading document:', error);
         showNotification('error', 'Download Failed', 'Failed to download document. Please try again.');
+    }
+}
+
+// Delete customer document
+async function deleteCustomerDocument(documentId, fileName, customerId) {
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete "${fileName}"?\n\nThis action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+        
+        console.log(`🗑️ Deleting document ID ${documentId}: ${fileName}`);
+        
+        const response = await fetch(API_BASE_URL + `/customers/documents/${documentId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log(`✅ Document deleted successfully: ${result.message}`);
+            showNotification('success', 'Document Deleted', `"${fileName}" has been deleted successfully.`);
+            
+            // Reload documents list
+            // Check if we're in customer dashboard or admin/preparation view
+            const customerDocumentsList = document.getElementById('customerUploadedDocumentsList');
+            const adminDocumentsList = document.getElementById('customerDocumentsList');
+            
+            if (customerDocumentsList && customerId) {
+                // Customer dashboard - reload customer documents
+                console.log(`🔄 Reloading customer documents for customer ID: ${customerId}`);
+                await loadCustomerUploadedDocuments(customerId);
+            } else if (adminDocumentsList && customerId) {
+                // Admin/Preparation view - reload customer documents in modal
+                console.log(`🔄 Reloading customer documents in admin view for customer ID: ${customerId}`);
+                await loadCustomerDocuments(customerId);
+            }
+        } else {
+            const error = await response.json();
+            console.error('❌ Delete failed:', error);
+            showNotification('error', 'Delete Failed', error.error || 'Failed to delete document');
+        }
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        showNotification('error', 'Delete Failed', 'Failed to delete document. Please try again.');
     }
 }
 
