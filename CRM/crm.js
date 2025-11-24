@@ -399,6 +399,24 @@ async function handleLogin(e) {
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
+    // Validate inputs
+    if (!username) {
+        showNotification('error', 'Validation Error', 'Username is required');
+        return;
+    }
+    
+    if (!password) {
+        showNotification('error', 'Validation Error', 'Password is required');
+        return;
+    }
+    
+    // Check if API_BASE_URL is defined
+    if (typeof API_BASE_URL === 'undefined') {
+        console.error('❌ API_BASE_URL is not defined!');
+        showNotification('error', 'Configuration Error', 'API URL is not configured. Please contact support.');
+        return;
+    }
+    
     // Normalize username to lowercase for case-insensitive comparison
     const usernameLower = username.toLowerCase();
     
@@ -456,6 +474,9 @@ async function handleLogin(e) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for Railway
         
+        console.log('📡 Attempting login for username:', usernameLower);
+        console.log('📡 API URL:', API_BASE_URL + '/auth/login');
+        
         const response = await fetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
             headers: {
@@ -467,7 +488,28 @@ async function handleLogin(e) {
         
         clearTimeout(timeoutId);
         
-        const data = await response.json();
+        console.log('📡 Login response status:', response.status, response.statusText);
+        
+        // Parse response - handle both JSON and non-JSON responses
+        let data;
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                console.error('❌ Failed to parse JSON response:', jsonError);
+                const textResponse = await response.text();
+                console.error('❌ Response body:', textResponse);
+                showNotification('error', 'Login Failed', 'Server returned invalid response. Please try again.');
+                return;
+            }
+        } else {
+            // Non-JSON response (shouldn't happen, but handle it)
+            const textResponse = await response.text();
+            console.error('❌ Non-JSON response received:', textResponse);
+            showNotification('error', 'Login Failed', 'Server returned unexpected response format.');
+            return;
+        }
         
         if (response.ok) {
             // Login successful - save token and user info
@@ -507,11 +549,14 @@ async function handleLogin(e) {
             }
         }
     } catch (error) {
-        console.error('Login error details:', {
+        // Log full error details for debugging
+        const apiUrl = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL + '/auth/login' : 'API_BASE_URL not defined';
+        console.error('❌ Login error details:', {
             name: error.name,
             message: error.message,
             stack: error.stack,
-            apiUrl: API_BASE_URL + '/auth/login'
+            apiUrl: apiUrl,
+            username: usernameLower
         });
         
         // Provide detailed error message
@@ -520,10 +565,14 @@ async function handleLogin(e) {
         if (error.name === 'AbortError') {
             errorMessage += 'Request timed out. The server may be slow or unreachable.';
         } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            errorMessage += `Cannot reach server at ${API_BASE_URL}. `;
+            const baseUrl = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'undefined';
+            errorMessage += `Cannot reach server at ${baseUrl}. `;
             errorMessage += 'Please check: 1) Is Railway backend deployed? 2) Is the URL correct? 3) Check browser console for CORS errors.';
         } else if (error.message.includes('CORS')) {
             errorMessage += 'CORS error. Backend may not be configured correctly.';
+        } else if (error.message.includes('JSON') || error.message.includes('Unexpected token')) {
+            errorMessage += 'Invalid response from server. Please try again or contact support.';
+            console.error('❌ This might be a JSON parsing error. Check server response format.');
         } else {
             errorMessage += error.message || 'Unknown error occurred.';
         }
