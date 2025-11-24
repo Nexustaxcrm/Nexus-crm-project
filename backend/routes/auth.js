@@ -80,12 +80,16 @@ router.post('/login', validateLogin, async (req, res) => {
         const usernameLower = username.toLowerCase().trim();
         
         // Find user in database (case-insensitive username comparison)
+        console.log(`🔍 Searching for user with username: ${usernameLower}`);
         const result = await dbPool.query(
             'SELECT * FROM users WHERE LOWER(username) = $1 AND locked = FALSE',
             [usernameLower]
         );
         
+        console.log(`📊 Found ${result.rows.length} user(s) with username: ${usernameLower}`);
+        
         if (result.rows.length === 0) {
+            console.log(`❌ User not found or account is locked: ${usernameLower}`);
             return res.status(401).json({ error: 'Invalid username or password' });
         }
         
@@ -107,8 +111,11 @@ router.post('/login', validateLogin, async (req, res) => {
         }
         
         if (!isValid) {
+            console.log(`❌ Password validation failed for user: ${usernameLower}`);
             return res.status(401).json({ error: 'Invalid username or password' });
         }
+        
+        console.log(`✅ Password validated successfully for user: ${usernameLower}, role: ${user.role}`);
         
         // Generate JWT token
         if (!process.env.JWT_SECRET) {
@@ -121,6 +128,25 @@ router.post('/login', validateLogin, async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
+        
+        console.log(`✅ JWT token generated for user ID: ${user.id}, username: ${user.username}, role: ${user.role}`);
+        
+        // If customer role, check if customer record is linked
+        if (user.role === 'customer') {
+            try {
+                const customerCheck = await dbPool.query(
+                    'SELECT id, name, email FROM customers WHERE user_id = $1 LIMIT 1',
+                    [user.id]
+                );
+                if (customerCheck.rows.length === 0) {
+                    console.log(`⚠️ Customer user ${user.username} (ID: ${user.id}) has no linked customer record`);
+                } else {
+                    console.log(`✅ Customer record found for user ${user.username}: Customer ID ${customerCheck.rows[0].id}`);
+                }
+            } catch (checkError) {
+                console.error('Error checking customer record:', checkError);
+            }
+        }
         
         res.json({
             token,

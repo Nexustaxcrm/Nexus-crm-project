@@ -471,16 +471,40 @@ async function handleLogin(e) {
         
         if (response.ok) {
             // Login successful - save token and user info
+            console.log('✅ Login successful, user data:', data.user);
             sessionStorage.setItem('authToken', data.token);
             sessionStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
             // Also set on window for global access
             window.currentUser = data.user;
+            
+            // If customer role, ensure customer dashboard is shown
+            if (data.user.role === 'customer') {
+                console.log('🎯 Customer login detected, routing to customer dashboard');
+                // Hide admin dashboard
+                const dashboardPage = document.getElementById('dashboardPage');
+                if (dashboardPage) {
+                    dashboardPage.style.display = 'none';
+                }
+                // Show customer dashboard
+                const customerDashboard = document.getElementById('customerDashboardPage');
+                if (customerDashboard) {
+                    customerDashboard.style.display = 'block';
+                }
+            }
+            
             showDashboard();
             showNotification('success', 'Login Successful', 'Welcome back!');
         } else {
-            // Login failed
-            showNotification('error', 'Login Failed', data.error || 'Invalid credentials');
+            // Login failed - show detailed error
+            console.error('❌ Login failed:', data);
+            const errorMsg = data.error || 'Invalid credentials';
+            showNotification('error', 'Login Failed', errorMsg);
+            
+            // If it's a customer account issue, provide helpful message
+            if (errorMsg.includes('username') || errorMsg.includes('password')) {
+                console.log('💡 Tip: Check that username and password are correct');
+            }
         }
     } catch (error) {
         console.error('Login error details:', {
@@ -765,8 +789,12 @@ async function loadCustomerDashboard() {
     try {
         const token = sessionStorage.getItem('authToken');
         if (!token) {
-            throw new Error('Not authenticated');
+            console.error('❌ No auth token found');
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
         }
+        
+        console.log('📡 Fetching customer information from /customers/me');
         
         // Fetch customer information from API
         const response = await fetch(API_BASE_URL + '/customers/me', {
@@ -775,12 +803,27 @@ async function loadCustomerDashboard() {
             }
         });
         
+        console.log('📡 Response status:', response.status);
+        
         if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('❌ Failed to fetch customer info:', errorData);
+            
             if (response.status === 404) {
-                showNotification('warning', 'No Customer Record', 'Your customer record was not found. Please contact support.');
+                const errorMsg = errorData.message || 'Your customer record was not found.';
+                const details = errorData.details || 'Please contact support to link your account.';
+                showNotification('warning', 'No Customer Record', `${errorMsg} ${details}`);
+                return;
+            } else if (response.status === 403) {
+                showNotification('error', 'Access Denied', 'You do not have permission to access the customer dashboard.');
+                return;
+            } else if (response.status === 401) {
+                showNotification('error', 'Authentication Error', 'Your session has expired. Please log in again.');
+                // Redirect to login
+                logout();
                 return;
             }
-            throw new Error('Failed to fetch customer information');
+            throw new Error(errorData.error || 'Failed to fetch customer information');
         }
         
         const customer = await response.json();
