@@ -178,25 +178,6 @@ const documentUpload = multer({
     }
 });
 
-// Email transporter for notifications
-const createEmailTransporter = () => {
-    const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || 'nexustaxfiling@gmail.com';
-    const emailPassword = process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD;
-    
-    if (!emailPassword) {
-        console.warn('⚠️ Email credentials not configured. Email notifications will not be sent.');
-        return null;
-    }
-    
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: emailUser,
-            pass: emailPassword
-        }
-    });
-};
-
 // JWT authentication middleware
 const authenticateToken = (req, res, next) => {
     // Use verifyToken from auth routes if available, otherwise use inline version
