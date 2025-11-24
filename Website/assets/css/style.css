@@ -1961,19 +1961,22 @@ kbd {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
+  height: auto;
+  max-height: 50px;
 }
 .irs-logo-link {
   display: flex;
   align-items: center;
   padding: 0 !important;
-  height: 100%;
+  height: auto;
+  max-height: 50px;
   text-decoration: none;
 }
 .irs-logo {
-  height: 60px;
+  height: 40px;
   width: auto;
-  max-width: 220px;
-  min-width: 180px;
+  max-width: 160px;
+  min-width: 120px;
   object-fit: contain;
   display: block;
 }
@@ -2115,9 +2118,9 @@ kbd {
     margin-left: 20px;
   }
   .irs-logo {
-    height: 65px;
-    max-width: 240px;
-    min-width: 200px;
+    height: 42px;
+    max-width: 180px;
+    min-width: 140px;
   }
 }
 @media screen and (min-width: 1400px) {
@@ -2129,9 +2132,9 @@ kbd {
     margin-left: 25px;
   }
   .irs-logo {
-    height: 70px;
-    max-width: 260px;
-    min-width: 220px;
+    height: 45px;
+    max-width: 200px;
+    min-width: 160px;
   }
 }
 @media screen and (min-width: 1600px) {
@@ -2143,9 +2146,9 @@ kbd {
     margin-left: 30px;
   }
   .irs-logo {
-    height: 75px;
-    max-width: 280px;
-    min-width: 240px;
+    height: 48px;
+    max-width: 220px;
+    min-width: 180px;
   }
 }
 
@@ -2399,8 +2402,11 @@ kbd {
   }
   .ak-nav .ak-nav_list > li {
     margin-right: 0;
-    height: 60px;
+    height: auto;
+    min-height: 50px;
     flex: 0 0 auto;
+    display: flex;
+    align-items: center;
   }
   .ak-nav .ak-nav_list > li:last-child {
     margin-right: 0;
