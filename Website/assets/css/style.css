@@ -1874,7 +1874,7 @@ kbd {
 .ak-top-bar-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 30px;
   flex-wrap: wrap;
 }
 .ak-top-bar-right {
@@ -1939,7 +1939,7 @@ kbd {
     gap: 8px;
   }
   .ak-top-bar-left {
-    gap: 12px;
+    gap: 20px;
     width: 100%;
   }
   .ak-top-bar-right {
