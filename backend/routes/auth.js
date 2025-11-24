@@ -162,4 +162,67 @@ router.post('/login', validateLogin, async (req, res) => {
     }
 });
 
+// Diagnostic endpoint to check user account status (for troubleshooting)
+router.get('/diagnose/:username', async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const username = req.params.username.toLowerCase().trim();
+        
+        // Check if user exists
+        const userResult = await dbPool.query(
+            'SELECT id, username, role, locked, created_at FROM users WHERE LOWER(username) = $1',
+            [username]
+        );
+        
+        const diagnostics = {
+            username: username,
+            userExists: userResult.rows.length > 0,
+            userInfo: userResult.rows.length > 0 ? {
+                id: userResult.rows[0].id,
+                username: userResult.rows[0].username,
+                role: userResult.rows[0].role,
+                locked: userResult.rows[0].locked,
+                created_at: userResult.rows[0].created_at
+            } : null
+        };
+        
+        // If user exists, check customer record
+        if (userResult.rows.length > 0) {
+            const userId = userResult.rows[0].id;
+            const customerResult = await dbPool.query(
+                'SELECT id, name, email, phone, user_id FROM customers WHERE user_id = $1',
+                [userId]
+            );
+            
+            diagnostics.customerRecord = {
+                exists: customerResult.rows.length > 0,
+                linked: customerResult.rows.length > 0,
+                customerInfo: customerResult.rows.length > 0 ? customerResult.rows[0] : null
+            };
+            
+            // Also check for unlinked customers that might match
+            if (customerResult.rows.length === 0) {
+                const unlinkedResult = await dbPool.query(
+                    `SELECT id, name, email, phone, user_id 
+                     FROM customers 
+                     WHERE (LOWER(email) LIKE $1 OR LOWER(name) LIKE $1)
+                     AND user_id IS NULL
+                     LIMIT 5`,
+                    [`%${username}%`]
+                );
+                diagnostics.potentialMatches = unlinkedResult.rows;
+            }
+        }
+        
+        res.json(diagnostics);
+    } catch (error) {
+        console.error('Diagnostic error:', error);
+        res.status(500).json({ error: 'Server error', details: error.message });
+    }
+});
+
 module.exports = router;
