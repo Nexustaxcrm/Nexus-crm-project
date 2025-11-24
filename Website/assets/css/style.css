@@ -4563,6 +4563,17 @@ kbd {
 }
 .feature-card .feature-icon {
   margin-bottom: 28px;
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.feature-card .feature-icon svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+.feature-card:hover .feature-icon svg {
+  transform: scale(1.1);
 }
 .feature-card .feature-body .feature-title {
   margin-bottom: 15px;
