@@ -5065,7 +5065,7 @@ async function saveStatusUpdate() {
         
         // Save refund status if preparation role or admin updated it
         const isPreparation = currentUser && currentUser.role === 'preparation';
-        const isAdmin = currentUser && currentUser.role === 'admin';
+        // Note: isAdmin is already declared earlier in this function (line 4988)
         let refundStatus = null;
         
         if (isPreparation || isAdmin) {
