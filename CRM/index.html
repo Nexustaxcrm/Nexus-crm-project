@@ -3386,27 +3386,162 @@
                             </h4>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Name</label>
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                        Name
+                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="editField('name')" style="color: var(--text-color); text-decoration: none; font-size: 12px;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </label>
                                     <div id="customerDisplayName" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
                                         <span id="customerNameDisplay">-</span>
                                     </div>
+                                    <div id="customerEditName" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <input type="text" id="editFirstName" class="form-control form-control-sm mb-2" placeholder="First Name">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="text" id="editLastName" class="form-control form-control-sm mb-2" placeholder="Last Name">
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="saveField('name')">
+                                                <i class="fas fa-check"></i> Save
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('name')">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Phone</label>
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                        Phone
+                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="editField('phone')" style="color: var(--text-color); text-decoration: none; font-size: 12px;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </label>
                                     <div id="customerDisplayPhone" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
                                         <span id="customerPhoneDisplay">-</span>
                                     </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Email</label>
-                                    <div id="customerDisplayEmail" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
-                                        <span id="customerEmailDisplay">-</span>
+                                    <div id="customerEditPhone" style="display: none;">
+                                        <input type="tel" id="editPhone" class="form-control form-control-sm mb-2" placeholder="Phone Number">
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="saveField('phone')">
+                                                <i class="fas fa-check"></i> Save
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('phone')">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Address</label>
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                        Email
+                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="editField('email')" style="color: var(--text-color); text-decoration: none; font-size: 12px;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </label>
+                                    <div id="customerDisplayEmail" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
+                                        <span id="customerEmailDisplay">-</span>
+                                    </div>
+                                    <div id="customerEditEmail" style="display: none;">
+                                        <input type="email" id="editEmail" class="form-control form-control-sm mb-2" placeholder="Email Address">
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="saveField('email')">
+                                                <i class="fas fa-check"></i> Save
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('email')">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                        Address
+                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="editField('address')" style="color: var(--text-color); text-decoration: none; font-size: 12px;">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </label>
                                     <div id="customerDisplayAddress" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 60px; display: flex; align-items: center;">
                                         <span id="customerAddressDisplay">-</span>
+                                    </div>
+                                    <div id="customerEditAddress" style="display: none;">
+                                        <input type="text" id="editAddress1" class="form-control form-control-sm mb-2" placeholder="Address Line 1">
+                                        <input type="text" id="editAddress2" class="form-control form-control-sm mb-2" placeholder="Address Line 2 (optional)">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <input type="text" id="editCity" class="form-control form-control-sm mb-2" placeholder="City">
+                                            </div>
+                                            <div class="col-3">
+                                                <select id="editState" class="form-control form-control-sm mb-2">
+                                                    <option value="">State</option>
+                                                    <option value="AL">AL</option>
+                                                    <option value="AK">AK</option>
+                                                    <option value="AZ">AZ</option>
+                                                    <option value="AR">AR</option>
+                                                    <option value="CA">CA</option>
+                                                    <option value="CO">CO</option>
+                                                    <option value="CT">CT</option>
+                                                    <option value="DE">DE</option>
+                                                    <option value="FL">FL</option>
+                                                    <option value="GA">GA</option>
+                                                    <option value="HI">HI</option>
+                                                    <option value="ID">ID</option>
+                                                    <option value="IL">IL</option>
+                                                    <option value="IN">IN</option>
+                                                    <option value="IA">IA</option>
+                                                    <option value="KS">KS</option>
+                                                    <option value="KY">KY</option>
+                                                    <option value="LA">LA</option>
+                                                    <option value="ME">ME</option>
+                                                    <option value="MD">MD</option>
+                                                    <option value="MA">MA</option>
+                                                    <option value="MI">MI</option>
+                                                    <option value="MN">MN</option>
+                                                    <option value="MS">MS</option>
+                                                    <option value="MO">MO</option>
+                                                    <option value="MT">MT</option>
+                                                    <option value="NE">NE</option>
+                                                    <option value="NV">NV</option>
+                                                    <option value="NH">NH</option>
+                                                    <option value="NJ">NJ</option>
+                                                    <option value="NM">NM</option>
+                                                    <option value="NY">NY</option>
+                                                    <option value="NC">NC</option>
+                                                    <option value="ND">ND</option>
+                                                    <option value="OH">OH</option>
+                                                    <option value="OK">OK</option>
+                                                    <option value="OR">OR</option>
+                                                    <option value="PA">PA</option>
+                                                    <option value="RI">RI</option>
+                                                    <option value="SC">SC</option>
+                                                    <option value="SD">SD</option>
+                                                    <option value="TN">TN</option>
+                                                    <option value="TX">TX</option>
+                                                    <option value="UT">UT</option>
+                                                    <option value="VT">VT</option>
+                                                    <option value="VA">VA</option>
+                                                    <option value="WA">WA</option>
+                                                    <option value="WV">WV</option>
+                                                    <option value="WI">WI</option>
+                                                    <option value="WY">WY</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-3">
+                                                <input type="text" id="editZipCode" class="form-control form-control-sm mb-2" placeholder="Zip">
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="saveField('address')">
+                                                <i class="fas fa-check"></i> Save
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('address')">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -3448,147 +3583,11 @@
                             </div>
                         </div>
 
-                        <!-- Update Information Form (Collapsible) -->
-                        <div class="card" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="mb-0" style="color: var(--text-color);">
-                                    <i class="fas fa-edit"></i> Update Information
-                                </h4>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleUpdateForm()">
-                                    <i class="fas fa-chevron-down" id="updateFormToggleIcon"></i> Show/Hide
-                                </button>
-                            </div>
-                            <form id="customerForm" style="display: none;">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">First Name</label>
-                        <input type="text" id="customerFirstName" class="form-control" placeholder="Enter first name" required="">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" id="customerLastName" class="form-control" placeholder="Enter last name" required="">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Phone Number</label>
-                    <input type="tel" id="customerPhone" class="form-control" placeholder="Enter phone number" required="">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" id="customerEmail" class="form-control" placeholder="Enter email address" required="">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Address Line 1</label>
-                    <input type="text" id="customerAddress1" class="form-control" placeholder="Enter address line 1" required="">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Address Line 2</label>
-                    <input type="text" id="customerAddress2" class="form-control" placeholder="Enter address line 2 (optional)">
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">City</label>
-                        <input type="text" id="customerCity" class="form-control" placeholder="Enter city" required="">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">State</label>
-                        <select id="customerState" class="form-control" required="">
-                            <option value="">Select State</option>
-                            <option value="AL">AL</option>
-                            <option value="AK">AK</option>
-                            <option value="AZ">AZ</option>
-                            <option value="AR">AR</option>
-                            <option value="CA">CA</option>
-                            <option value="CO">CO</option>
-                            <option value="CT">CT</option>
-                            <option value="DE">DE</option>
-                            <option value="FL">FL</option>
-                            <option value="GA">GA</option>
-                            <option value="HI">HI</option>
-                            <option value="ID">ID</option>
-                            <option value="IL">IL</option>
-                            <option value="IN">IN</option>
-                            <option value="IA">IA</option>
-                            <option value="KS">KS</option>
-                            <option value="KY">KY</option>
-                            <option value="LA">LA</option>
-                            <option value="ME">ME</option>
-                            <option value="MD">MD</option>
-                            <option value="MA">MA</option>
-                            <option value="MI">MI</option>
-                            <option value="MN">MN</option>
-                            <option value="MS">MS</option>
-                            <option value="MO">MO</option>
-                            <option value="MT">MT</option>
-                            <option value="NE">NE</option>
-                            <option value="NV">NV</option>
-                            <option value="NH">NH</option>
-                            <option value="NJ">NJ</option>
-                            <option value="NM">NM</option>
-                            <option value="NY">NY</option>
-                            <option value="NC">NC</option>
-                            <option value="ND">ND</option>
-                            <option value="OH">OH</option>
-                            <option value="OK">OK</option>
-                            <option value="OR">OR</option>
-                            <option value="PA">PA</option>
-                            <option value="RI">RI</option>
-                            <option value="SC">SC</option>
-                            <option value="SD">SD</option>
-                            <option value="TN">TN</option>
-                            <option value="TX">TX</option>
-                            <option value="UT">UT</option>
-                            <option value="VT">VT</option>
-                            <option value="VA">VA</option>
-                            <option value="WA">WA</option>
-                            <option value="WV">WV</option>
-                            <option value="WI">WI</option>
-                            <option value="WY">WY</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Zip Code</label>
-                        <input type="text" id="customerZipCode" class="form-control" placeholder="Zip" required="">
-                    </div>
-                </div>
-                
-                <!-- File Upload Section -->
-                <div class="mb-3">
-                    <label class="form-label">Upload Documents (PDF, JPEG, PNG)</label>
-                    <input type="file" id="customerFiles" class="form-control" accept=".pdf,.jpeg,.jpg,.png" multiple="">
-                    <small class="text-muted">You can upload multiple files. Accepted formats: PDF, JPEG, PNG</small>
-                    <div id="uploadedFilesList" class="mt-2"></div>
-                </div>
-                
-                <!-- Refund Status Section -->
-                <div class="mb-3">
-                    <label class="form-label">Refund Status</label>
-                    <div class="refund-status-display">
-                        <select id="customerRefundStatus" class="form-control" disabled="">
-                            <option value="in_discussions">In Discussions</option>
-                            <option value="received_w2">Received W2</option>
-                            <option value="preparing_quote">Preparing Quote</option>
-                            <option value="quote_sent">Quote Sent to Customer</option>
-                            <option value="customer_approved">Customer Approved for Filing Taxes</option>
-                            <option value="taxes_filed">Taxes Filed</option>
-                        </select>
-                        <small class="text-muted d-block mt-1">This status is managed by your tax advisor</small>
-                    </div>
-                </div>
-                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <button type="submit" class="btn btn-primary w-100">
-                                            <i class="fas fa-save"></i> Save Changes
-                                        </button>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <button type="button" class="btn btn-secondary w-100" onclick="customerLogout()">
-                                            <i class="fas fa-sign-out-alt"></i> Logout
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
+                        <!-- Logout Button -->
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-secondary" onclick="customerLogout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -4907,10 +4906,7 @@
                 fileInput.addEventListener('change', handleFileUpload);
             }
             
-            const customerForm = document.getElementById('customerForm');
-            if (customerForm) {
-                customerForm.addEventListener('submit', handleCustomerSubmit);
-            }
+            // Customer form removed - using inline edit buttons instead
             
             // Check if customer is already logged in
             checkCustomerLogin();
@@ -4935,24 +4931,143 @@
             }
         }
         
-        // Toggle update form visibility
-        function toggleUpdateForm() {
-            const form = document.getElementById('customerForm');
-            const icon = document.getElementById('updateFormToggleIcon');
-            if (form) {
-                if (form.style.display === 'none' || form.style.display === '') {
-                    form.style.display = 'block';
-                    if (icon) {
-                        icon.classList.remove('fa-chevron-down');
-                        icon.classList.add('fa-chevron-up');
-                    }
+        // Store original values for cancel functionality
+        let originalFieldValues = {};
+        
+        // Edit field function
+        function editField(fieldType) {
+            // Hide display, show edit form
+            document.getElementById('customerDisplay' + fieldType.charAt(0).toUpperCase() + fieldType.slice(1)).style.display = 'none';
+            document.getElementById('customerEdit' + fieldType.charAt(0).toUpperCase() + fieldType.slice(1)).style.display = 'block';
+            
+            // Store original values
+            if (fieldType === 'name') {
+                const nameDisplay = document.getElementById('customerNameDisplay').textContent;
+                const nameParts = nameDisplay.split(' ');
+                originalFieldValues.name = {
+                    first: nameParts[0] || '',
+                    last: nameParts.slice(1).join(' ') || ''
+                };
+                document.getElementById('editFirstName').value = originalFieldValues.name.first;
+                document.getElementById('editLastName').value = originalFieldValues.name.last;
+            } else if (fieldType === 'phone') {
+                originalFieldValues.phone = document.getElementById('customerPhoneDisplay').textContent;
+                document.getElementById('editPhone').value = originalFieldValues.phone === '-' ? '' : originalFieldValues.phone;
+            } else if (fieldType === 'email') {
+                originalFieldValues.email = document.getElementById('customerEmailDisplay').textContent;
+                document.getElementById('editEmail').value = originalFieldValues.email === '-' ? '' : originalFieldValues.email;
+            } else if (fieldType === 'address') {
+                const addressDisplay = document.getElementById('customerAddressDisplay').textContent;
+                if (addressDisplay && addressDisplay !== '-') {
+                    // Parse address from display
+                    const addressParts = parseAddress(addressDisplay);
+                    originalFieldValues.address = addressParts;
+                    document.getElementById('editAddress1').value = addressParts.address1 || '';
+                    document.getElementById('editAddress2').value = addressParts.address2 || '';
+                    document.getElementById('editCity').value = addressParts.city || '';
+                    const stateCode = getStateCode(addressParts.state);
+                    document.getElementById('editState').value = stateCode || addressParts.state || '';
+                    document.getElementById('editZipCode').value = addressParts.zipCode || '';
                 } else {
-                    form.style.display = 'none';
-                    if (icon) {
-                        icon.classList.remove('fa-chevron-up');
-                        icon.classList.add('fa-chevron-down');
-                    }
+                    originalFieldValues.address = { address1: '', address2: '', city: '', state: '', zipCode: '' };
+                    document.getElementById('editAddress1').value = '';
+                    document.getElementById('editAddress2').value = '';
+                    document.getElementById('editCity').value = '';
+                    document.getElementById('editState').value = '';
+                    document.getElementById('editZipCode').value = '';
                 }
+            }
+        }
+        
+        // Cancel edit function
+        function cancelEdit(fieldType) {
+            // Show display, hide edit form
+            document.getElementById('customerDisplay' + fieldType.charAt(0).toUpperCase() + fieldType.slice(1)).style.display = 'flex';
+            document.getElementById('customerEdit' + fieldType.charAt(0).toUpperCase() + fieldType.slice(1)).style.display = 'none';
+        }
+        
+        // Save field function
+        async function saveField(fieldType) {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                if (!token) {
+                    showCrmModal('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+                    return;
+                }
+                
+                // Get customer ID
+                const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!meResponse.ok) {
+                    throw new Error('Failed to fetch customer information');
+                }
+                
+                const customer = await meResponse.json();
+                const customerId = customer.id;
+                
+                let updateData = {
+                    name: customer.name,
+                    phone: customer.phone,
+                    email: customer.email,
+                    notes: customer.notes || '',
+                    updated_at: customer.updated_at
+                };
+                
+                // Update based on field type
+                if (fieldType === 'name') {
+                    const firstName = document.getElementById('editFirstName').value.trim();
+                    const lastName = document.getElementById('editLastName').value.trim();
+                    updateData.name = `${firstName} ${lastName}`.trim() || customer.name;
+                } else if (fieldType === 'phone') {
+                    updateData.phone = document.getElementById('editPhone').value.trim() || customer.phone;
+                } else if (fieldType === 'email') {
+                    updateData.email = document.getElementById('editEmail').value.trim() || customer.email;
+                } else if (fieldType === 'address') {
+                    const address1 = document.getElementById('editAddress1').value.trim();
+                    const address2 = document.getElementById('editAddress2').value.trim();
+                    const city = document.getElementById('editCity').value.trim();
+                    const state = document.getElementById('editState').value;
+                    const zipCode = document.getElementById('editZipCode').value.trim();
+                    
+                    let address = address1;
+                    if (address2) address += ', ' + address2;
+                    if (city) address += ', ' + city;
+                    if (state) address += ', ' + state;
+                    if (zipCode) address += ' ' + zipCode;
+                    
+                    updateData.notes = address || customer.notes || '';
+                }
+                
+                // Update via API
+                const updateResponse = await fetch(API_BASE_URL + '/customers/' + customerId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    throw new Error(errorData.error || 'Failed to update information');
+                }
+                
+                // Reload customer data
+                if (typeof loadCustomerDashboard === 'function') {
+                    await loadCustomerDashboard();
+                }
+                
+                // Hide edit form, show display
+                cancelEdit(fieldType);
+                
+                showNotification('success', 'Updated', 'Information updated successfully!');
+                
+            } catch (error) {
+                console.error('Error updating field:', error);
+                showNotification('error', 'Update Failed', error.message || 'Failed to update information. Please try again.');
             }
         }
         
