@@ -4262,8 +4262,112 @@ function openUpdateStatusModal(customerId) {
     // Show/hide interested field based on status
     toggleInterestedField();
     
+    // Load customer documents
+    loadCustomerDocuments(customerId);
+    
     const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
     modal.show();
+}
+
+// Load customer documents for admin/preparation view
+async function loadCustomerDocuments(customerId) {
+    const documentsList = document.getElementById('customerDocumentsList');
+    if (!documentsList) return;
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            documentsList.innerHTML = '<div class="text-center text-muted">Authentication required</div>';
+            return;
+        }
+        
+        const response = await fetch(API_BASE_URL + `/customers/documents/${customerId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const documents = await response.json();
+            
+            if (documents.length === 0) {
+                documentsList.innerHTML = '<div class="text-center text-muted"><i class="fas fa-file-alt"></i> No documents uploaded yet</div>';
+            } else {
+                // Helper function to format file size
+                const formatFileSize = (bytes) => {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+                };
+                
+                documentsList.innerHTML = documents.map(doc => {
+                    const uploadDate = new Date(doc.uploaded_at).toLocaleString();
+                    const fileSize = formatFileSize(doc.file_size);
+                    const fileIcon = doc.file_type.includes('pdf') ? 'fa-file-pdf' : 
+                                    doc.file_type.includes('image') ? 'fa-file-image' : 'fa-file';
+                    
+                    return `
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" style="background: var(--card-bg);">
+                            <div>
+                                <i class="fas ${fileIcon} me-2"></i>
+                                <span>${doc.file_name}</span>
+                                <small class="text-muted ms-2">(${fileSize})</small>
+                                <br>
+                                <small class="text-muted">Uploaded: ${uploadDate}</small>
+                            </div>
+                            <button type="button" 
+                                    class="btn btn-sm btn-primary" 
+                                    onclick="downloadCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } else {
+            documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+        }
+    } catch (error) {
+        console.error('Error loading documents:', error);
+        documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+    }
+}
+
+// Download customer document
+async function downloadCustomerDocument(documentId, fileName) {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+        
+        const response = await fetch(API_BASE_URL + `/customers/documents/${documentId}/download`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            const error = await response.json();
+            showNotification('error', 'Download Failed', error.error || 'Failed to download document');
+        }
+    } catch (error) {
+        console.error('Error downloading document:', error);
+        showNotification('error', 'Download Failed', 'Failed to download document. Please try again.');
+    }
 }
 
 function updateCommentsByStatus() {

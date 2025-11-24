@@ -131,6 +131,46 @@ async function addUserIdColumnMigration(pool) {
     }
 }
 
+// Migration function to create customer_documents table
+async function createCustomerDocumentsTableMigration(pool) {
+    try {
+        const tableCheck = await pool.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='customer_documents'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('🔄 Creating customer_documents table...');
+            await pool.query(`
+                CREATE TABLE customer_documents (
+                    id SERIAL PRIMARY KEY,
+                    customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+                    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                    file_name VARCHAR(255) NOT NULL,
+                    file_path VARCHAR(500) NOT NULL,
+                    file_size BIGINT NOT NULL,
+                    file_type VARCHAR(100) NOT NULL,
+                    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            
+            // Create indexes
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_customer_documents_customer_id ON customer_documents(customer_id)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_customer_documents_user_id ON customer_documents(user_id)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_customer_documents_uploaded_at ON customer_documents(uploaded_at DESC)');
+            
+            console.log('✅ customer_documents table created successfully');
+        } else {
+            console.log('✅ customer_documents table already exists');
+        }
+    } catch (error) {
+        console.error('❌ Error creating customer_documents table:', error.message);
+        throw error;
+    }
+}
+
 // Initialize database schema and create admin user if needed
 async function initializeDatabase() {
     try {
@@ -211,6 +251,14 @@ async function initializeDatabase() {
         // Run migration to add user_id column (runs after schema initialization in both paths)
         try {
             await addUserIdColumnMigration(pool);
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to create customer_documents table
+        try {
+            await createCustomerDocumentsTableMigration(pool);
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup

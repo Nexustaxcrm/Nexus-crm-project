@@ -61,7 +61,26 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_locked ON users(locked);
 
+-- Create customer_documents table for storing uploaded documents
+CREATE TABLE IF NOT EXISTS customer_documents (
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size BIGINT NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for customer_documents table
+CREATE INDEX IF NOT EXISTS idx_customer_documents_customer_id ON customer_documents(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_documents_user_id ON customer_documents(user_id);
+CREATE INDEX IF NOT EXISTS idx_customer_documents_uploaded_at ON customer_documents(uploaded_at DESC);
+
 -- Analyze tables to update statistics
 ANALYZE customers;
 ANALYZE users;
+ANALYZE customer_documents;
 

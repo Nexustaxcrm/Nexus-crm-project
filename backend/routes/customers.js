@@ -23,6 +23,63 @@ const upload = multer({
     limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit for large Excel files
 });
 
+// Configure multer for customer document uploads (disk storage)
+const fs = require('fs');
+const path = require('path');
+const nodemailer = require('nodemailer');
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '..', 'uploads', 'customer-documents');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for customer document uploads (store on disk)
+const documentUpload = multer({
+    storage: multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, uploadsDir);
+        },
+        filename: function (req, file, cb) {
+            // Generate unique filename: timestamp-customerId-originalname
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            const ext = path.extname(file.originalname);
+            const name = path.basename(file.originalname, ext);
+            cb(null, `${uniqueSuffix}-${name}${ext}`);
+        }
+    }),
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit per document
+    fileFilter: function (req, file, cb) {
+        // Only allow PDF, JPEG, JPG, PNG
+        const allowedTypes = /\.(pdf|jpeg|jpg|png)$/i;
+        const ext = path.extname(file.originalname);
+        if (allowedTypes.test(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only PDF, JPEG, JPG, and PNG files are allowed.'));
+        }
+    }
+});
+
+// Email transporter for notifications
+const createEmailTransporter = () => {
+    const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || 'nexustaxfiling@gmail.com';
+    const emailPassword = process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD;
+    
+    if (!emailPassword) {
+        console.warn('⚠️ Email credentials not configured. Email notifications will not be sent.');
+        return null;
+    }
+    
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: emailUser,
+            pass: emailPassword
+        }
+    });
+};
+
 // JWT authentication middleware
 const authenticateToken = (req, res, next) => {
     // Use verifyToken from auth routes if available, otherwise use inline version
@@ -1259,6 +1316,229 @@ router.get('/upload-progress/:jobId', async (req, res) => {
     // This can be enhanced with Redis or database to track progress
     // For now, return a simple response
     res.json({ message: 'Progress tracking not implemented yet' });
+});
+
+// Customer document upload endpoint
+router.post('/documents/upload', authenticateToken, documentUpload.array('files', 10), async (req, res) => {
+    const client = await (pool || req.app.locals.pool).connect();
+    
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No files uploaded' });
+        }
+        
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        
+        // Get customer ID - for customers, get from /me endpoint, for admin/employee, get from body
+        let customerId;
+        if (userRole === 'customer') {
+            // Get customer ID from user_id
+            const customerResult = await dbPool.query(
+                'SELECT id FROM customers WHERE user_id = $1 LIMIT 1',
+                [userId]
+            );
+            
+            if (customerResult.rows.length === 0) {
+                return res.status(404).json({ error: 'Customer record not found' });
+            }
+            customerId = customerResult.rows[0].id;
+        } else {
+            // Admin/employee can specify customer_id in body
+            customerId = req.body.customer_id;
+            if (!customerId) {
+                return res.status(400).json({ error: 'customer_id is required' });
+            }
+        }
+        
+        // Verify customer exists
+        const customerCheck = await dbPool.query(
+            'SELECT id, name, email FROM customers WHERE id = $1',
+            [customerId]
+        );
+        
+        if (customerCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+        
+        const customer = customerCheck.rows[0];
+        
+        // Start transaction
+        await client.query('BEGIN');
+        
+        const uploadedDocuments = [];
+        
+        // Process each uploaded file
+        for (const file of req.files) {
+            const filePath = file.path;
+            const fileName = file.originalname;
+            const fileSize = file.size;
+            const fileType = file.mimetype;
+            
+            // Insert document record into database
+            const result = await client.query(
+                `INSERT INTO customer_documents (customer_id, user_id, file_name, file_path, file_size, file_type)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 RETURNING id, file_name, uploaded_at`,
+                [customerId, userId, fileName, filePath, fileSize, fileType]
+            );
+            
+            uploadedDocuments.push(result.rows[0]);
+        }
+        
+        // Commit transaction
+        await client.query('COMMIT');
+        
+        // Send email notification
+        try {
+            const transporter = createEmailTransporter();
+            if (transporter) {
+                const fileList = uploadedDocuments.map(doc => `- ${doc.file_name}`).join('\n');
+                const mailOptions = {
+                    from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
+                    to: 'nexustaxfiling@gmail.com',
+                    subject: `New Document Upload: ${customer.name}`,
+                    html: `
+                        <h2>Document Upload Notification</h2>
+                        <p><strong>Customer:</strong> ${customer.name}</p>
+                        <p><strong>Email:</strong> ${customer.email || 'N/A'}</p>
+                        <p><strong>Uploaded Documents:</strong></p>
+                        <ul>
+                            ${uploadedDocuments.map(doc => `<li>${doc.file_name}</li>`).join('')}
+                        </ul>
+                        <p><strong>Upload Date:</strong> ${new Date().toLocaleString()}</p>
+                        <p>Please review the uploaded documents in the CRM system.</p>
+                    `
+                };
+                
+                await transporter.sendMail(mailOptions);
+                console.log(`✅ Email notification sent for document upload by customer: ${customer.name}`);
+            }
+        } catch (emailError) {
+            console.error('⚠️ Failed to send email notification:', emailError);
+            // Don't fail the request if email fails
+        }
+        
+        console.log(`✅ ${uploadedDocuments.length} document(s) uploaded for customer ID ${customerId}`);
+        
+        res.json({
+            success: true,
+            message: `${uploadedDocuments.length} document(s) uploaded successfully`,
+            documents: uploadedDocuments
+        });
+        
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Error uploading documents:', error);
+        
+        // Clean up uploaded files on error
+        if (req.files) {
+            req.files.forEach(file => {
+                if (fs.existsSync(file.path)) {
+                    fs.unlinkSync(file.path);
+                }
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Server error uploading documents', 
+            details: error.message 
+        });
+    } finally {
+        client.release();
+    }
+});
+
+// Get customer documents endpoint
+router.get('/documents/:customerId', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const customerId = parseInt(req.params.customerId);
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        
+        // For customers, verify they can only access their own documents
+        if (userRole === 'customer') {
+            const customerCheck = await dbPool.query(
+                'SELECT id FROM customers WHERE id = $1 AND user_id = $2',
+                [customerId, userId]
+            );
+            
+            if (customerCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Access denied. You can only view your own documents.' });
+            }
+        }
+        
+        // Get documents for customer
+        const result = await dbPool.query(
+            `SELECT id, file_name, file_path, file_size, file_type, uploaded_at
+             FROM customer_documents
+             WHERE customer_id = $1
+             ORDER BY uploaded_at DESC`,
+            [customerId]
+        );
+        
+        res.json(result.rows);
+        
+    } catch (error) {
+        console.error('❌ Error fetching documents:', error);
+        res.status(500).json({ error: 'Server error fetching documents', details: error.message });
+    }
+});
+
+// Download customer document endpoint
+router.get('/documents/:documentId/download', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const documentId = parseInt(req.params.documentId);
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        
+        // Get document info
+        const docResult = await dbPool.query(
+            `SELECT cd.*, c.user_id as customer_user_id
+             FROM customer_documents cd
+             JOIN customers c ON cd.customer_id = c.id
+             WHERE cd.id = $1`,
+            [documentId]
+        );
+        
+        if (docResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
+        
+        const document = docResult.rows[0];
+        
+        // For customers, verify they can only download their own documents
+        if (userRole === 'customer' && document.customer_user_id !== userId) {
+            return res.status(403).json({ error: 'Access denied. You can only download your own documents.' });
+        }
+        
+        // Check if file exists
+        if (!fs.existsSync(document.file_path)) {
+            return res.status(404).json({ error: 'File not found on server' });
+        }
+        
+        // Send file
+        res.download(document.file_path, document.file_name);
+        
+    } catch (error) {
+        console.error('❌ Error downloading document:', error);
+        res.status(500).json({ error: 'Server error downloading document', details: error.message });
+    }
 });
 
 module.exports = router;

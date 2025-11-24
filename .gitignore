@@ -55,3 +55,6 @@ coverage/
 # Railway
 .railway/
 
+# Uploaded customer documents
+backend/uploads/
+
