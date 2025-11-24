@@ -1961,22 +1961,20 @@ kbd {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  height: auto;
-  max-height: 55px;
+  height: 100%;
 }
 .irs-logo-link {
   display: flex;
   align-items: center;
   padding: 0 !important;
-  height: auto;
-  max-height: 55px;
+  height: 100%;
   text-decoration: none;
 }
 .irs-logo {
-  height: 50px;
+  height: 45px;
   width: auto;
-  max-width: 200px;
-  min-width: 150px;
+  max-width: 180px;
+  min-width: 140px;
   object-fit: contain;
   display: block;
 }
@@ -2024,7 +2022,7 @@ kbd {
   flex: 0 0 auto;
 }
 .ak-site-branding img {
-  max-height: 50px;
+  max-height: 55px;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -2040,9 +2038,8 @@ kbd {
   margin: 0px;
   gap: 20px;
   width: 100%;
-  padding: 5px 0;
-  min-height: 55px;
-  max-height: 60px;
+  padding: 12px 0;
+  min-height: 75px;
 }
 .ak-site_header.ak-style1 .ak-main-header-left {
   flex: 0 0 auto;
@@ -2050,6 +2047,9 @@ kbd {
   padding-left: 0;
   margin-left: 0;
   justify-self: start;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 .ak-site_header.ak-style1 .ak-main-header-center {
   display: flex;
@@ -2121,9 +2121,9 @@ kbd {
     margin-left: 20px;
   }
   .irs-logo {
-    height: 52px;
-    max-width: 220px;
-    min-width: 170px;
+    height: 48px;
+    max-width: 200px;
+    min-width: 160px;
   }
 }
 @media screen and (min-width: 1400px) {
@@ -2135,9 +2135,9 @@ kbd {
     margin-left: 25px;
   }
   .irs-logo {
-    height: 55px;
-    max-width: 240px;
-    min-width: 190px;
+    height: 50px;
+    max-width: 220px;
+    min-width: 180px;
   }
 }
 @media screen and (min-width: 1600px) {
@@ -2149,9 +2149,9 @@ kbd {
     margin-left: 30px;
   }
   .irs-logo {
-    height: 58px;
-    max-width: 260px;
-    min-width: 210px;
+    height: 52px;
+    max-width: 240px;
+    min-width: 200px;
   }
 }
 
@@ -2405,9 +2405,7 @@ kbd {
   }
   .ak-nav .ak-nav_list > li {
     margin-right: 0;
-    height: auto;
-    min-height: 50px;
-    max-height: 55px;
+    height: 100%;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
@@ -2707,14 +2705,13 @@ kbd {
     margin-right: 50px;
   }
   .ak-site_header.ak-style1 .ak-main_header_in {
-    height: 60px;
-    min-height: 55px;
-    max-height: 60px;
+    height: 75px;
+    min-height: 75px;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 15px;
     margin: 0px;
-    padding: 5px 0;
+    padding: 12px 0;
   }
   .ak-site_header.ak-style1 .ak-main-header-left {
     min-width: 180px;
