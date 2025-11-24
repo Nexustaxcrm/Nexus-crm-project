@@ -113,6 +113,153 @@
           font-size: 32px;
         }
       }
+      
+      /* State Modal Styles */
+      .state-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .state-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+      }
+      .state-modal-content {
+        position: relative;
+        background: #ffffff;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 900px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        z-index: 10001;
+      }
+      .state-modal-header {
+        padding: 30px;
+        border-bottom: 2px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .state-modal-header h2 {
+        margin: 0;
+        font-size: 28px;
+        color: #063232;
+        font-weight: 700;
+      }
+      .state-modal-close {
+        background: none;
+        border: none;
+        font-size: 36px;
+        color: #666;
+        cursor: pointer;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+      .state-modal-close:hover {
+        background: #f0f0f0;
+        color: #063232;
+      }
+      .state-modal-body {
+        padding: 30px;
+        overflow-y: auto;
+        flex: 1;
+      }
+      .state-search-box {
+        position: relative;
+        margin-bottom: 25px;
+      }
+      .state-search-box input {
+        width: 100%;
+        padding: 15px 50px 15px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+      }
+      .state-search-box input:focus {
+        outline: none;
+        border-color: #2dce89;
+      }
+      .state-search-box .search-icon {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+        pointer-events: none;
+      }
+      .states-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+      }
+      .state-item {
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #063232;
+        display: block;
+        font-weight: 500;
+        font-size: 16px;
+      }
+      .state-item:hover {
+        background: #2dce89;
+        color: #ffffff;
+        border-color: #2dce89;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(45, 206, 137, 0.3);
+      }
+      .state-item.hidden {
+        display: none;
+      }
+      @media (max-width: 768px) {
+        .state-modal-content {
+          width: 95%;
+          max-height: 90vh;
+        }
+        .state-modal-header {
+          padding: 20px;
+        }
+        .state-modal-header h2 {
+          font-size: 22px;
+        }
+        .state-modal-body {
+          padding: 20px;
+        }
+        .states-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 10px;
+        }
+        .state-item {
+          padding: 12px 15px;
+          font-size: 14px;
+        }
+      }
     </style>
   </head>
 
@@ -307,15 +454,39 @@
               </svg>
             </div>
             <h3>Check your State Refund Status</h3>
-            <p>Find your state's tax department website to check your state tax refund status. Each state has its own system for processing and tracking refunds.</p>
-            <a href="https://www.usa.gov/check-tax-status" target="_blank" rel="noopener noreferrer" class="refund-status-btn">
+            <p>Select your state to check your state tax refund status. Each state has its own system for processing and tracking refunds.</p>
+            <button onclick="openStateModal()" class="refund-status-btn" style="border: none; cursor: pointer;">
               Check Now
-            </a>
+            </button>
           </div>
         </div>
       </div>
     </section>
     <!-- End Refund Status Section -->
+
+    <!-- State Selection Modal -->
+    <div id="stateModal" class="state-modal" style="display: none;">
+      <div class="state-modal-overlay" onclick="closeStateModal()"></div>
+      <div class="state-modal-content">
+        <div class="state-modal-header">
+          <h2>Select Your State</h2>
+          <button class="state-modal-close" onclick="closeStateModal()">&times;</button>
+        </div>
+        <div class="state-modal-body">
+          <div class="state-search-box">
+            <input type="text" id="stateSearch" placeholder="Search for your state..." onkeyup="filterStates()">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </div>
+          <div class="states-grid" id="statesGrid">
+            <!-- States will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End State Selection Modal -->
 
     <!-- Start Footer Section -->
     <footer class="ak-site_footer ak-style1">
@@ -408,6 +579,128 @@
     <script src="assets/js/plugins/scrolltoplugins.js"></script>
     
     <script src="assets/js/main.js"></script>
+    
+    <!-- State Selection Script -->
+    <script>
+      // State tax department links - Official state tax websites
+      const stateTaxLinks = {
+        'Alabama': 'https://www.revenue.alabama.gov/',
+        'Alaska': 'https://tax.alaska.gov/',
+        'Arizona': 'https://azdor.gov/',
+        'Arkansas': 'https://www.dfa.arkansas.gov/',
+        'California': 'https://www.ftb.ca.gov/',
+        'Colorado': 'https://tax.colorado.gov/',
+        'Connecticut': 'https://portal.ct.gov/DRS',
+        'Delaware': 'https://revenue.delaware.gov/',
+        'Florida': 'https://floridarevenue.com/',
+        'Georgia': 'https://dor.georgia.gov/',
+        'Hawaii': 'https://tax.hawaii.gov/',
+        'Idaho': 'https://tax.idaho.gov/',
+        'Illinois': 'https://www2.illinois.gov/rev/',
+        'Indiana': 'https://www.in.gov/dor/',
+        'Iowa': 'https://tax.iowa.gov/',
+        'Kansas': 'https://www.ksrevenue.gov/',
+        'Kentucky': 'https://revenue.ky.gov/',
+        'Louisiana': 'https://www.revenue.louisiana.gov/',
+        'Maine': 'https://www.maine.gov/revenue/',
+        'Maryland': 'https://www.marylandtaxes.gov/',
+        'Massachusetts': 'https://www.mass.gov/dor',
+        'Michigan': 'https://www.michigan.gov/taxes',
+        'Minnesota': 'https://www.revenue.state.mn.us/',
+        'Mississippi': 'https://www.dor.ms.gov/',
+        'Missouri': 'https://dor.mo.gov/',
+        'Montana': 'https://mtrevenue.gov/',
+        'Nebraska': 'https://revenue.nebraska.gov/',
+        'Nevada': 'https://tax.nv.gov/',
+        'New Hampshire': 'https://www.revenue.nh.gov/',
+        'New Jersey': 'https://www.state.nj.us/treasury/taxation/',
+        'New Mexico': 'https://www.tax.newmexico.gov/',
+        'New York': 'https://www.tax.ny.gov/',
+        'North Carolina': 'https://www.ncdor.gov/',
+        'North Dakota': 'https://www.tax.nd.gov/',
+        'Ohio': 'https://tax.ohio.gov/',
+        'Oklahoma': 'https://www.ok.gov/tax/',
+        'Oregon': 'https://www.oregon.gov/dor/',
+        'Pennsylvania': 'https://www.revenue.pa.gov/',
+        'Rhode Island': 'https://tax.ri.gov/',
+        'South Carolina': 'https://dor.sc.gov/',
+        'South Dakota': 'https://dor.sd.gov/',
+        'Tennessee': 'https://www.tn.gov/revenue.html',
+        'Texas': 'https://comptroller.texas.gov/taxes/',
+        'Utah': 'https://tax.utah.gov/',
+        'Vermont': 'https://tax.vermont.gov/',
+        'Virginia': 'https://www.tax.virginia.gov/',
+        'Washington': 'https://dor.wa.gov/',
+        'West Virginia': 'https://revenue.wv.gov/',
+        'Wisconsin': 'https://www.revenue.wi.gov/',
+        'Wyoming': 'https://www.wyo.gov/agencies/treasurer',
+        'District of Columbia': 'https://otr.cfo.dc.gov/'
+      };
+      
+      // Populate states grid
+      function populateStates() {
+        const statesGrid = document.getElementById('statesGrid');
+        const states = Object.keys(stateTaxLinks).sort();
+        
+        statesGrid.innerHTML = states.map(state => {
+          const link = stateTaxLinks[state];
+          return `
+            <a href="${link}" target="_blank" rel="noopener noreferrer" class="state-item" data-state="${state.toLowerCase()}">
+              ${state}
+            </a>
+          `;
+        }).join('');
+      }
+      
+      // Open state modal
+      function openStateModal() {
+        const modal = document.getElementById('stateModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        populateStates();
+        // Focus on search box
+        setTimeout(() => {
+          document.getElementById('stateSearch').focus();
+        }, 100);
+      }
+      
+      // Close state modal
+      function closeStateModal() {
+        const modal = document.getElementById('stateModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        // Clear search
+        document.getElementById('stateSearch').value = '';
+        filterStates();
+      }
+      
+      // Filter states based on search
+      function filterStates() {
+        const searchTerm = document.getElementById('stateSearch').value.toLowerCase();
+        const stateItems = document.querySelectorAll('.state-item');
+        
+        stateItems.forEach(item => {
+          const stateName = item.textContent.toLowerCase();
+          if (stateName.includes(searchTerm)) {
+            item.classList.remove('hidden');
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+      }
+      
+      // Close modal on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeStateModal();
+        }
+      });
+      
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        populateStates();
+      });
+    </script>
   </body>
 </html>
 
