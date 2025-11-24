@@ -1396,19 +1396,22 @@
   let videoDetectionCleanup = null;
 
   function initVideoTextColorDetection() {
-    // Check for active video (prefer secondary if it's playing, otherwise primary)
-    const secondaryVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-video-secondary');
+    // Check for active video (check all three videos)
     const primaryVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-video-primary');
+    const secondaryVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-video-secondary');
+    const tertiaryVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-video-tertiary');
     
-    // Use the video that is currently visible/playing
+    // Use the video that is currently visible/playing (check in order: tertiary, secondary, primary)
     let heroVideo = null;
-    if (secondaryVideo && secondaryVideo.classList.contains('fading-in')) {
+    if (tertiaryVideo && tertiaryVideo.classList.contains('fading-in')) {
+      heroVideo = tertiaryVideo;
+    } else if (secondaryVideo && secondaryVideo.classList.contains('fading-in')) {
       heroVideo = secondaryVideo;
     } else if (primaryVideo && !primaryVideo.classList.contains('fading-out')) {
       heroVideo = primaryVideo;
     } else {
-      // Fallback to any available video
-      heroVideo = secondaryVideo || primaryVideo;
+      // Fallback to any available video (check in order)
+      heroVideo = tertiaryVideo || secondaryVideo || primaryVideo;
     }
     const heroTitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-main-title');
     const heroSubtitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-main-title-1.style-2');
@@ -1552,63 +1555,105 @@
 
     const primaryVideo = heroSection.querySelector('.hero-video-primary');
     const secondaryVideo = heroSection.querySelector('.hero-video-secondary');
+    const tertiaryVideo = heroSection.querySelector('.hero-video-tertiary');
 
-    if (!primaryVideo || !secondaryVideo) return;
+    if (!primaryVideo || !secondaryVideo || !tertiaryVideo) return;
 
-    // Preload the second video for smooth transition
+    // Preload all videos for smooth transitions
     secondaryVideo.load();
     secondaryVideo.preload = 'auto';
+    tertiaryVideo.load();
+    tertiaryVideo.preload = 'auto';
 
-    // Handle transition when first video ends
-    function handleVideoTransition() {
-      // Check if primary video has ended
+    // Helper function to transition between videos
+    function transitionVideos(fromVideo, toVideo) {
+      // Reset and start playing the next video
+      toVideo.currentTime = 0;
+      toVideo.play().catch(function(error) {
+        console.log('Error playing video:', error);
+      });
+
+      // Apply smooth fade transition
+      fromVideo.classList.add('fading-out');
+      toVideo.classList.add('fading-in');
+      
+      // Remove fading-in class from previous video if it exists
+      fromVideo.classList.remove('fading-in');
+
+      // Update video detection to use the new active video
+      setTimeout(function() {
+        if (videoDetectionCleanup) {
+          videoDetectionCleanup();
+        }
+        // Update the video reference for text color detection
+        videoDetectionCleanup = initVideoTextColorDetection();
+      }, 600); // Wait for transition to complete
+
+      // Clean up previous video after transition
+      setTimeout(function() {
+        fromVideo.pause();
+        fromVideo.classList.remove('fading-out');
+        fromVideo.classList.remove('fading-in');
+        // Reset z-index for proper layering
+        if (fromVideo === primaryVideo) {
+          fromVideo.style.zIndex = '-1';
+        } else if (fromVideo === secondaryVideo) {
+          fromVideo.style.zIndex = '-2';
+        } else if (fromVideo === tertiaryVideo) {
+          fromVideo.style.zIndex = '-3';
+        }
+      }, 1200);
+    }
+
+    // Handle transition from primary (hero-video) to secondary (hero-video1)
+    function handlePrimaryToSecondary() {
       if (primaryVideo.ended || primaryVideo.currentTime >= primaryVideo.duration - 0.5) {
-        // Start playing the second video
-        secondaryVideo.currentTime = 0;
-        secondaryVideo.play().catch(function(error) {
-          console.log('Error playing secondary video:', error);
-        });
-
-        // Apply smooth fade transition
-        primaryVideo.classList.add('fading-out');
-        secondaryVideo.classList.add('fading-in');
-
-        // Update video detection to use the new active video
-        setTimeout(function() {
-          if (videoDetectionCleanup) {
-            videoDetectionCleanup();
-          }
-          // Update the video reference for text color detection
-          videoDetectionCleanup = initVideoTextColorDetection();
-        }, 600); // Wait for transition to complete
-
-        // Clean up primary video after transition
-        setTimeout(function() {
-          primaryVideo.pause();
-          primaryVideo.classList.remove('fading-out');
-        }, 1200);
+        transitionVideos(primaryVideo, secondaryVideo);
       }
     }
 
-    // Listen for video end event
-    primaryVideo.addEventListener('ended', handleVideoTransition, { once: false });
+    // Handle transition from secondary (hero-video1) to tertiary (hero-video2)
+    function handleSecondaryToTertiary() {
+      if (secondaryVideo.ended || secondaryVideo.currentTime >= secondaryVideo.duration - 0.5) {
+        transitionVideos(secondaryVideo, tertiaryVideo);
+      }
+    }
+
+    // Handle transition from tertiary (hero-video2) back to primary (hero-video) - cycle restart
+    function handleTertiaryToPrimary() {
+      if (tertiaryVideo.ended || tertiaryVideo.currentTime >= tertiaryVideo.duration - 0.5) {
+        transitionVideos(tertiaryVideo, primaryVideo);
+      }
+    }
+
+    // Listen for video end events
+    primaryVideo.addEventListener('ended', handlePrimaryToSecondary, { once: false });
+    secondaryVideo.addEventListener('ended', handleSecondaryToTertiary, { once: false });
+    tertiaryVideo.addEventListener('ended', handleTertiaryToPrimary, { once: false });
     
-    // Also check periodically in case the event doesn't fire
+    // Also check periodically in case events don't fire
     const checkInterval = setInterval(function() {
-      if (primaryVideo.ended && !secondaryVideo.classList.contains('fading-in')) {
-        handleVideoTransition();
-        clearInterval(checkInterval);
+      // Check primary to secondary transition
+      if (primaryVideo.ended && !secondaryVideo.classList.contains('fading-in') && !secondaryVideo.classList.contains('fading-out')) {
+        handlePrimaryToSecondary();
+      }
+      // Check secondary to tertiary transition
+      else if (secondaryVideo.ended && !tertiaryVideo.classList.contains('fading-in') && !tertiaryVideo.classList.contains('fading-out')) {
+        handleSecondaryToTertiary();
+      }
+      // Check tertiary to primary transition (cycle restart)
+      else if (tertiaryVideo.ended && !primaryVideo.classList.contains('fading-in') && !primaryVideo.classList.contains('fading-out')) {
+        handleTertiaryToPrimary();
       }
     }, 100);
 
-    // Ensure secondary video is ready when needed
+    // Ensure all videos are ready
     secondaryVideo.addEventListener('loadeddata', function() {
       // Video is ready for smooth transition
     }, { once: true });
-
-    // Clean up interval when secondary video starts playing
-    secondaryVideo.addEventListener('play', function() {
-      clearInterval(checkInterval);
+    
+    tertiaryVideo.addEventListener('loadeddata', function() {
+      // Video is ready for smooth transition
     }, { once: true });
   }
 
