@@ -1396,7 +1396,20 @@
   let videoDetectionCleanup = null;
 
   function initVideoTextColorDetection() {
-    const heroVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .ak-hero-bg');
+    // Check for active video (prefer secondary if it's playing, otherwise primary)
+    const secondaryVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-video-secondary');
+    const primaryVideo = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-video-primary');
+    
+    // Use the video that is currently visible/playing
+    let heroVideo = null;
+    if (secondaryVideo && secondaryVideo.classList.contains('fading-in')) {
+      heroVideo = secondaryVideo;
+    } else if (primaryVideo && !primaryVideo.classList.contains('fading-out')) {
+      heroVideo = primaryVideo;
+    } else {
+      // Fallback to any available video
+      heroVideo = secondaryVideo || primaryVideo;
+    }
     const heroTitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-main-title');
     const heroSubtitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .hero-main-title-1.style-2');
     const miniTitle = document.querySelector('.ak-slider-hero-1 .swiper-slide-active .mini-title');
@@ -1532,6 +1545,73 @@
     };
   }
 
+  // Initialize video transition handler
+  function initHeroVideoTransition() {
+    const heroSection = document.querySelector('.ak-slider-hero-1');
+    if (!heroSection) return;
+
+    const primaryVideo = heroSection.querySelector('.hero-video-primary');
+    const secondaryVideo = heroSection.querySelector('.hero-video-secondary');
+
+    if (!primaryVideo || !secondaryVideo) return;
+
+    // Preload the second video for smooth transition
+    secondaryVideo.load();
+    secondaryVideo.preload = 'auto';
+
+    // Handle transition when first video ends
+    function handleVideoTransition() {
+      // Check if primary video has ended
+      if (primaryVideo.ended || primaryVideo.currentTime >= primaryVideo.duration - 0.5) {
+        // Start playing the second video
+        secondaryVideo.currentTime = 0;
+        secondaryVideo.play().catch(function(error) {
+          console.log('Error playing secondary video:', error);
+        });
+
+        // Apply smooth fade transition
+        primaryVideo.classList.add('fading-out');
+        secondaryVideo.classList.add('fading-in');
+
+        // Update video detection to use the new active video
+        setTimeout(function() {
+          if (videoDetectionCleanup) {
+            videoDetectionCleanup();
+          }
+          // Update the video reference for text color detection
+          videoDetectionCleanup = initVideoTextColorDetection();
+        }, 600); // Wait for transition to complete
+
+        // Clean up primary video after transition
+        setTimeout(function() {
+          primaryVideo.pause();
+          primaryVideo.classList.remove('fading-out');
+        }, 1200);
+      }
+    }
+
+    // Listen for video end event
+    primaryVideo.addEventListener('ended', handleVideoTransition, { once: false });
+    
+    // Also check periodically in case the event doesn't fire
+    const checkInterval = setInterval(function() {
+      if (primaryVideo.ended && !secondaryVideo.classList.contains('fading-in')) {
+        handleVideoTransition();
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    // Ensure secondary video is ready when needed
+    secondaryVideo.addEventListener('loadeddata', function() {
+      // Video is ready for smooth transition
+    }, { once: true });
+
+    // Clean up interval when secondary video starts playing
+    secondaryVideo.addEventListener('play', function() {
+      clearInterval(checkInterval);
+    }, { once: true });
+  }
+
   // Initialize on page load
   $(window).on('load', function() {
     setTimeout(function() {
@@ -1539,6 +1619,7 @@
         videoDetectionCleanup();
       }
       videoDetectionCleanup = initVideoTextColorDetection();
+      initHeroVideoTransition();
     }, 500);
   });
 

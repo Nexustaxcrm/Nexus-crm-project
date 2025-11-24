@@ -1860,8 +1860,8 @@ kbd {
 ----------------------------------------------------------------*/
 /* Top Bar Styles */
 .ak-top-bar {
-  background-color: #063232;
-  padding: 6px 0;
+  background-color: #030917;
+  padding: 3px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .ak-top-bar-in {
@@ -1874,7 +1874,7 @@ kbd {
 .ak-top-bar-left {
   display: flex;
   align-items: center;
-  gap: 25px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 .ak-top-bar-right {
@@ -1885,21 +1885,21 @@ kbd {
 .top-bar-contact-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: #ffffff;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   transition: opacity 0.3s ease;
 }
 .top-bar-contact-item img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   filter: brightness(0) invert(1);
 }
 .top-bar-contact-item svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   fill: currentColor;
 }
@@ -1907,10 +1907,10 @@ kbd {
   opacity: 0.8;
 }
 .top-bar-btn {
-  padding: 8px 20px;
+  padding: 5px 16px;
   border-radius: 4px;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   transition: all 0.3s ease;
   display: inline-block;
@@ -1931,15 +1931,15 @@ kbd {
 }
 @media (max-width: 768px) {
   .ak-top-bar {
-    padding: 6px 0;
+    padding: 3px 0;
   }
   .ak-top-bar-in {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
   }
   .ak-top-bar-left {
-    gap: 15px;
+    gap: 12px;
     width: 100%;
   }
   .ak-top-bar-right {
@@ -1947,11 +1947,11 @@ kbd {
     justify-content: flex-start;
   }
   .top-bar-contact-item {
-    font-size: 12px;
+    font-size: 11px;
   }
   .top-bar-btn {
-    padding: 6px 16px;
-    font-size: 12px;
+    padding: 4px 14px;
+    font-size: 11px;
   }
 }
 
@@ -3480,12 +3480,36 @@ kbd {
   object-fit: cover;
   z-index: -1;
   opacity: 0;
-  transition: opacity 0.6s ease-in-out;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Show video when slide is active */
 .ak-slider-hero-1 .swiper-slide-active .ak-hero.ak-style1 .ak-hero-featured video.ak-hero-bg {
   opacity: 1;
+}
+
+/* Primary video (first video) */
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-primary {
+  z-index: -1;
+}
+
+/* Secondary video (second video) */
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-secondary {
+  z-index: -2;
+  opacity: 0;
+}
+
+/* Transition state - when primary video is fading out */
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-primary.fading-out {
+  opacity: 0;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transition state - when secondary video is fading in */
+.ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-secondary.fading-in {
+  opacity: 1;
+  z-index: -1;
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info {
   position: absolute;
