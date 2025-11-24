@@ -3590,6 +3590,17 @@
                                     <small class="text-muted">Uploading...</small>
                                 </div>
                             </div>
+                            <!-- Previously Uploaded Documents Section -->
+                            <div class="mt-4">
+                                <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                    <i class="fas fa-folder-open"></i> Previously Uploaded Documents
+                                </label>
+                                <div id="customerUploadedDocumentsList" class="border rounded p-3" style="min-height: 100px; background: var(--card-bg); max-height: 400px; overflow-y: auto;">
+                                    <div class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin"></i> Loading documents...
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Logout Button -->
@@ -4833,6 +4844,34 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="saveNewUser()">Add User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Viewer Modal -->
+    <div class="modal fade" id="documentViewerModal" tabindex="-1">
+        <div class="modal-dialog modal-xl" style="max-width: 95vw;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="documentViewerTitle">Document Viewer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 0; background: #f5f5f5;">
+                    <div id="documentViewerContent" style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Loading document...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="documentViewerDownloadBtn" onclick="downloadCurrentDocument()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
                 </div>
             </div>
         </div>

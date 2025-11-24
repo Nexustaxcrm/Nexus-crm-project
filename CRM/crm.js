@@ -869,10 +869,93 @@ async function loadCustomerDashboard() {
             customerAvatar.textContent = customer.name.charAt(0).toUpperCase();
         }
         
+        // Load customer documents
+        await loadCustomerUploadedDocuments(customer.id);
+        
         console.log('✅ Customer dashboard loaded successfully');
     } catch (error) {
         console.error('❌ Error loading customer dashboard:', error);
         showNotification('error', 'Error', 'Failed to load customer information. Please try again.');
+    }
+}
+
+// Load customer uploaded documents for customer dashboard
+async function loadCustomerUploadedDocuments(customerId) {
+    const documentsList = document.getElementById('customerUploadedDocumentsList');
+    if (!documentsList) return;
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            documentsList.innerHTML = '<div class="text-center text-muted">Authentication required</div>';
+            return;
+        }
+        
+        const response = await fetch(API_BASE_URL + `/customers/documents/${customerId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const documents = await response.json();
+            
+            if (documents.length === 0) {
+                documentsList.innerHTML = '<div class="text-center text-muted"><i class="fas fa-file-alt"></i> No documents uploaded yet</div>';
+            } else {
+                // Helper function to format file size
+                const formatFileSize = (bytes) => {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+                };
+                
+                documentsList.innerHTML = documents.map(doc => {
+                    const uploadDate = new Date(doc.uploaded_at).toLocaleString();
+                    const fileSize = formatFileSize(doc.file_size);
+                    const fileIcon = doc.file_type.includes('pdf') ? 'fa-file-pdf text-danger' : 
+                                    doc.file_type.includes('image') ? 'fa-file-image text-primary' : 'fa-file text-secondary';
+                    const isImage = doc.file_type.includes('image');
+                    const isPDF = doc.file_type.includes('pdf');
+                    
+                    return `
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" style="background: var(--card-bg);">
+                            <div style="flex: 1;">
+                                <i class="fas ${fileIcon} me-2"></i>
+                                <span style="font-weight: 500;">${doc.file_name}</span>
+                                <small class="text-muted ms-2">(${fileSize})</small>
+                                <br>
+                                <small class="text-muted">Uploaded: ${uploadDate}</small>
+                            </div>
+                            <div class="btn-group ms-2" role="group">
+                                <button type="button" 
+                                        class="btn btn-sm btn-info" 
+                                        onclick="viewCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}', ${isImage}, ${isPDF})"
+                                        title="View document">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-primary" 
+                                        onclick="downloadCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}')"
+                                        title="Download document">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        } else {
+            documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+        }
+    } catch (error) {
+        console.error('Error loading customer documents:', error);
+        const documentsList = document.getElementById('customerUploadedDocumentsList');
+        if (documentsList) {
+            documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+        }
     }
 }
 
@@ -1119,16 +1202,16 @@ function loadAssignedWorkTable() {
     const tbody = document.getElementById('assignedWorkTable');
     
     tbody.innerHTML = assignedCustomers.map(customer => `
-        <tr>
+        <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
             <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-            <td><a href="tel:${customer.phone}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone}</a></td>
-            <td><a href="mailto:${customer.email}" class="text-decoration-none">${customer.email}</a></td>
+            <td><a href="tel:${customer.phone}" class="text-decoration-none phone-link" title="Double-click to copy" onclick="event.stopPropagation();">${customer.phone}</a></td>
+            <td><a href="mailto:${customer.email}" class="text-decoration-none" onclick="event.stopPropagation();">${customer.email}</a></td>
             <td><small class="text-muted">${customer.address}</small></td>
             <td><span class="badge bg-${getStatusBadgeColor(customer.status)}">${getStatusDisplayName(customer.status)}</span></td>
             <td><span class="badge bg-${getCallStatusBadgeColor(customer.callStatus)}">${customer.callStatus}</span></td>
             <td><small>${customer.comments || '-'}</small></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
+                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id})" title="Edit">
                     <i class="fas fa-edit"></i>
                 </button>
             </td>
@@ -2665,16 +2748,16 @@ function renderArchiveModal() {
     for (const customer of slice) {
         const statusForDisplay = customer.previousStatus || 'pending';
         html += `
-        <tr>
-            <td><input type="checkbox" class="archive-customer-checkbox" data-id="${customer.id}"></td>
+        <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
+            <td><input type="checkbox" class="archive-customer-checkbox" data-id="${customer.id}" onclick="event.stopPropagation();"></td>
             <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
-            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
+            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy" onclick="event.stopPropagation();">${customer.phone || ''}</a></td>
+            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none" onclick="event.stopPropagation();">${customer.email || ''}</a></td>
             <td><small class="text-muted">${customer.address || ''}</small></td>
             <td style="text-align:center;"><span class="badge bg-${getStatusBadgeColor(statusForDisplay)}">${getStatusDisplayName(statusForDisplay)}</span></td>
             <td><small>${customer.comments || '-'}</small></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
+                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id})" title="Edit">
                     <i class="fas fa-edit"></i>
                 </button>
             </td>
@@ -3402,16 +3485,16 @@ async function renderAssignWorkPage() {
         }
         
         html += `
-        <tr>
-            <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}"></td>
+        <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
+            <td><input type="checkbox" class="customer-checkbox" data-id="${customer.id}" onclick="event.stopPropagation();"></td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})" title="Edit">
+                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id})" title="Edit">
                     <i class="fas fa-edit"></i>
                 </button>
             </td>
             <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
-            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone || ''}</a></td>
-            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none">${customer.email || ''}</a></td>
+            <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy" onclick="event.stopPropagation();">${customer.phone || ''}</a></td>
+            <td><a href="mailto:${customer.email || ''}" class="text-decoration-none" onclick="event.stopPropagation();">${customer.email || ''}</a></td>
             <td><small class="text-muted">${customer.address || ''}</small></td>
             <td>${assignedToDisplay}</td>
             ${refundStatusDisplay}
@@ -4307,21 +4390,36 @@ async function loadCustomerDocuments(customerId) {
                     const fileSize = formatFileSize(doc.file_size);
                     const fileIcon = doc.file_type.includes('pdf') ? 'fa-file-pdf' : 
                                     doc.file_type.includes('image') ? 'fa-file-image' : 'fa-file';
+                    const isImage = doc.file_type.includes('image');
+                    const isPDF = doc.file_type.includes('pdf');
                     
                     return `
-                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded" style="background: var(--card-bg);">
-                            <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded document-item" style="background: var(--card-bg); transition: background-color 0.2s;">
+                            <div style="flex: 1; cursor: pointer; padding: 5px; border-radius: 4px;" 
+                                 onclick="viewCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}', ${isImage}, ${isPDF})" 
+                                 onmouseover="this.style.backgroundColor='rgba(0,123,255,0.1)'" 
+                                 onmouseout="this.style.backgroundColor='transparent'"
+                                 title="Click to view document">
                                 <i class="fas ${fileIcon} me-2"></i>
-                                <span>${doc.file_name}</span>
+                                <span style="font-weight: 500;">${doc.file_name}</span>
                                 <small class="text-muted ms-2">(${fileSize})</small>
                                 <br>
                                 <small class="text-muted">Uploaded: ${uploadDate}</small>
                             </div>
-                            <button type="button" 
-                                    class="btn btn-sm btn-primary" 
-                                    onclick="downloadCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}')">
-                                <i class="fas fa-download"></i> Download
-                            </button>
+                            <div class="btn-group ms-2" role="group">
+                                <button type="button" 
+                                        class="btn btn-sm btn-info" 
+                                        onclick="event.stopPropagation(); viewCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}', ${isImage}, ${isPDF})"
+                                        title="View document">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-sm btn-primary" 
+                                        onclick="event.stopPropagation(); downloadCustomerDocument(${doc.id}, '${doc.file_name.replace(/'/g, "\\'")}')"
+                                        title="Download document">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -4332,6 +4430,129 @@ async function loadCustomerDocuments(customerId) {
     } catch (error) {
         console.error('Error loading documents:', error);
         documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+    }
+}
+
+// Store current document info for download from viewer
+let currentViewingDocument = null;
+
+// View customer document in pop-up
+async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+        
+        // Store document info for download button
+        currentViewingDocument = { id: documentId, fileName: fileName };
+        
+        // Update modal title
+        const modalTitle = document.getElementById('documentViewerTitle');
+        if (modalTitle) {
+            modalTitle.textContent = fileName;
+        }
+        
+        // Show loading state
+        const viewerContent = document.getElementById('documentViewerContent');
+        if (viewerContent) {
+            viewerContent.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading document...</p>
+                </div>
+            `;
+        }
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('documentViewerModal'));
+        modal.show();
+        
+        // Fetch document
+        const response = await fetch(API_BASE_URL + `/customers/documents/${documentId}/download`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            
+            if (isImage) {
+                // Display image
+                viewerContent.innerHTML = `
+                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                        <img src="${url}" 
+                             alt="${fileName}" 
+                             style="max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-center text-danger\\'><i class=\\'fas fa-exclamation-triangle fa-3x mb-3\\'></i><p>Failed to load image</p></div>'">
+                    </div>
+                `;
+            } else if (isPDF) {
+                // Display PDF using iframe
+                viewerContent.innerHTML = `
+                    <div style="width: 100%; height: 80vh; padding: 0;">
+                        <iframe src="${url}" 
+                                style="width: 100%; height: 100%; border: none; border-radius: 4px;"
+                                title="${fileName}">
+                            <p>Your browser does not support PDFs. <a href="${url}" download="${fileName}">Download the PDF</a> instead.</p>
+                        </iframe>
+                    </div>
+                `;
+            } else {
+                // For other file types, show download option
+                viewerContent.innerHTML = `
+                    <div class="text-center p-5">
+                        <i class="fas fa-file fa-5x text-muted mb-3"></i>
+                        <h5>${fileName}</h5>
+                        <p class="text-muted">This file type cannot be previewed. Please download to view.</p>
+                        <button type="button" class="btn btn-primary" onclick="downloadCurrentDocument()">
+                            <i class="fas fa-download"></i> Download File
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Clean up URL when modal is closed
+            const modalElement = document.getElementById('documentViewerModal');
+            modalElement.addEventListener('hidden.bs.modal', function cleanup() {
+                window.URL.revokeObjectURL(url);
+                modalElement.removeEventListener('hidden.bs.modal', cleanup);
+            }, { once: true });
+            
+        } else {
+            const error = await response.json();
+            viewerContent.innerHTML = `
+                <div class="text-center p-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h5>Error Loading Document</h5>
+                    <p class="text-muted">${error.error || 'Failed to load document'}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error viewing document:', error);
+        const viewerContent = document.getElementById('documentViewerContent');
+        if (viewerContent) {
+            viewerContent.innerHTML = `
+                <div class="text-center p-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h5>Error Loading Document</h5>
+                    <p class="text-muted">Failed to load document. Please try again.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Download current viewing document
+function downloadCurrentDocument() {
+    if (currentViewingDocument) {
+        downloadCustomerDocument(currentViewingDocument.id, currentViewingDocument.fileName);
     }
 }
 
@@ -4750,12 +4971,15 @@ async function saveStatusUpdate() {
             customer.interested = '';
         }
         
-        // Save refund status if preparation role updated it
+        // Save refund status if preparation role or admin updated it
         const isPreparation = currentUser && currentUser.role === 'preparation';
-        if (isPreparation) {
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        let refundStatus = null;
+        
+        if (isPreparation || isAdmin) {
             const refundStatusField = document.getElementById('updateCustomerRefundStatus');
             if (refundStatusField) {
-                const refundStatus = refundStatusField.value || '';
+                refundStatus = refundStatusField.value || '';
                 // Save to sessionStorage (clears when browser closes) keyed by customer email or ID
                 const refundStatusKey = `customerRefundStatus_${customer.email || customerId}`;
                 if (refundStatus) {
@@ -4779,11 +5003,13 @@ async function saveStatusUpdate() {
         // The address should be preserved separately and not sent to the backend
         // The backend 'notes' field should only contain comments, not address
         // Address is stored in the customer object for frontend display only
+        // If refund status is set, use it as the status; otherwise use the regular status
+        const finalStatus = refundStatus || status;
         const customerData = {
             name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
             email: customer.email || null,
             phone: customer.phone || null,
-            status: status,
+            status: finalStatus,
             assigned_to: customer.assignedTo || customer.assigned_to || null,
             notes: comments || null  // Only send comments, NOT address
         };
@@ -6197,7 +6423,7 @@ function getCallStatusBadgeColor(status) {
 
 function generateCustomerTableRows(customerList) {
     return customerList.map(customer => `
-        <tr>
+        <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
             <td>${customer.firstName} ${customer.lastName}</td>
             <td>${customer.phone}</td>
             <td>${customer.email}</td>
@@ -6206,7 +6432,7 @@ function generateCustomerTableRows(customerList) {
             <td><span class="badge bg-${getCallStatusBadgeColor(customer.callStatus)}">${customer.callStatus}</span></td>
             <td>${customer.comments || '-'}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="openUpdateStatusModal(${customer.id})">
+                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id})">
                     <i class="fas fa-edit"></i>
                 </button>
             </td>

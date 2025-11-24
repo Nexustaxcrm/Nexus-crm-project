@@ -28,6 +28,123 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 
+// Email transporter for notifications
+const createEmailTransporter = () => {
+    const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || 'nexustaxfiling@gmail.com';
+    const emailPassword = process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD;
+    
+    if (!emailPassword) {
+        console.warn('⚠️ Email credentials not configured. Email notifications will not be sent.');
+        return null;
+    }
+    
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: emailUser,
+            pass: emailPassword
+        }
+    });
+};
+
+// Helper function to format refund status for display
+function formatRefundStatus(status) {
+    const statusMap = {
+        'in_discussions': 'In Discussions',
+        'received_w2': 'Received W2',
+        'preparing_quote': 'Preparing Quote',
+        'quote_sent': 'Quote Sent to Customer',
+        'customer_approved': 'Customer Approved for Filing Taxes',
+        'taxes_filed': 'Taxes Filed'
+    };
+    return statusMap[status] || status;
+}
+
+// Send refund status notification to customer
+async function sendRefundStatusNotification(customer, newStatus, oldStatus, updatedByRole) {
+    try {
+        const transporter = createEmailTransporter();
+        if (!transporter) {
+            console.warn('⚠️ Email transporter not available. Skipping notification.');
+            return;
+        }
+        
+        // Get customer email and phone
+        const customerEmail = customer.email;
+        const customerPhone = customer.phone;
+        const customerName = customer.name || 'Valued Customer';
+        
+        // Format status for display
+        const oldStatusDisplay = formatRefundStatus(oldStatus);
+        const newStatusDisplay = formatRefundStatus(newStatus);
+        
+        // Send email notification
+        if (customerEmail) {
+            try {
+                const mailOptions = {
+                    from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
+                    to: customerEmail,
+                    subject: `Tax Refund Status Update - ${newStatusDisplay}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <h2 style="color: #2dce89;">Tax Refund Status Update</h2>
+                            <p>Dear ${customerName},</p>
+                            <p>We wanted to inform you that your tax refund status has been updated:</p>
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                <p style="margin: 5px 0;"><strong>Previous Status:</strong> ${oldStatusDisplay}</p>
+                                <p style="margin: 5px 0;"><strong>Current Status:</strong> <span style="color: #2dce89; font-weight: bold;">${newStatusDisplay}</span></p>
+                            </div>
+                            <p>You can view your updated status and upload any required documents by logging into your customer dashboard.</p>
+                            <p style="text-align: center; margin: 20px 0;">
+                                <a href="${process.env.FRONTEND_URL || 'https://nexustaxfiling.com'}/CRM/index.html" 
+                                   style="display: inline-block; padding: 12px 24px; background-color: #2dce89; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                    Access Your Dashboard
+                                </a>
+                            </p>
+                            <p>If you have any questions or concerns, please don't hesitate to contact us.</p>
+                            <p>Best regards,<br>Nexus Tax Filing Team</p>
+                            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                            <p style="font-size: 12px; color: #666;">This is an automated notification. Please do not reply to this email.</p>
+                        </div>
+                    `
+                };
+                
+                await transporter.sendMail(mailOptions);
+                console.log(`✅ Refund status notification email sent to ${customerEmail} for customer ${customerName}`);
+            } catch (emailError) {
+                console.error('❌ Error sending email notification:', emailError);
+                throw emailError;
+            }
+        }
+        
+        // Send SMS notification (if phone number is available)
+        // Note: SMS functionality requires Twilio or similar service
+        // Uncomment and configure if you have SMS service set up
+        /*
+        if (customerPhone) {
+            try {
+                // TODO: Implement SMS sending using Twilio or similar service
+                // const twilio = require('twilio');
+                // const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+                // await client.messages.create({
+                //     body: `Your tax refund status has been updated to: ${newStatusDisplay}. Previous status: ${oldStatusDisplay}. Login to your dashboard for details.`,
+                //     from: process.env.TWILIO_PHONE_NUMBER,
+                //     to: customerPhone
+                // });
+                console.log(`✅ Refund status SMS sent to ${customerPhone} for customer ${customerName}`);
+            } catch (smsError) {
+                console.error('❌ Error sending SMS notification:', smsError);
+                // Don't throw - email is primary notification method
+            }
+        }
+        */
+        
+    } catch (error) {
+        console.error('❌ Error in sendRefundStatusNotification:', error);
+        throw error;
+    }
+}
+
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '..', 'uploads', 'customer-documents');
 if (!fs.existsSync(uploadsDir)) {
@@ -471,6 +588,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
         const { id } = req.params;
         const { updated_at } = req.body; // Client sends current updated_at timestamp
         const userId = req.user.userId; // From JWT token
+        const userRole = req.user.role; // Get user role from JWT token
         
         // Start transaction for atomicity (critical for concurrent updates)
         await client.query('BEGIN');
@@ -529,7 +647,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
         }
         
         // Track status change
+        let statusChanged = false;
+        let oldStatus = existing.status;
+        let newStatus = status || existing.status;
+        
         if (status && status !== existing.status) {
+            statusChanged = true;
             actions.push({
                 customer_id: parseInt(id),
                 user_id: userId,
@@ -539,6 +662,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
                 comment: null
             });
         }
+        
+        // Check if this is a refund status change by admin/preparation
+        const refundStatuses = ['in_discussions', 'received_w2', 'preparing_quote', 'quote_sent', 'customer_approved', 'taxes_filed'];
+        const isRefundStatusChange = statusChanged && 
+                                     (userRole === 'admin' || userRole === 'preparation') &&
+                                     (refundStatuses.includes(newStatus) || refundStatuses.includes(oldStatus));
         
         // Track assignment change
         if (assigned_to !== undefined && assigned_to !== existing.assigned_to) {
@@ -608,7 +737,21 @@ router.put('/:id', authenticateToken, async (req, res) => {
         // Commit transaction
         await client.query('COMMIT');
         
-        res.json(result.rows[0]);
+        // Get updated customer data for notification
+        const updatedCustomer = result.rows[0];
+        
+        // Send notification to customer if refund status changed by admin/preparation
+        if (isRefundStatusChange) {
+            try {
+                // Use updated customer data (in case email/phone was also updated)
+                await sendRefundStatusNotification(updatedCustomer, newStatus, oldStatus, userRole);
+            } catch (notificationError) {
+                // Don't fail the update if notification fails
+                console.error('⚠️ Failed to send refund status notification:', notificationError);
+            }
+        }
+        
+        res.json(updatedCustomer);
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('Error updating customer:', error);

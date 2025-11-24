@@ -398,14 +398,14 @@ This is an automated email. Please do not reply directly to this message.
                             console.log(`✅ Existing customer updated to "interested" status and linked user: ${fullname} (${email}) - ID: ${customerId}, User ID: ${userId}`);
                         } else {
                             // Already interested, just update notes and user_id if provided
-                            await client.query(
-                                `UPDATE customers 
+                                await client.query(
+                                    `UPDATE customers 
                                  SET notes = COALESCE($1, notes), 
                                      user_id = $2,
                                      updated_at = NOW() 
                                  WHERE id = $3`,
                                 [description || null, userId, customerId]
-                            );
+                                );
                             console.log(`ℹ️ Customer already has "interested" status, updated user link: ${fullname} (${email}) - ID: ${customerId}, User ID: ${userId}`);
                         }
                     }
