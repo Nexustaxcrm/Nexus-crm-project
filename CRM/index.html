@@ -3379,9 +3379,86 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-12">
+                        <!-- Customer Information Display Section -->
+                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-user"></i> My Information
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Name</label>
+                                    <div id="customerDisplayName" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
+                                        <span id="customerNameDisplay">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Phone</label>
+                                    <div id="customerDisplayPhone" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
+                                        <span id="customerPhoneDisplay">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Email</label>
+                                    <div id="customerDisplayEmail" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
+                                        <span id="customerEmailDisplay">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Address</label>
+                                    <div id="customerDisplayAddress" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 60px; display: flex; align-items: center;">
+                                        <span id="customerAddressDisplay">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Refund Status Section -->
+                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-file-invoice-dollar"></i> Refund Status
+                            </h4>
+                            <div class="mb-3">
+                                <label class="form-label" style="color: var(--text-color); font-weight: 600;">Current Status</label>
+                                <select id="customerRefundStatus" class="form-control" disabled="" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    <option value="in_discussions">In Discussions</option>
+                                    <option value="received_w2">Received W2</option>
+                                    <option value="preparing_quote">Preparing Quote</option>
+                                    <option value="quote_sent">Quote Sent to Customer</option>
+                                    <option value="customer_approved">Customer Approved for Filing Taxes</option>
+                                    <option value="taxes_filed">Taxes Filed</option>
+                                </select>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle"></i> This status is managed by your tax advisor
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- File Upload Section -->
+                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-cloud-upload-alt"></i> Upload Documents
+                            </h4>
+                            <div class="mb-3">
+                                <label class="form-label" style="color: var(--text-color); font-weight: 600;">Upload Documents (PDF, JPEG, PNG)</label>
+                                <input type="file" id="customerFiles" class="form-control" accept=".pdf,.jpeg,.jpg,.png" multiple="" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle"></i> You can upload multiple files. Accepted formats: PDF, JPEG, PNG
+                                </small>
+                                <div id="uploadedFilesList" class="mt-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Update Information Form (Collapsible) -->
                         <div class="card" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color);">Customer Information</h4>
-                            <form id="customerForm">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0" style="color: var(--text-color);">
+                                    <i class="fas fa-edit"></i> Update Information
+                                </h4>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleUpdateForm()">
+                                    <i class="fas fa-chevron-down" id="updateFormToggleIcon"></i> Show/Hide
+                                </button>
+                            </div>
+                            <form id="customerForm" style="display: none;">
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">First Name</label>
@@ -3501,10 +3578,14 @@
                 
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <button type="submit" class="btn btn-primary w-100">Save Information</button>
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-save"></i> Save Changes
+                                        </button>
                                     </div>
                                     <div class="col-md-6">
-                                        <button type="button" class="btn btn-secondary w-100" onclick="customerLogout()">Logout</button>
+                                        <button type="button" class="btn btn-secondary w-100" onclick="customerLogout()">
+                                            <i class="fas fa-sign-out-alt"></i> Logout
+                                        </button>
                                     </div>
                                 </div>
                             </form>
@@ -4850,6 +4931,27 @@
                 if (customerDashboard) {
                     customerDashboard.style.display = 'block';
                     loadCustomerData();
+                }
+            }
+        }
+        
+        // Toggle update form visibility
+        function toggleUpdateForm() {
+            const form = document.getElementById('customerForm');
+            const icon = document.getElementById('updateFormToggleIcon');
+            if (form) {
+                if (form.style.display === 'none' || form.style.display === '') {
+                    form.style.display = 'block';
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                } else {
+                    form.style.display = 'none';
+                    if (icon) {
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    }
                 }
             }
         }

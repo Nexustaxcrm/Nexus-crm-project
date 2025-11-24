@@ -785,20 +785,74 @@ async function loadCustomerDashboard() {
         
         const customer = await response.json();
         
-        // Populate customer form with data
+        // Update display section with customer information
+        const nameDisplay = document.getElementById('customerNameDisplay');
+        if (nameDisplay) {
+            nameDisplay.textContent = customer.name || '-';
+        }
+        
+        const phoneDisplay = document.getElementById('customerPhoneDisplay');
+        if (phoneDisplay) {
+            phoneDisplay.textContent = customer.phone || '-';
+        }
+        
+        const emailDisplay = document.getElementById('customerEmailDisplay');
+        if (emailDisplay) {
+            emailDisplay.textContent = customer.email || '-';
+        }
+        
+        // Parse and display address from notes
+        let addressDisplay = '-';
+        if (customer.notes) {
+            // Try to parse address from notes
+            const addressParts = parseAddress(customer.notes);
+            if (addressParts.address1 || addressParts.city || addressParts.state || addressParts.zipCode) {
+                const addressPartsArray = [];
+                if (addressParts.address1) addressPartsArray.push(addressParts.address1);
+                if (addressParts.city) addressPartsArray.push(addressParts.city);
+                if (addressParts.state) addressPartsArray.push(addressParts.state);
+                if (addressParts.zipCode) addressPartsArray.push(addressParts.zipCode);
+                addressDisplay = addressPartsArray.join(', ') || customer.notes;
+            } else {
+                addressDisplay = customer.notes;
+            }
+        }
+        
+        const addressDisplayEl = document.getElementById('customerAddressDisplay');
+        if (addressDisplayEl) {
+            addressDisplayEl.textContent = addressDisplay;
+        }
+        
+        // Populate customer form with data (for editing)
         if (customer.name) {
             const nameParts = customer.name.split(' ');
-            document.getElementById('customerFirstName').value = nameParts[0] || '';
-            document.getElementById('customerLastName').value = nameParts.slice(1).join(' ') || '';
+            const firstNameEl = document.getElementById('customerFirstName');
+            const lastNameEl = document.getElementById('customerLastName');
+            if (firstNameEl) firstNameEl.value = nameParts[0] || '';
+            if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ') || '';
         }
-        if (customer.phone) document.getElementById('customerPhone').value = customer.phone;
-        if (customer.email) document.getElementById('customerEmail').value = customer.email;
         
-        // Parse address if stored in notes or separate fields
-        // For now, we'll assume address might be in notes or we'll add address fields later
+        const phoneEl = document.getElementById('customerPhone');
+        if (phoneEl) phoneEl.value = customer.phone || '';
+        
+        const emailEl = document.getElementById('customerEmail');
+        if (emailEl) emailEl.value = customer.email || '';
+        
+        // Parse address for form fields
         if (customer.notes) {
-            // Try to parse address from notes if it's stored there
-            // This is a placeholder - you may need to adjust based on your data structure
+            const addressParts = parseAddress(customer.notes);
+            const address1El = document.getElementById('customerAddress1');
+            const cityEl = document.getElementById('customerCity');
+            const stateEl = document.getElementById('customerState');
+            const zipEl = document.getElementById('customerZipCode');
+            
+            if (address1El) address1El.value = addressParts.address1 || '';
+            if (cityEl) cityEl.value = addressParts.city || '';
+            if (stateEl) {
+                const stateCode = getStateCode(addressParts.state);
+                stateEl.value = stateCode || addressParts.state || '';
+            }
+            if (zipEl) zipEl.value = addressParts.zipCode || '';
         }
         
         // Set refund status
