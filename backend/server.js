@@ -428,6 +428,23 @@ async function initializeDatabase() {
             console.log('   - AWS_REGION');
             console.log('   - AWS_S3_BUCKET_NAME');
         }
+
+        // Initialize email receiver service
+        try {
+            const EmailReceiverService = require('./services/emailReceiver');
+            const emailReceiver = new EmailReceiverService(pool);
+            const emailReceiverStarted = emailReceiver.initialize();
+            if (emailReceiverStarted) {
+                // Store reference for cleanup
+                app.locals.emailReceiver = emailReceiver;
+                console.log('✅ Email receiver service initialized');
+            } else {
+                console.log('⚠️  Email receiver service not started (check EMAIL_PASSWORD)');
+            }
+        } catch (emailReceiverError) {
+            console.error('⚠️  Email receiver service error:', emailReceiverError.message);
+            console.log('   Email attachment processing will not be available');
+        }
     } catch (error) {
         console.error('Database initialization error:', error);
         // Don't crash the server, but log the error
@@ -638,4 +655,21 @@ app.listen(PORT, () => {
     if (!process.env.JWT_SECRET) {
         console.error('❌ Server started but JWT_SECRET is missing - authentication will not work!');
     }
+});
+
+// Graceful shutdown - cleanup email receiver
+process.on('SIGTERM', () => {
+    console.log('📧 Shutting down email receiver service...');
+    if (app.locals.emailReceiver) {
+        app.locals.emailReceiver.stopChecking();
+    }
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('📧 Shutting down email receiver service...');
+    if (app.locals.emailReceiver) {
+        app.locals.emailReceiver.stopChecking();
+    }
+    process.exit(0);
 });
