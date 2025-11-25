@@ -8513,4 +8513,55 @@ function getSampleCustomers() {
     ];
 }
 
+/**
+ * Show a specific customer dashboard section
+ */
+function showCustomerSection(sectionName) {
+    // Hide all sections
+    const sections = document.querySelectorAll('.customer-section');
+    sections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Remove active class from all nav items
+    const navItems = document.querySelectorAll('.customer-nav-item');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Show the selected section
+    const targetSection = document.getElementById(`customer-section-${sectionName}`);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+    
+    // Add active class to clicked nav item
+    const navItemsArray = Array.from(navItems);
+    const clickedIndex = navItemsArray.findIndex(item => {
+        const onclick = item.getAttribute('onclick');
+        return onclick && onclick.includes(`'${sectionName}'`);
+    });
+    
+    if (clickedIndex !== -1) {
+        navItems[clickedIndex].classList.add('active');
+    }
+    
+    // Scroll to top of content
+    const mainContent = document.querySelector('#customerDashboardPage .main-content');
+    if (mainContent) {
+        mainContent.scrollTop = 0;
+    }
+}
+
+/**
+ * Customer logout function
+ */
+function customerLogout() {
+    currentUser = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    showLogin();
+    showNotification('success', 'Logged Out', 'You have been successfully logged out.');
+}
+
 

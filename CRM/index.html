@@ -2647,6 +2647,93 @@
         }
         
         /* Customer Dashboard Form Styles */
+        /* Customer Dashboard Navigation */
+        .customer-dashboard-nav {
+            background: var(--card-bg);
+            border-bottom: 2px solid var(--border-color);
+            padding: 15px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .customer-nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .customer-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px 25px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            background: transparent;
+        }
+        
+        .customer-nav-item:hover {
+            background: var(--bg-color);
+            transform: translateY(-2px);
+        }
+        
+        .customer-nav-item.active {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        
+        .customer-nav-item.active .customer-nav-icon {
+            color: #fff;
+        }
+        
+        .customer-nav-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .customer-nav-item:hover .customer-nav-icon {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+        
+        .customer-nav-item.active .customer-nav-icon {
+            color: #fff;
+        }
+        
+        .customer-nav-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+        
+        .customer-nav-item.active .customer-nav-label {
+            color: #fff;
+        }
+        
+        .customer-section {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         #customerDashboardPage .form-control {
             border: 2px solid var(--border-color);
             background: var(--card-bg);
@@ -3778,16 +3865,48 @@
             </div>
         </nav>
 
+        <!-- Customer Dashboard Navigation -->
+        <div class="customer-dashboard-nav">
+            <div class="customer-nav-container">
+                <div class="customer-nav-item active" onclick="showCustomerSection('personal-info')">
+                    <div class="customer-nav-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="customer-nav-label">Personal Info</div>
+                </div>
+                <div class="customer-nav-item" onclick="showCustomerSection('tax-filings')">
+                    <div class="customer-nav-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="customer-nav-label">Tax Filings</div>
+                </div>
+                <div class="customer-nav-item" onclick="showCustomerSection('documents')">
+                    <div class="customer-nav-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="customer-nav-label">Documents</div>
+                </div>
+                <div class="customer-nav-item" onclick="showCustomerSection('bank-info')">
+                    <div class="customer-nav-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="customer-nav-label">Bank Info</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="main-content">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-12">
-                        <!-- Customer Information Display Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-user"></i> My Information
-                            </h4>
+                        <!-- Personal Info Section -->
+                        <div id="customer-section-personal-info" class="customer-section">
+                            <!-- My Information -->
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-user"></i> My Information
+                                </h4>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" style="color: var(--text-color); font-weight: 600;">
@@ -4019,37 +4138,16 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        </div>
 
-                            <!-- Bank Information -->
-                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
-                                <h5 class="mb-3" style="color: var(--text-color);">
-                                    <i class="fas fa-university"></i> Bank Information (for Direct Deposit)
-                                </h5>
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Account Number</label>
-                                        <input type="text" id="taxBankAccountNumber" class="form-control" placeholder="Account Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Routing Number</label>
-                                        <input type="text" id="taxBankRoutingNumber" class="form-control" placeholder="Routing Number" maxlength="9" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Account Type</label>
-                                        <select id="taxBankAccountType" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                            <option value="">Select Type</option>
-                                            <option value="checking">Checking</option>
-                                            <option value="savings">Savings</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
+                        <!-- Tax Filings Section -->
+                        <div id="customer-section-tax-filings" class="customer-section" style="display: none;">
                             <!-- Income Information -->
-                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
-                                <h5 class="mb-3" style="color: var(--text-color);">
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
                                     <i class="fas fa-dollar-sign"></i> Income Information
-                                </h5>
+                                </h4>
                                 
                                 <!-- W-2 Income -->
                 <div class="mb-3">
@@ -4137,6 +4235,39 @@
                                     <div class="col-md-12 mb-3">
                                         <label class="form-label" style="color: var(--text-color);">Other Income Description</label>
                                         <textarea id="taxOtherIncomeDesc" class="form-control" rows="2" placeholder="Describe other income sources" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Forms Section -->
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-file-alt"></i> Forms
+                                </h4>
+                                <p class="text-muted mb-4">W-2 and 1099 forms are managed in the Income Information section above.</p>
+                            </div>
+                            
+                            <!-- Income Details Section -->
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-list-alt"></i> Income Details
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Rental Income</label>
+                                        <input type="number" id="taxRentalIncomeDetails" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Unemployment Compensation</label>
+                                        <input type="number" id="taxUnemploymentCompDetails" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Social Security Benefits</label>
+                                        <input type="number" id="taxSocialSecurityDetails" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Other Income</label>
+                                        <input type="number" id="taxOtherIncomeDetails" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                                     </div>
                                 </div>
                             </div>
@@ -4230,40 +4361,42 @@
                                 </div>
                             </div>
 
+                            <!-- Refund Status -->
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-file-invoice-dollar"></i> Refund Status
+                                </h4>
+                                <div class="mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Current Status</label>
+                                    <select id="customerRefundStatus" class="form-control" disabled="" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        <option value="in_discussions">In Discussions</option>
+                                        <option value="received_w2">Received W2</option>
+                                        <option value="preparing_quote">Preparing Quote</option>
+                                        <option value="quote_sent">Quote Sent to Customer</option>
+                                        <option value="customer_approved">Customer Approved for Filing Taxes</option>
+                                        <option value="taxes_filed">Taxes Filed</option>
+                                    </select>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-info-circle"></i> This status is managed by your tax advisor
+                                    </small>
+                                </div>
+                            </div>
+                            
                             <!-- Save Tax Information Button -->
                             <div class="text-center mt-4">
                                 <button type="button" class="btn btn-primary btn-lg" onclick="saveTaxInformation()">
                                     <i class="fas fa-save"></i> Save Tax Information
                                 </button>
                             </div>
-                </div>
-                
-                <!-- Refund Status Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-file-invoice-dollar"></i> Refund Status
-                            </h4>
-                <div class="mb-3">
-                                <label class="form-label" style="color: var(--text-color); font-weight: 600;">Current Status</label>
-                                <select id="customerRefundStatus" class="form-control" disabled="" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                            <option value="in_discussions">In Discussions</option>
-                            <option value="received_w2">Received W2</option>
-                            <option value="preparing_quote">Preparing Quote</option>
-                            <option value="quote_sent">Quote Sent to Customer</option>
-                            <option value="customer_approved">Customer Approved for Filing Taxes</option>
-                            <option value="taxes_filed">Taxes Filed</option>
-                        </select>
-                                <small class="text-muted d-block mt-2">
-                                    <i class="fas fa-info-circle"></i> This status is managed by your tax advisor
-                                </small>
-                    </div>
-                </div>
-                
-                        <!-- File Upload Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-cloud-upload-alt"></i> Upload Documents
-                            </h4>
+                        </div>
+
+                        <!-- Documents Section -->
+                        <div id="customer-section-documents" class="customer-section" style="display: none;">
+                            <!-- Upload Documents -->
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-cloud-upload-alt"></i> Upload Documents
+                                </h4>
                             <div class="mb-3">
                                 <label class="form-label" style="color: var(--text-color); font-weight: 600;">Upload Documents (PDF, JPEG, PNG)</label>
                                 <input type="file" id="customerFiles" class="form-control" accept=".pdf,.jpeg,.jpg,.png" multiple="" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
@@ -4294,11 +4427,36 @@
                             </div>
                         </div>
 
-                        <!-- Logout Button -->
-                        <div class="text-center mt-4">
-                            <button type="button" class="btn btn-secondary" onclick="customerLogout()">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </button>
+                        <!-- Bank Info Section -->
+                        <div id="customer-section-bank-info" class="customer-section" style="display: none;">
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-university"></i> Bank Information for Direct Deposit
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Account Number</label>
+                                        <input type="text" id="taxBankAccountNumber" class="form-control" placeholder="Account Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Routing Number</label>
+                                        <input type="text" id="taxBankRoutingNumber" class="form-control" placeholder="Routing Number" maxlength="9" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Account Type</label>
+                                        <select id="taxBankAccountType" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="">Select Type</option>
+                                            <option value="checking">Checking</option>
+                                            <option value="savings">Savings</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-4">
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="saveTaxInformation()">
+                                        <i class="fas fa-save"></i> Save Bank Information
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
