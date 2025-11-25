@@ -1756,7 +1756,7 @@ router.delete('/documents/:documentId', authenticateToken, async (req, res) => {
 // ============================================
 
 // Save or update tax information
-router.post('/tax-info', verifyToken, async (req, res) => {
+router.post('/tax-info', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -1902,7 +1902,7 @@ router.post('/tax-info', verifyToken, async (req, res) => {
 });
 
 // Get tax information
-router.get('/tax-info/:customerId', verifyToken, async (req, res) => {
+router.get('/tax-info/:customerId', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
