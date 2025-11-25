@@ -8536,8 +8536,11 @@ function getSampleCustomers() {
  * Show a specific customer dashboard section
  */
 function showCustomerSection(sectionName) {
+    console.log(`🔍 showCustomerSection called with: ${sectionName}`);
+    
     // Hide all sections
     const sections = document.querySelectorAll('.customer-section');
+    console.log(`📦 Found ${sections.length} customer sections`);
     sections.forEach(section => {
         section.style.display = 'none';
     });
@@ -8549,9 +8552,40 @@ function showCustomerSection(sectionName) {
     });
     
     // Show the selected section
-    const targetSection = document.getElementById(`customer-section-${sectionName}`);
+    const targetSectionId = `customer-section-${sectionName}`;
+    const targetSection = document.getElementById(targetSectionId);
+    console.log(`🎯 Looking for section with ID: ${targetSectionId}`);
+    console.log(`✅ Section found:`, targetSection);
+    
     if (targetSection) {
         targetSection.style.display = 'block';
+        console.log(`✅ Section ${targetSectionId} is now visible`);
+        
+        // If it's bank-info, also populate the dropdown
+        if (sectionName === 'bank-info') {
+            console.log(`🏦 Bank Info section opened, populating tax payer dropdown...`);
+            // Get customer info from sessionStorage or fetch it
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+            if (currentUser && currentUser.role === 'customer') {
+                // Fetch customer data to populate dropdown
+                const token = sessionStorage.getItem('authToken');
+                if (token) {
+                    fetch(API_BASE_URL + '/customers/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                    .then(response => response.json())
+                    .then(customer => {
+                        console.log(`👤 Customer data loaded:`, customer);
+                        populateTaxPayerDropdown(customer);
+                    })
+                    .catch(error => {
+                        console.error('❌ Error loading customer data:', error);
+                    });
+                }
+            }
+        }
+    } else {
+        console.error(`❌ Section ${targetSectionId} NOT FOUND!`);
     }
     
     // Add active class to clicked nav item
@@ -8649,6 +8683,180 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Save Personal Information
+ */
+async function savePersonalInformation() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'customer') {
+            showNotification('error', 'Error', 'Customer information not found.');
+            return;
+        }
+
+        const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!meResponse.ok) {
+            throw new Error('Failed to fetch customer information');
+        }
+
+        const customer = await meResponse.json();
+        const customerId = customer.id;
+
+        const personalData = {
+            filing_years: document.getElementById('personalFilingYears')?.value || '',
+            first_name: document.getElementById('personalFirstName')?.value.trim() || '',
+            middle_name: document.getElementById('personalMiddleName')?.value.trim() || '',
+            last_name: document.getElementById('personalLastName')?.value.trim() || '',
+            date_of_birth: document.getElementById('personalDateOfBirth')?.value || '',
+            gender: document.getElementById('personalGender')?.value || '',
+            alternate_mobile: document.getElementById('personalAlternateMobile')?.value.trim() || '',
+            country_of_citizenship: document.getElementById('personalCountryOfCitizenship')?.value || ''
+        };
+
+        // Save to backend - you may want to create a new endpoint for this or add to existing customer update
+        const response = await fetch(API_BASE_URL + `/customers/${customerId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(personalData)
+        });
+
+        if (response.ok) {
+            showNotification('success', 'Personal Information Saved', 'Your personal information has been saved successfully!');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save personal information');
+        }
+    } catch (error) {
+        console.error('Error saving personal information:', error);
+        showNotification('error', 'Save Failed', error.message || 'Failed to save personal information. Please try again.');
+    }
+}
+
+/**
+ * Save Address Information
+ */
+async function saveAddressInformation() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'customer') {
+            showNotification('error', 'Error', 'Customer information not found.');
+            return;
+        }
+
+        const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!meResponse.ok) {
+            throw new Error('Failed to fetch customer information');
+        }
+
+        const customer = await meResponse.json();
+        const customerId = customer.id;
+
+        const addressData = {
+            address1: document.getElementById('addressInfoAddress1')?.value.trim() || '',
+            address2: document.getElementById('addressInfoAddress2')?.value.trim() || '',
+            city: document.getElementById('addressInfoCity')?.value.trim() || '',
+            state: document.getElementById('addressInfoState')?.value || '',
+            zip_code: document.getElementById('addressInfoZipCode')?.value.trim() || '',
+            apartment_number: document.getElementById('addressInfoApartmentNumber')?.value.trim() || ''
+        };
+
+        // Save to backend
+        const response = await fetch(API_BASE_URL + `/customers/${customerId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(addressData)
+        });
+
+        if (response.ok) {
+            showNotification('success', 'Address Information Saved', 'Your address information has been saved successfully!');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save address information');
+        }
+    } catch (error) {
+        console.error('Error saving address information:', error);
+        showNotification('error', 'Save Failed', error.message || 'Failed to save address information. Please try again.');
+    }
+}
+
+/**
+ * Save Identification Details
+ */
+async function saveIdentificationDetails() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'customer') {
+            showNotification('error', 'Error', 'Customer information not found.');
+            return;
+        }
+
+        const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!meResponse.ok) {
+            throw new Error('Failed to fetch customer information');
+        }
+
+        const customer = await meResponse.json();
+        const customerId = customer.id;
+
+        const identificationData = {
+            citizenship: document.getElementById('identificationCitizenship')?.value || ''
+        };
+
+        // Save to backend
+        const response = await fetch(API_BASE_URL + `/customers/${customerId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(identificationData)
+        });
+
+        if (response.ok) {
+            showNotification('success', 'Identification Details Saved', 'Your identification details have been saved successfully!');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save identification details');
+        }
+    } catch (error) {
+        console.error('Error saving identification details:', error);
+        showNotification('error', 'Save Failed', error.message || 'Failed to save identification details. Please try again.');
+    }
+}
 
 /**
  * Customer logout function
