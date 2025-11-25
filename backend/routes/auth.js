@@ -226,9 +226,9 @@ router.post('/login', async (req, res) => {
         
         const usernameLower = username.toLowerCase().trim();
         
-        // Determine login method
-        const isOTPLogin = otp !== undefined && otp !== null;
-        const isPasswordLogin = password !== undefined && password !== null;
+        // Determine login method (check for non-empty values)
+        const isOTPLogin = otp !== undefined && otp !== null && otp.toString().trim().length > 0;
+        const isPasswordLogin = password !== undefined && password !== null && password.toString().trim().length > 0;
         
         if (!isOTPLogin && !isPasswordLogin) {
             return res.status(400).json({ error: 'Either password or OTP is required' });
@@ -334,17 +334,27 @@ router.post('/login', async (req, res) => {
         
         // Handle password login
         if (isPasswordLogin) {
+            console.log(`🔐 Password login attempt for user: ${usernameLower}, role: ${user.role}`);
+            console.log(`🔐 Password provided: ${password ? 'Yes (length: ' + password.length + ')' : 'No'}`);
+            console.log(`🔐 Stored password hash: ${user.password ? 'Yes (starts with: ' + user.password.substring(0, 4) + ')' : 'No'}`);
+            
             // Check if password is hashed (starts with $2a$ or $2b$) or plain text (legacy)
-            if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+            if (user.password && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
                 // Hashed password - use bcrypt
+                console.log(`🔐 Comparing password using bcrypt...`);
                 isValid = await bcrypt.compare(password, user.password);
+                console.log(`🔐 Password comparison result: ${isValid ? 'VALID' : 'INVALID'}`);
             } else {
                 // Plain text password (legacy) - hash it and update the database
+                console.log(`🔐 Comparing password as plain text (legacy)...`);
                 isValid = (password === user.password);
+                console.log(`🔐 Password comparison result: ${isValid ? 'VALID' : 'INVALID'}`);
                 if (isValid) {
                     // Hash the password and update it in database
+                    console.log(`🔐 Hashing and updating password in database...`);
                     const hashedPassword = await bcrypt.hash(password, 10);
                     await dbPool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, user.id]);
+                    console.log(`✅ Password hashed and updated in database`);
                 }
             }
             

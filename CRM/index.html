@@ -3629,6 +3629,13 @@
             // Store selected login method in a hidden input or data attribute
             if (loginForm) {
                 loginForm.setAttribute('data-login-method', 'password'); // Default
+                // Show password field by default since default method is password
+                if (passwordField) {
+                    passwordField.style.display = 'block';
+                    if (passwordInput) {
+                        passwordInput.setAttribute('required', '');
+                    }
+                }
             }
             
             loginMethodBtns.forEach(btn => {

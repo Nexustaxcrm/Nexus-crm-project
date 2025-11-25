@@ -416,7 +416,7 @@ async function handleLogin(e) {
     
     // Validate based on login method
     if (loginMethod === 'password') {
-        if (!password) {
+        if (!password || password.trim() === '') {
             showNotification('error', 'Validation Error', 'Password is required');
             return;
         }
@@ -502,6 +502,14 @@ async function handleLogin(e) {
         const requestBody = loginMethod === 'otp' 
             ? { username: usernameLower, otp: otp }
             : { username: usernameLower, password: password };
+        
+        console.log('📤 Sending login request:', {
+            method: loginMethod,
+            username: usernameLower,
+            hasPassword: !!password,
+            passwordLength: password ? password.length : 0,
+            hasOTP: !!otp
+        });
         
         const response = await fetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
