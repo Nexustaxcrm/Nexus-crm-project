@@ -8668,7 +8668,20 @@ function showCustomerSection(sectionName) {
     
     if (targetSection) {
         targetSection.style.display = 'block';
+        targetSection.style.visibility = 'visible';
+        targetSection.style.opacity = '1';
         console.log(`✅ Section ${targetSectionId} is now visible`);
+        
+        // Force visibility of child elements
+        const childCards = targetSection.querySelectorAll('.card');
+        childCards.forEach(card => {
+            card.style.display = 'block';
+            card.style.visibility = 'visible';
+            card.style.opacity = '1';
+        });
+        
+        console.log(`📦 Section has ${childCards.length} card(s) inside`);
+        console.log(`📦 Section innerHTML length: ${targetSection.innerHTML.length}`);
         
         // If it's bank-info, also populate the dropdown and load bank info
         if (sectionName === 'bank-info') {
