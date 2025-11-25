@@ -123,6 +123,7 @@ router.post('/send-otp', async (req, res) => {
         
         const user = userResult.rows[0];
         const userEmail = user.customer_email;
+        const actualUsername = user.username.toLowerCase();
         
         if (!userEmail) {
             return res.status(400).json({ error: 'No email address found for this user. Please contact support.' });
@@ -132,12 +133,25 @@ router.post('/send-otp', async (req, res) => {
         const otp = generateOTP();
         const expiresAt = Date.now() + OTP_EXPIRY_TIME;
         
-        // Store OTP
-        otpStore.set(usernameLower, {
+        // Store OTP with both the input value (username/email) and the actual username
+        // This allows login with either username or email
+        const otpData = {
             otp,
             expiresAt,
-            attempts: 0
-        });
+            attempts: 0,
+            username: actualUsername
+        };
+        
+        otpStore.set(usernameLower, otpData);
+        // Also store with actual username if different from input
+        if (usernameLower !== actualUsername) {
+            otpStore.set(actualUsername, otpData);
+        }
+        
+        // If input was an email, also store with email for lookup
+        if (userEmail && usernameLower === userEmail.toLowerCase()) {
+            otpStore.set(userEmail.toLowerCase(), otpData);
+        }
         
         // Send OTP email
         const transporter = createEmailTransporter();
@@ -263,29 +277,57 @@ router.post('/login', async (req, res) => {
         
         // Handle OTP login
         if (isOTPLogin) {
-            const otpData = otpStore.get(usernameLower);
+            // Try to get OTP data using the input value
+            let otpData = otpStore.get(usernameLower);
+            
+            // If not found, try with the actual username from database
+            if (!otpData) {
+                const actualUsername = user.username.toLowerCase();
+                otpData = otpStore.get(actualUsername);
+            }
+            
+            // If still not found, try with customer email
+            if (!otpData && user.customer_email) {
+                otpData = otpStore.get(user.customer_email.toLowerCase());
+            }
             
             if (!otpData) {
+                console.log(`❌ OTP not found for: ${usernameLower}, tried: ${user.username.toLowerCase()}, ${user.customer_email ? user.customer_email.toLowerCase() : 'N/A'}`);
                 return res.status(401).json({ error: 'OTP not found or expired. Please request a new OTP.' });
             }
             
             if (otpData.expiresAt < Date.now()) {
+                // Clean up all possible keys
                 otpStore.delete(usernameLower);
+                otpStore.delete(user.username.toLowerCase());
+                if (user.customer_email) {
+                    otpStore.delete(user.customer_email.toLowerCase());
+                }
                 return res.status(401).json({ error: 'OTP has expired. Please request a new OTP.' });
             }
             
             if (otpData.attempts >= 5) {
+                // Clean up all possible keys
                 otpStore.delete(usernameLower);
+                otpStore.delete(user.username.toLowerCase());
+                if (user.customer_email) {
+                    otpStore.delete(user.customer_email.toLowerCase());
+                }
                 return res.status(401).json({ error: 'Too many failed attempts. Please request a new OTP.' });
             }
             
             if (otpData.otp !== otp) {
                 otpData.attempts++;
+                console.log(`❌ Invalid OTP attempt for user: ${usernameLower}, attempts: ${otpData.attempts}`);
                 return res.status(401).json({ error: 'Invalid OTP' });
             }
             
-            // OTP is valid - remove it from store
+            // OTP is valid - clean up all possible keys
             otpStore.delete(usernameLower);
+            otpStore.delete(user.username.toLowerCase());
+            if (user.customer_email) {
+                otpStore.delete(user.customer_email.toLowerCase());
+            }
             isValid = true;
             console.log(`✅ OTP validated successfully for user: ${usernameLower}, role: ${user.role}`);
         }
