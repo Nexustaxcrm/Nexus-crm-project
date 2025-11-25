@@ -4537,7 +4537,23 @@ async function loadCustomerDocuments(customerId) {
                     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
                 };
                 
-                documentsList.innerHTML = documents.map(doc => {
+                // Filter out any documents with invalid IDs
+                const validDocuments = documents.filter(doc => {
+                    const hasValidId = doc.id && !isNaN(doc.id) && doc.id > 0;
+                    const hasFileName = doc.file_name && doc.file_name.trim().length > 0;
+                    return hasValidId && hasFileName;
+                });
+                
+                if (validDocuments.length !== documents.length) {
+                    console.warn(`⚠️ Filtered out ${documents.length - validDocuments.length} document(s) with invalid IDs or missing file names`);
+                }
+                
+                if (validDocuments.length === 0) {
+                    documentsList.innerHTML = '<div class="text-center text-muted"><i class="fas fa-file-alt"></i> No valid documents found</div>';
+                    return;
+                }
+                
+                documentsList.innerHTML = validDocuments.map(doc => {
                     const uploadDate = new Date(doc.uploaded_at).toLocaleString();
                     const fileSize = formatFileSize(doc.file_size);
                     const fileIcon = doc.file_type.includes('pdf') ? 'fa-file-pdf' : 
@@ -4597,12 +4613,22 @@ let currentViewingDocument = null;
 // View customer document in pop-up
 async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
     try {
-        // Validate inputs
-        if (!documentId || isNaN(documentId)) {
-            console.error('❌ Invalid document ID:', documentId);
+        // Convert to number and validate inputs
+        const docId = parseInt(documentId, 10);
+        if (!documentId || isNaN(docId) || docId <= 0) {
+            console.error('❌ Invalid document ID:', documentId, 'Parsed as:', docId);
             showNotification('error', 'Invalid Document', 'Invalid document ID. Please refresh the page and try again.');
             return;
         }
+        
+        if (!fileName || typeof fileName !== 'string' || fileName.trim().length === 0) {
+            console.error('❌ Invalid file name:', fileName);
+            showNotification('error', 'Invalid Document', 'Invalid file name. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Use validated ID
+        documentId = docId;
         
         const token = sessionStorage.getItem('authToken');
         if (!token) {
@@ -4651,7 +4677,60 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
         
         console.log(`📡 Document fetch response status: ${response.status}`);
         
-        if (response.ok) {
+        if (!response.ok) {
+            // Handle different error statuses
+            if (response.status === 404) {
+                console.error(`❌ Document not found: ID ${documentId}`);
+                if (viewerContent) {
+                    viewerContent.innerHTML = `
+                        <div class="text-center text-danger p-5">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                            <h5>Document Not Found</h5>
+                            <p>The document you're trying to view no longer exists or has been deleted.</p>
+                            <p class="text-muted small">Document ID: ${documentId}</p>
+                        </div>
+                    `;
+                }
+                showNotification('error', 'Document Not Found', 'The document you\'re trying to view no longer exists.');
+                return;
+            } else if (response.status === 403) {
+                console.error(`❌ Access denied for document ID ${documentId}`);
+                if (viewerContent) {
+                    viewerContent.innerHTML = `
+                        <div class="text-center text-danger p-5">
+                            <i class="fas fa-lock fa-3x mb-3"></i>
+                            <h5>Access Denied</h5>
+                            <p>You don't have permission to view this document.</p>
+                        </div>
+                    `;
+                }
+                showNotification('error', 'Access Denied', 'You don\'t have permission to view this document.');
+                return;
+            } else {
+                let errorText = '';
+                try {
+                    errorText = await response.text();
+                } catch (e) {
+                    errorText = response.statusText || `Status ${response.status}`;
+                }
+                console.error(`❌ Error fetching document: ${response.status} - ${errorText}`);
+                if (viewerContent) {
+                    viewerContent.innerHTML = `
+                        <div class="text-center text-danger p-5">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                            <h5>Error Loading Document</h5>
+                            <p>Failed to load the document. Please try again later.</p>
+                            <p class="text-muted small">Error: ${response.status}</p>
+                        </div>
+                    `;
+                }
+                showNotification('error', 'Error Loading Document', 'Failed to load the document. Please try again.');
+                return;
+            }
+        }
+        
+        // Response is OK, proceed with displaying document
+        if (viewerContent) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             
@@ -4747,11 +4826,30 @@ function downloadCurrentDocument() {
 // Download customer document
 async function downloadCustomerDocument(documentId, fileName) {
     try {
+        // Convert to number and validate inputs
+        const docId = parseInt(documentId, 10);
+        if (!documentId || isNaN(docId) || docId <= 0) {
+            console.error('❌ Invalid document ID for download:', documentId, 'Parsed as:', docId);
+            showNotification('error', 'Invalid Document', 'Invalid document ID. Please refresh the page and try again.');
+            return;
+        }
+        
+        if (!fileName || typeof fileName !== 'string' || fileName.trim().length === 0) {
+            console.error('❌ Invalid file name for download:', fileName);
+            showNotification('error', 'Invalid Document', 'Invalid file name. Please refresh the page and try again.');
+            return;
+        }
+        
         const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
             return;
         }
+        
+        // Use validated ID
+        documentId = docId;
+        
+        console.log(`📥 Downloading document ID: ${documentId}, Name: ${fileName}`);
         
         const response = await fetch(API_BASE_URL + `/customers/documents/${documentId}/download`, {
             headers: {
@@ -4781,12 +4879,29 @@ async function downloadCustomerDocument(documentId, fileName) {
 
 // Delete customer document
 async function deleteCustomerDocument(documentId, fileName, customerId) {
-    // Confirm deletion
-    if (!confirm(`Are you sure you want to delete "${fileName}"?\n\nThis action cannot be undone.`)) {
-        return;
-    }
-    
     try {
+        // Convert to number and validate inputs
+        const docId = parseInt(documentId, 10);
+        if (!documentId || isNaN(docId) || docId <= 0) {
+            console.error('❌ Invalid document ID for deletion:', documentId, 'Parsed as:', docId);
+            showNotification('error', 'Invalid Document', 'Invalid document ID. Please refresh the page and try again.');
+            return;
+        }
+        
+        if (!fileName || typeof fileName !== 'string' || fileName.trim().length === 0) {
+            console.error('❌ Invalid file name for deletion:', fileName);
+            showNotification('error', 'Invalid Document', 'Invalid file name. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Use validated ID
+        documentId = docId;
+        
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete "${fileName}"?\n\nThis action cannot be undone.`)) {
+            return;
+        }
+        
         const token = sessionStorage.getItem('authToken');
         if (!token) {
             showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
