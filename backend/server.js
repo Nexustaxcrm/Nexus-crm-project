@@ -148,6 +148,7 @@ async function createCustomerDocumentsTableMigration(pool) {
                     customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
                     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
                     file_name VARCHAR(255) NOT NULL,
+                    stored_file_name VARCHAR(255),
                     file_path VARCHAR(500) NOT NULL,
                     file_size BIGINT NOT NULL,
                     file_type VARCHAR(100) NOT NULL,
@@ -164,6 +165,33 @@ async function createCustomerDocumentsTableMigration(pool) {
             console.log('✅ customer_documents table created successfully');
         } else {
             console.log('✅ customer_documents table already exists');
+            // Add stored_file_name column if it doesn't exist (for existing tables)
+            try {
+                const columnCheck = await pool.query(`
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name='customer_documents' AND column_name='stored_file_name'
+                `);
+                
+                if (columnCheck.rows.length === 0) {
+                    console.log('🔄 Adding stored_file_name column to customer_documents table...');
+                    await pool.query(`
+                        ALTER TABLE customer_documents 
+                        ADD COLUMN stored_file_name VARCHAR(255)
+                    `);
+                    
+                    // Populate stored_file_name from file_path for existing records
+                    await pool.query(`
+                        UPDATE customer_documents 
+                        SET stored_file_name = SUBSTRING(file_path FROM '[^/\\\\]+$')
+                        WHERE stored_file_name IS NULL
+                    `);
+                    
+                    console.log('✅ stored_file_name column added successfully');
+                }
+            } catch (columnError) {
+                console.error('⚠️ Error adding stored_file_name column:', columnError.message);
+            }
         }
     } catch (error) {
         console.error('❌ Error creating customer_documents table:', error.message);
@@ -382,6 +410,23 @@ async function initializeDatabase() {
             console.log('   ⚠️  IMPORTANT: Change the admin password after first login!');
         } else {
             console.log('Admin user already exists');
+        }
+        
+        // Check S3 configuration status
+        const s3Storage = require('./utils/s3Storage');
+        if (s3Storage.isS3Configured()) {
+            console.log('✅ AWS S3 storage is configured');
+            console.log(`   Bucket: ${process.env.AWS_S3_BUCKET_NAME || 'Not set'}`);
+            console.log(`   Region: ${process.env.AWS_REGION || 'Not set'}`);
+            console.log(`   Prefix: ${process.env.AWS_S3_PREFIX || 'customer-documents'}`);
+        } else {
+            console.log('⚠️  AWS S3 storage is NOT configured');
+            console.log('   Files will be stored locally and may be lost during redeployments');
+            console.log('   To enable S3, set these environment variables:');
+            console.log('   - AWS_ACCESS_KEY_ID');
+            console.log('   - AWS_SECRET_ACCESS_KEY');
+            console.log('   - AWS_REGION');
+            console.log('   - AWS_S3_BUCKET_NAME');
         }
     } catch (error) {
         console.error('Database initialization error:', error);

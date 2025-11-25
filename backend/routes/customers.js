@@ -5,6 +5,9 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+// Import S3 storage utility
+const s3Storage = require('../utils/s3Storage');
+
 // Get shared pool from app.locals (set in server.js)
 let pool = null;
 let verifyToken = null;
@@ -151,20 +154,23 @@ if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure multer for customer document uploads (store on disk)
+// Configure multer for customer document uploads
+// Use memory storage so we can upload to S3 (or fallback to disk if S3 not configured)
 const documentUpload = multer({
-    storage: multer.diskStorage({
-        destination: function (req, file, cb) {
-            cb(null, uploadsDir);
-        },
-        filename: function (req, file, cb) {
-            // Generate unique filename: timestamp-customerId-originalname
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-            const ext = path.extname(file.originalname);
-            const name = path.basename(file.originalname, ext);
-            cb(null, `${uniqueSuffix}-${name}${ext}`);
-        }
-    }),
+    storage: s3Storage.isS3Configured() 
+        ? multer.memoryStorage() // Store in memory for S3 upload
+        : multer.diskStorage({   // Fallback to disk storage if S3 not configured
+            destination: function (req, file, cb) {
+                cb(null, uploadsDir);
+            },
+            filename: function (req, file, cb) {
+                // Generate unique filename: timestamp-customerId-originalname
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const ext = path.extname(file.originalname);
+                const name = path.basename(file.originalname, ext);
+                cb(null, `${uniqueSuffix}-${name}${ext}`);
+            }
+        }),
     limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit per document
     fileFilter: function (req, file, cb) {
         // Only allow PDF, JPEG, JPG, PNG
@@ -1499,17 +1505,54 @@ router.post('/documents/upload', authenticateToken, documentUpload.array('files'
         
         // Process each uploaded file
         for (const file of req.files) {
-            const filePath = file.path;
             const fileName = file.originalname;
             const fileSize = file.size;
             const fileType = file.mimetype;
+            let filePath;
+            let storedFileName;
+            
+            // Generate unique stored filename
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            const ext = path.extname(fileName);
+            const name = path.basename(fileName, ext);
+            storedFileName = `${uniqueSuffix}-${name}${ext}`;
+            
+            // Upload to S3 if configured, otherwise use local path
+            if (s3Storage.isS3Configured()) {
+                try {
+                    // Upload to S3
+                    const fileBuffer = file.buffer || fs.readFileSync(file.path);
+                    filePath = await s3Storage.uploadToS3(fileBuffer, fileName, storedFileName);
+                    console.log(`✅ File uploaded to S3: ${filePath}`);
+                    
+                    // Clean up local temp file if it exists
+                    if (file.path && fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
+                    }
+                } catch (s3Error) {
+                    console.error('❌ Error uploading to S3:', s3Error);
+                    // Fallback to local storage if S3 upload fails
+                    if (file.path) {
+                        filePath = file.path;
+                    } else {
+                        // Save to local disk if memory storage was used
+                        const localPath = path.join(uploadsDir, storedFileName);
+                        fs.writeFileSync(localPath, file.buffer);
+                        filePath = localPath;
+                    }
+                    console.log(`⚠️ Falling back to local storage: ${filePath}`);
+                }
+            } else {
+                // Use local file path (from disk storage)
+                filePath = file.path;
+            }
             
             // Insert document record into database
             const result = await client.query(
-                `INSERT INTO customer_documents (customer_id, user_id, file_name, file_path, file_size, file_type)
-                 VALUES ($1, $2, $3, $4, $5, $6)
+                `INSERT INTO customer_documents (customer_id, user_id, file_name, stored_file_name, file_path, file_size, file_type)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                  RETURNING id, file_name, uploaded_at`,
-                [customerId, userId, fileName, filePath, fileSize, fileType]
+                [customerId, userId, fileName, storedFileName, filePath, fileSize, fileType]
             );
             
             uploadedDocuments.push(result.rows[0]);
@@ -1563,8 +1606,13 @@ router.post('/documents/upload', authenticateToken, documentUpload.array('files'
         // Clean up uploaded files on error
         if (req.files) {
             req.files.forEach(file => {
-                if (fs.existsSync(file.path)) {
-                    fs.unlinkSync(file.path);
+                // Clean up local files if they exist
+                if (file.path && fs.existsSync(file.path)) {
+                    try {
+                        fs.unlinkSync(file.path);
+                    } catch (unlinkError) {
+                        console.error('Error cleaning up file:', unlinkError);
+                    }
                 }
             });
         }
@@ -1605,7 +1653,7 @@ router.get('/documents/:customerId', authenticateToken, async (req, res) => {
         // Get documents for customer
         console.log(`📋 Fetching documents for customer ID: ${customerId}`);
         const result = await dbPool.query(
-            `SELECT id, file_name, file_path, file_size, file_type, uploaded_at
+            `SELECT id, file_name, stored_file_name, file_path, file_size, file_type, uploaded_at
              FROM customer_documents
              WHERE customer_id = $1
              ORDER BY uploaded_at DESC`,
@@ -1664,16 +1712,59 @@ router.get('/documents/:documentId/download', authenticateToken, async (req, res
             return res.status(403).json({ error: 'Access denied. You can only download your own documents.' });
         }
         
-        // Check if file exists
-        console.log(`🔍 Checking if file exists at path: ${document.file_path}`);
-        if (!fs.existsSync(document.file_path)) {
-            console.log(`❌ File not found on server at path: ${document.file_path}`);
-            return res.status(404).json({ error: 'File not found on server' });
-        }
+        // Check if file is stored in S3 or locally
+        const isS3File = s3Storage.isS3Key(document.file_path);
         
-        console.log(`✅ File exists, sending download for: ${document.file_name}`);
-        // Send file
-        res.download(document.file_path, document.file_name);
+        if (isS3File && s3Storage.isS3Configured()) {
+            // Download from S3
+            try {
+                console.log(`☁️ Downloading file from S3: ${document.file_path}`);
+                const fileBuffer = await s3Storage.downloadFromS3(document.file_path);
+                
+                // Set appropriate headers
+                res.setHeader('Content-Type', document.file_type || 'application/octet-stream');
+                res.setHeader('Content-Disposition', `attachment; filename="${document.file_name}"`);
+                res.setHeader('Content-Length', fileBuffer.length);
+                
+                // Send file buffer
+                res.send(fileBuffer);
+                console.log(`✅ File downloaded from S3 successfully`);
+            } catch (s3Error) {
+                console.error('❌ Error downloading from S3:', s3Error);
+                return res.status(404).json({ 
+                    error: 'File not found in S3',
+                    details: s3Error.message
+                });
+            }
+        } else {
+            // Download from local filesystem
+            console.log(`📁 Downloading file from local storage: ${document.file_path}`);
+            
+            // Check if file exists
+            let filePath = document.file_path;
+            if (!fs.existsSync(filePath)) {
+                // Try alternative path
+                const expectedUploadDir = path.join(process.cwd(), 'uploads', 'customer-documents');
+                const fileName = document.stored_file_name || document.file_name;
+                const alternativePath = path.join(expectedUploadDir, fileName);
+                
+                console.log(`🔍 Trying alternative path: ${alternativePath}`);
+                if (fs.existsSync(alternativePath)) {
+                    console.log(`✅ Found file at alternative path`);
+                    filePath = alternativePath;
+                } else {
+                    console.log(`❌ File not found at alternative path either`);
+                    return res.status(404).json({ 
+                        error: 'File not found on server',
+                        details: `File path in database: ${document.file_path}, Expected: ${alternativePath}`
+                    });
+                }
+            }
+            
+            console.log(`✅ File exists, sending download for: ${document.file_name}`);
+            // Send file
+            res.download(filePath, document.file_name);
+        }
         
     } catch (error) {
         console.error('❌ Error downloading document:', error);
@@ -1721,17 +1812,30 @@ router.delete('/documents/:documentId', authenticateToken, async (req, res) => {
             return res.status(403).json({ error: 'Access denied. You can only delete your own documents.' });
         }
         
-        // Delete file from filesystem if it exists
-        if (fs.existsSync(document.file_path)) {
+        // Delete file from S3 or local filesystem
+        const isS3File = s3Storage.isS3Key(document.file_path);
+        
+        if (isS3File && s3Storage.isS3Configured()) {
+            // Delete from S3
             try {
-                fs.unlinkSync(document.file_path);
-                console.log(`✅ File deleted from filesystem: ${document.file_path}`);
-            } catch (fileError) {
-                console.error(`⚠️ Error deleting file from filesystem: ${fileError.message}`);
-                // Continue with database deletion even if file deletion fails
+                await s3Storage.deleteFromS3(document.file_path);
+                console.log(`✅ File deleted from S3: ${document.file_path}`);
+            } catch (s3Error) {
+                console.error('⚠️ Error deleting from S3 (continuing with DB deletion):', s3Error);
+                // Continue with database deletion even if S3 deletion fails
             }
         } else {
-            console.log(`⚠️ File not found on filesystem: ${document.file_path} (continuing with database deletion)`);
+            // Delete from local filesystem
+            if (fs.existsSync(document.file_path)) {
+                try {
+                    fs.unlinkSync(document.file_path);
+                    console.log(`✅ File deleted from filesystem: ${document.file_path}`);
+                } catch (unlinkError) {
+                    console.error('⚠️ Error deleting file from filesystem:', unlinkError);
+                }
+            } else {
+                console.log(`⚠️ File not found on filesystem: ${document.file_path} (continuing with database deletion)`);
+            }
         }
         
         // Delete document record from database

@@ -1113,13 +1113,23 @@ async function loadCustomerUploadedDocuments(customerId) {
                 }).join('');
             }
         } else {
-            documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+            // Don't clear existing documents on error - just show a warning
+            console.error('❌ Error loading documents - status:', response.status);
+            if (documentsList && documentsList.innerHTML.trim() === '') {
+                documentsList.innerHTML = '<div class="text-center text-warning"><i class="fas fa-exclamation-triangle"></i> Unable to refresh document list</div>';
+            }
         }
     } catch (error) {
-        console.error('Error loading customer documents:', error);
+        console.error('❌ Error loading customer documents:', error);
         const documentsList = document.getElementById('customerUploadedDocumentsList');
         if (documentsList) {
-            documentsList.innerHTML = '<div class="text-center text-danger">Error loading documents</div>';
+            // Only show error if list is empty - don't clear existing documents
+            if (documentsList.innerHTML.trim() === '' || documentsList.innerHTML.includes('No documents')) {
+                documentsList.innerHTML = '<div class="text-center text-danger"><i class="fas fa-exclamation-circle"></i> Error loading documents. Please refresh the page.</div>';
+            } else {
+                // If documents are already displayed, just log the error without clearing
+                console.warn('⚠️ Error occurred but keeping existing document list visible');
+            }
         }
     }
 }
@@ -4834,6 +4844,12 @@ async function loadTaxInformation() {
         if (response.ok) {
             const taxInfo = await response.json();
             
+            // Check if taxInfo exists and is not null
+            if (!taxInfo || typeof taxInfo !== 'object') {
+                console.log('📋 No tax information found for this tax year');
+                return; // Exit early if no tax info
+            }
+            
             // Populate form fields
             if (taxInfo.ssn_itin && document.getElementById('taxSsnItin')) document.getElementById('taxSsnItin').value = taxInfo.ssn_itin;
             if (taxInfo.date_of_birth && document.getElementById('taxDateOfBirth')) document.getElementById('taxDateOfBirth').value = taxInfo.date_of_birth;
@@ -5146,7 +5162,8 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
                         </div>
                     `;
                 }
-                showNotification('error', 'Document Not Found', 'The document you\'re trying to view no longer exists.');
+                showNotification('error', 'Document Not Found', 'The document file is missing from the server. The document record exists but the file cannot be found.');
+                // Don't reload documents list - keep existing documents visible
                 return;
             } else if (response.status === 403) {
                 console.error(`❌ Access denied for document ID ${documentId}`);

@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS customer_documents (
     customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     file_name VARCHAR(255) NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
+    stored_file_name VARCHAR(255), -- Unique stored filename (for S3 or local)
+    file_path VARCHAR(500) NOT NULL, -- S3 key or local file path
     file_size BIGINT NOT NULL,
     file_type VARCHAR(100) NOT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
