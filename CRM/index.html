@@ -138,6 +138,29 @@
             pointer-events: none;
         }
         
+        /* Gradient line under navbar */
+        .navbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
+            background-size: 200% 100%;
+            z-index: 1001;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        
         [data-theme="dark"] .navbar {
             background: #EDE8D0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
