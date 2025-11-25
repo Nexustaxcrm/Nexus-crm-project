@@ -94,25 +94,38 @@ router.post('/send-otp', async (req, res) => {
         
         const usernameLower = username.toLowerCase().trim();
         
-        // Find user by username or email
-        const userResult = await dbPool.query(
-            `SELECT u.id, u.username, u.email, c.email as customer_email 
+        // Find user by username or customer email
+        // First try to find by username
+        let userResult = await dbPool.query(
+            `SELECT u.id, u.username, c.email as customer_email 
              FROM users u 
              LEFT JOIN customers c ON u.id = c.user_id 
-             WHERE LOWER(u.username) = $1 OR LOWER(u.email) = $1 OR LOWER(c.email) = $1 
+             WHERE LOWER(u.username) = $1 
              LIMIT 1`,
             [usernameLower]
         );
         
+        // If not found by username, try to find by customer email
         if (userResult.rows.length === 0) {
-            return res.status(404).json({ error: 'User not found. Please check your email address.' });
+            userResult = await dbPool.query(
+                `SELECT u.id, u.username, c.email as customer_email 
+                 FROM users u 
+                 INNER JOIN customers c ON u.id = c.user_id 
+                 WHERE LOWER(c.email) = $1 
+                 LIMIT 1`,
+                [usernameLower]
+            );
+        }
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found. Please check your username or email address.' });
         }
         
         const user = userResult.rows[0];
-        const userEmail = user.email || user.customer_email;
+        const userEmail = user.customer_email;
         
         if (!userEmail) {
-            return res.status(400).json({ error: 'No email address found for this user' });
+            return res.status(400).json({ error: 'No email address found for this user. Please contact support.' });
         }
         
         // Generate OTP
@@ -211,17 +224,31 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Please use either password or OTP, not both' });
         }
         
-        // Find user in database (case-insensitive username or email comparison)
+        // Find user in database (case-insensitive username or customer email comparison)
         console.log(`🔍 Searching for user with username/email: ${usernameLower}`);
-        const result = await dbPool.query(
+        // First try to find by username
+        let result = await dbPool.query(
             `SELECT u.*, c.email as customer_email 
              FROM users u 
              LEFT JOIN customers c ON u.id = c.user_id 
-             WHERE (LOWER(u.username) = $1 OR LOWER(u.email) = $1 OR LOWER(c.email) = $1) 
+             WHERE LOWER(u.username) = $1 
              AND u.locked = FALSE 
              LIMIT 1`,
             [usernameLower]
         );
+        
+        // If not found by username, try to find by customer email
+        if (result.rows.length === 0) {
+            result = await dbPool.query(
+                `SELECT u.*, c.email as customer_email 
+                 FROM users u 
+                 INNER JOIN customers c ON u.id = c.user_id 
+                 WHERE LOWER(c.email) = $1 
+                 AND u.locked = FALSE 
+                 LIMIT 1`,
+                [usernameLower]
+            );
+        }
         
         console.log(`📊 Found ${result.rows.length} user(s) with username/email: ${usernameLower}`);
         

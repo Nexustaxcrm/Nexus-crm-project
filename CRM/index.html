@@ -2818,6 +2818,7 @@
         .otp-input-group {
             display: flex;
             gap: 10px;
+            align-items: stretch;
         }
         
         .otp-input-group .form-control {
@@ -2827,6 +2828,21 @@
         .otp-input-group .btn {
             white-space: nowrap;
             padding: clamp(10px, 1.5vh, 12px) clamp(15px, 2vw, 20px);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Ensure button matches input field height */
+        #otpField .form-control {
+            height: auto;
+            min-height: 38px;
+        }
+        
+        #otpField .btn {
+            min-height: 38px;
+            height: auto;
         }
         
         #otpMessage {
