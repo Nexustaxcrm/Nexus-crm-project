@@ -8874,6 +8874,128 @@ async function savePersonalInformation() {
 }
 
 /**
+ * Save All Personal Info (combines all Personal Info sections)
+ */
+async function saveAllPersonalInfo() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'customer') {
+            showNotification('error', 'Error', 'Customer information not found.');
+            return;
+        }
+
+        const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!meResponse.ok) {
+            throw new Error('Failed to fetch customer information');
+        }
+
+        const customer = await meResponse.json();
+        const customerId = customer.id;
+        const taxYear = document.getElementById('taxYear')?.value || '2024';
+
+        // Collect all personal information
+        const personalData = {
+            filing_years: document.getElementById('personalFilingYears')?.value || '',
+            first_name: document.getElementById('personalFirstName')?.value.trim() || '',
+            middle_name: document.getElementById('personalMiddleName')?.value.trim() || '',
+            last_name: document.getElementById('personalLastName')?.value.trim() || '',
+            date_of_birth: document.getElementById('personalDateOfBirthHidden')?.value || '',
+            gender: document.getElementById('personalGender')?.value || '',
+            marital_status: document.getElementById('personalMaritalStatus')?.value || '',
+            alternate_mobile_no: document.getElementById('personalAlternateMobile')?.value.trim() || '',
+            country_of_citizenship: document.getElementById('personalCountryOfCitizenship')?.value || ''
+        };
+
+        // Collect address information
+        const addressData = {
+            address1: document.getElementById('addressInfoAddress1')?.value.trim() || '',
+            address2: document.getElementById('addressInfoAddress2')?.value.trim() || '',
+            city: document.getElementById('addressInfoCity')?.value.trim() || '',
+            state: document.getElementById('addressInfoState')?.value || '',
+            zip_code: document.getElementById('addressInfoZipCode')?.value.trim() || '',
+            apartment_number: document.getElementById('addressInfoApartmentNumber')?.value.trim() || ''
+        };
+
+        // Collect identification details
+        const countrySelect = document.getElementById('personalCountryOfCitizenship');
+        const selectedCountry = countrySelect?.value || '';
+        const identificationData = {};
+
+        if (selectedCountry === 'US') {
+            // Collect SSN/ITIN entries for US
+            const container = document.getElementById('identificationSsnContainer');
+            const ssnEntries = [];
+            
+            if (container) {
+                const entries = container.querySelectorAll('.identification-ssn-entry');
+                entries.forEach(entry => {
+                    const nameSelect = entry.querySelector('.identification-name-select');
+                    const ssnInput = entry.querySelector('.identification-ssn-input');
+                    
+                    if (nameSelect && ssnInput && nameSelect.value && ssnInput.value.trim()) {
+                        ssnEntries.push({
+                            name: nameSelect.value,
+                            nameDisplay: nameSelect.options[nameSelect.selectedIndex]?.text || '',
+                            ssn_itin: ssnInput.value.trim()
+                        });
+                    }
+                });
+            }
+            
+            identificationData.ssn_itin_entries = ssnEntries;
+        } else if (selectedCountry && selectedCountry !== '') {
+            // Collect Visa information for non-US countries
+            const visaType = document.getElementById('identificationVisaType')?.value || '';
+            const latestVisaChange = document.getElementById('identificationLatestVisaChange')?.value || '';
+            const primaryPortOfEntry = document.getElementById('identificationPrimaryPortOfEntry')?.value || '';
+            const totalMonthsStayed = document.getElementById('identificationTotalMonthsUS')?.value || '';
+            
+            identificationData.visa_type = visaType;
+            identificationData.latest_visa_change = latestVisaChange;
+            identificationData.primary_port_of_entry = primaryPortOfEntry;
+            identificationData.total_months_stayed_us = totalMonthsStayed ? parseFloat(totalMonthsStayed) : null;
+        }
+
+        // Combine all data and save via tax-info endpoint
+        const allData = {
+            customer_id: customerId,
+            tax_year: parseInt(taxYear),
+            ...personalData,
+            ...addressData,
+            ...identificationData
+        };
+
+        const response = await fetch(API_BASE_URL + `/customers/tax-info`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(allData)
+        });
+
+        if (response.ok) {
+            showNotification('success', 'All Information Saved', 'All your personal information has been saved successfully!');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save personal information');
+        }
+    } catch (error) {
+        console.error('Error saving all personal information:', error);
+        showNotification('error', 'Save Failed', error.message || 'Failed to save personal information. Please try again.');
+    }
+}
+
+/**
  * Save Address Information
  */
 async function saveAddressInformation() {
