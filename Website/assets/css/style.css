@@ -1861,7 +1861,7 @@ kbd {
 /* Top Bar Styles */
 .ak-top-bar {
   background-color: #030917;
-  padding: 3px 0;
+  padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .ak-top-bar-in {
@@ -1874,7 +1874,7 @@ kbd {
 .ak-top-bar-left {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 45px;
   flex-wrap: wrap;
 }
 .ak-top-bar-right {
@@ -1943,7 +1943,7 @@ kbd {
 }
 @media (max-width: 768px) {
   .ak-top-bar {
-    padding: 3px 0;
+    padding: 6px 0;
   }
   .ak-top-bar-in {
     flex-direction: column;
@@ -1951,7 +1951,7 @@ kbd {
     gap: 8px;
   }
   .ak-top-bar-left {
-    gap: 20px;
+    gap: 30px;
     width: 100%;
   }
   .ak-top-bar-right {
@@ -2259,6 +2259,29 @@ kbd {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transition: background-color 0.4s ease;
+}
+
+/* Gradient line under navbar */
+.ak-sticky_header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
+  background-size: 200% 100%;
+  z-index: 1000;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 .ak-sticky_header.style-2 {
   background-color: var(--body-bg-color-two);
