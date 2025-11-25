@@ -399,7 +399,13 @@ async function handleLogin(e) {
     const username = document.getElementById('username').value.trim();
     const loginForm = document.getElementById('loginForm');
     // Get login method from form data attribute (set when method button is clicked)
-    const loginMethod = loginForm ? loginForm.getAttribute('data-login-method') || 'password' : 'password';
+    const loginMethod = loginForm ? loginForm.getAttribute('data-login-method') : '';
+    
+    // Validate that a login method was selected
+    if (!loginMethod || (loginMethod !== 'password' && loginMethod !== 'otp')) {
+        showNotification('error', 'Validation Error', 'Please select a login method (Password or OTP)');
+        return;
+    }
     const password = document.getElementById('password').value;
     const otp = document.getElementById('otp').value.trim();
     
