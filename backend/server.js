@@ -247,6 +247,8 @@ async function createCustomerTaxInfoTableMigration(pool) {
                     spouse_date_of_birth DATE,
                     
                     -- Bank Information
+                    bank_tax_payer VARCHAR(50),
+                    bank_name VARCHAR(255),
                     bank_account_number VARCHAR(50),
                     bank_routing_number VARCHAR(20),
                     bank_account_type VARCHAR(20),
@@ -407,6 +409,19 @@ async function initializeDatabase() {
         // Run migration to create customer_tax_info table
         try {
             await createCustomerTaxInfoTableMigration(pool);
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to add bank_tax_payer and bank_name columns
+        try {
+            const migrationPath = path.join(__dirname, 'migrations', 'add_bank_tax_payer_and_name.sql');
+            if (fs.existsSync(migrationPath)) {
+                const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+                await pool.query(migrationSQL);
+                console.log('✅ Bank tax payer and name columns migration completed');
+            }
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup

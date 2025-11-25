@@ -1893,6 +1893,8 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
             spouse_name: taxData.spouse_name || null,
             spouse_ssn_itin: taxData.spouse_ssn_itin || null,
             spouse_date_of_birth: taxData.spouse_date_of_birth || null,
+            bank_tax_payer: taxData.bank_tax_payer || null,
+            bank_name: taxData.bank_name || null,
             bank_account_number: taxData.bank_account_number || null,
             bank_routing_number: taxData.bank_routing_number || null,
             bank_account_type: taxData.bank_account_type || null,
@@ -1925,7 +1927,7 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
             INSERT INTO customer_tax_info (
                 customer_id, tax_year, ssn_itin, date_of_birth, filing_status,
                 spouse_name, spouse_ssn_itin, spouse_date_of_birth,
-                bank_account_number, bank_routing_number, bank_account_type,
+                bank_tax_payer, bank_name, bank_account_number, bank_routing_number, bank_account_type,
                 rental_income, unemployment_compensation, social_security_benefits,
                 other_income, other_income_description, standard_deduction,
                 health_insurance_coverage, estimated_tax_payments, prior_year_agi,
@@ -1935,7 +1937,7 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
                 home_office_deduction, home_office_details, filing_checklist,
                 updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, CURRENT_TIMESTAMP
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, CURRENT_TIMESTAMP
             )
             ON CONFLICT (customer_id, tax_year) 
             DO UPDATE SET
@@ -1945,6 +1947,8 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
                 spouse_name = EXCLUDED.spouse_name,
                 spouse_ssn_itin = EXCLUDED.spouse_ssn_itin,
                 spouse_date_of_birth = EXCLUDED.spouse_date_of_birth,
+                bank_tax_payer = EXCLUDED.bank_tax_payer,
+                bank_name = EXCLUDED.bank_name,
                 bank_account_number = EXCLUDED.bank_account_number,
                 bank_routing_number = EXCLUDED.bank_routing_number,
                 bank_account_type = EXCLUDED.bank_account_type,
@@ -1975,7 +1979,8 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
         `, [
             taxInfoData.customer_id, taxInfoData.tax_year, taxInfoData.ssn_itin, taxInfoData.date_of_birth,
             taxInfoData.filing_status, taxInfoData.spouse_name, taxInfoData.spouse_ssn_itin,
-            taxInfoData.spouse_date_of_birth, taxInfoData.bank_account_number, taxInfoData.bank_routing_number,
+            taxInfoData.spouse_date_of_birth, taxInfoData.bank_tax_payer, taxInfoData.bank_name,
+            taxInfoData.bank_account_number, taxInfoData.bank_routing_number,
             taxInfoData.bank_account_type, taxInfoData.rental_income, taxInfoData.unemployment_compensation,
             taxInfoData.social_security_benefits, taxInfoData.other_income, taxInfoData.other_income_description,
             taxInfoData.standard_deduction, taxInfoData.health_insurance_coverage, taxInfoData.estimated_tax_payments,

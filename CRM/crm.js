@@ -1023,6 +1023,9 @@ async function loadCustomerDashboard() {
         // Load customer documents
         await loadCustomerUploadedDocuments(customer.id);
         
+        // Populate Tax Payer dropdown in Bank Info section
+        populateTaxPayerDropdown(customer);
+        
         // Load tax information
         if (typeof loadTaxInformation === 'function') {
             await loadTaxInformation();
@@ -4679,6 +4682,9 @@ function addDependent() {
         </div>
     `;
     container.appendChild(newDependent);
+    
+    // Update Tax Payer dropdown after adding dependent
+    updateTaxPayerDropdownWithDependents();
 }
 
 // Remove Dependent
@@ -4691,6 +4697,9 @@ function removeDependent(button) {
     if (container.querySelectorAll('.dependent-entry').length === 0) {
         container.innerHTML = '<p class="text-muted">No dependents added yet.</p>';
     }
+    
+    // Update Tax Payer dropdown after removing dependent
+    updateTaxPayerDropdownWithDependents();
 }
 
 // Save Tax Information
@@ -4734,6 +4743,8 @@ async function saveTaxInformation() {
             spouse_name: document.getElementById('taxSpouseName')?.value.trim() || '',
             spouse_ssn_itin: document.getElementById('taxSpouseSsnItin')?.value.trim() || '',
             spouse_date_of_birth: document.getElementById('taxSpouseDateOfBirth')?.value || '',
+            bank_tax_payer: document.getElementById('taxBankTaxPayer')?.value || '',
+            bank_name: document.getElementById('taxBankName')?.value.trim() || '',
             bank_account_number: document.getElementById('taxBankAccountNumber')?.value.trim() || '',
             bank_routing_number: document.getElementById('taxBankRoutingNumber')?.value.trim() || '',
             bank_account_type: document.getElementById('taxBankAccountType')?.value || '',
@@ -4927,11 +4938,19 @@ async function loadTaxInformation() {
                     const lastDep = container.lastElementChild;
                     if (lastDep) {
                         if (lastDep.querySelector('.dependent-name')) lastDep.querySelector('.dependent-name').value = dep.name || '';
+                        
+                        // Update Tax Payer dropdown after adding each dependent
+                        updateTaxPayerDropdownWithDependents();
                         if (lastDep.querySelector('.dependent-ssn')) lastDep.querySelector('.dependent-ssn').value = dep.ssn_itin || '';
                         if (lastDep.querySelector('.dependent-dob')) lastDep.querySelector('.dependent-dob').value = dep.date_of_birth || '';
                         if (lastDep.querySelector('.dependent-relationship')) lastDep.querySelector('.dependent-relationship').value = dep.relationship || '';
                     }
                 });
+                
+                // Update Tax Payer dropdown after all dependents are loaded
+                setTimeout(() => {
+                    updateTaxPayerDropdownWithDependents();
+                }, 100);
             }
 
             // Load Deductions
@@ -8552,6 +8571,84 @@ function showCustomerSection(sectionName) {
         mainContent.scrollTop = 0;
     }
 }
+
+/**
+ * Populate Tax Payer dropdown with customer name and dependents
+ */
+function populateTaxPayerDropdown(customer) {
+    const taxPayerSelect = document.getElementById('taxBankTaxPayer');
+    if (!taxPayerSelect) return;
+    
+    // Clear existing options except the first one
+    taxPayerSelect.innerHTML = '<option value="">Select Tax Payer</option>';
+    
+    // Add main customer
+    const customerName = customer.name || 'Main Customer';
+    const mainOption = document.createElement('option');
+    mainOption.value = 'main';
+    mainOption.textContent = customerName;
+    taxPayerSelect.appendChild(mainOption);
+    
+    // Add dependents if they exist in tax info
+    // We'll update this when tax info is loaded
+    updateTaxPayerDropdownWithDependents();
+}
+
+/**
+ * Update Tax Payer dropdown with dependents from tax information
+ */
+function updateTaxPayerDropdownWithDependents() {
+    const taxPayerSelect = document.getElementById('taxBankTaxPayer');
+    if (!taxPayerSelect) return;
+    
+    // Get dependents from the dependents container
+    const dependentsContainer = document.getElementById('dependentsContainer');
+    if (!dependentsContainer) return;
+    
+    // Remove existing dependent options (keep "Select Tax Payer" and "Main Customer")
+    const options = Array.from(taxPayerSelect.options);
+    options.forEach((option, index) => {
+        if (index > 1) { // Keep first two options (Select and Main)
+            taxPayerSelect.removeChild(option);
+        }
+    });
+    
+    // Find all dependent entries
+    const dependentEntries = dependentsContainer.querySelectorAll('.dependent-entry');
+    dependentEntries.forEach((entry, index) => {
+        const nameInput = entry.querySelector('.dependent-name');
+        if (nameInput && nameInput.value.trim()) {
+            const dependentOption = document.createElement('option');
+            dependentOption.value = `dependent_${index}`;
+            dependentOption.textContent = nameInput.value.trim();
+            taxPayerSelect.appendChild(dependentOption);
+        }
+    });
+}
+
+// Add event listener to update dropdown when dependents are added/removed
+document.addEventListener('DOMContentLoaded', function() {
+    // Monitor dependents container for changes
+    const dependentsContainer = document.getElementById('dependentsContainer');
+    if (dependentsContainer) {
+        // Use MutationObserver to detect when dependents are added/removed
+        const observer = new MutationObserver(function(mutations) {
+            updateTaxPayerDropdownWithDependents();
+        });
+        
+        observer.observe(dependentsContainer, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Also listen for input changes on dependent names
+        dependentsContainer.addEventListener('input', function(e) {
+            if (e.target.classList.contains('dependent-name')) {
+                updateTaxPayerDropdownWithDependents();
+            }
+        });
+    }
+});
 
 /**
  * Customer logout function

@@ -4477,16 +4477,28 @@
                                     <i class="fas fa-university"></i> Bank Information for Direct Deposit
                                 </h4>
                                 <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Tax Payer <span class="text-danger">*</span></label>
+                                        <select id="taxBankTaxPayer" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="">Select Tax Payer</option>
+                                            <option value="main">Main Customer</option>
+                                        </select>
+                                        <small class="text-muted">Select the tax payer for this bank account</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Bank Name <span class="text-danger">*</span></label>
+                                        <input type="text" id="taxBankName" class="form-control" placeholder="Bank Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
                                     <div class="col-md-4 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Account Number</label>
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Account Number <span class="text-danger">*</span></label>
                                         <input type="text" id="taxBankAccountNumber" class="form-control" placeholder="Account Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Routing Number</label>
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Routing Number <span class="text-danger">*</span></label>
                                         <input type="text" id="taxBankRoutingNumber" class="form-control" placeholder="Routing Number" maxlength="9" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Account Type</label>
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Account Type <span class="text-danger">*</span></label>
                                         <select id="taxBankAccountType" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                                             <option value="">Select Type</option>
                                             <option value="checking">Checking</option>
