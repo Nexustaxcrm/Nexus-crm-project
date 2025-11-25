@@ -2626,6 +2626,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding-bottom: 80px;
         }
 
         .login-container {
@@ -2731,33 +2732,38 @@
         
         .login-welcome p {
             color: #545454;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 6px;
         }
         
         .login-welcome .welcome-subtitle {
             color: #707070;
-            font-size: 14px;
+            font-size: 12px;
             font-style: italic;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         
         .login-footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 20px;
             text-align: center;
+            background: #fbf0e6;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 100;
         }
         
         .login-footer-links {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .login-footer-link {
             color: #545454;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 11px;
             transition: color 0.2s ease;
         }
         
@@ -2769,12 +2775,12 @@
         .login-footer-separator {
             color: #999;
             margin: 0 8px;
-            font-size: 12px;
+            font-size: 11px;
         }
         
         .login-footer-copyright {
             color: #707070;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .form-control {
@@ -3406,18 +3412,55 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
-            <div class="login-footer">
-                <div class="login-footer-links">
-                    <a href="#" class="login-footer-link">Privacy Policy</a>
-                    <span class="login-footer-separator">|</span>
-                    <a href="#" class="login-footer-link">Terms of Service</a>
-                </div>
-                <div class="login-footer-copyright">
-                    <span>&copy; 2025 Nexus Tax Filing. All rights reserved.</span>
-                </div>
-            </div>
         </div>
     </div>
+    
+    <!-- Login Page Footer (Outside the box) -->
+    <div class="login-footer" id="loginFooter">
+        <div class="login-footer-links">
+            <a href="#" class="login-footer-link">Privacy Policy</a>
+            <span class="login-footer-separator">|</span>
+            <a href="#" class="login-footer-link">Terms of Service</a>
+        </div>
+        <div class="login-footer-copyright">
+            <span>&copy; 2025 Nexus Tax Filing. All rights reserved.</span>
+        </div>
+    </div>
+    
+    <script>
+        // Show/hide login footer based on login page visibility
+        function updateLoginFooterVisibility() {
+            const loginPage = document.getElementById('loginPage');
+            const loginFooter = document.getElementById('loginFooter');
+            if (loginPage && loginFooter) {
+                const isLoginPageVisible = loginPage.style.display !== 'none' && 
+                                         loginPage.style.display !== '' &&
+                                         window.getComputedStyle(loginPage).display !== 'none';
+                loginFooter.style.display = isLoginPageVisible ? 'block' : 'none';
+            }
+        }
+        
+        // Check on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLoginFooterVisibility();
+            
+            // Monitor login page visibility changes
+            const loginPage = document.getElementById('loginPage');
+            if (loginPage) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                            updateLoginFooterVisibility();
+                        }
+                    });
+                });
+                observer.observe(loginPage, { attributes: true, attributeFilter: ['style'] });
+            }
+        });
+        
+        // Also check immediately
+        setTimeout(updateLoginFooterVisibility, 100);
+    </script>
 
     <!-- Customer Dashboard Page -->
     <div id="customerDashboardPage" style="display: none;">
