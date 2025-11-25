@@ -1,8 +1,49 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const router = express.Router();
 require('dotenv').config();
+
+// In-memory OTP storage (for production, consider using Redis or database)
+const otpStore = new Map(); // key: username, value: { otp, expiresAt, attempts }
+
+// OTP expiration time (10 minutes)
+const OTP_EXPIRY_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+// Create email transporter
+const createEmailTransporter = () => {
+    const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER || 'nexustaxfiling@gmail.com';
+    const emailPassword = process.env.EMAIL_PASSWORD || process.env.GMAIL_APP_PASSWORD;
+    
+    if (!emailPassword) {
+        console.warn('⚠️ Email credentials not configured. OTP emails will not be sent.');
+        return null;
+    }
+    
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: emailUser,
+            pass: emailPassword
+        }
+    });
+};
+
+// Generate 6-digit OTP
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+// Clean expired OTPs periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [username, data] of otpStore.entries()) {
+        if (data.expiresAt < now) {
+            otpStore.delete(username);
+        }
+    }
+}, 60000); // Clean every minute
 
 // Get shared pool from app.locals (set in server.js)
 // This function will be called with the Express app to get the pool
@@ -34,39 +75,114 @@ const verifyToken = (req, res, next) => {
 // Export verifyToken for use in other routes
 router.verifyToken = verifyToken;
 
-// Input validation middleware
-const validateLogin = (req, res, next) => {
-    const { username, password } = req.body;
-    
-    // Validate input
-    if (!username || typeof username !== 'string' || username.trim().length === 0) {
-        return res.status(400).json({ error: 'Username is required and must be a string' });
-    }
-    
-    if (!password || typeof password !== 'string' || password.length === 0) {
-        return res.status(400).json({ error: 'Password is required' });
-    }
-    
-    // Sanitize: trim and limit length
-    if (username.trim().length > 255) {
-        return res.status(400).json({ error: 'Username is too long (max 255 characters)' });
-    }
-    
-    if (password.length > 1000) {
-        return res.status(400).json({ error: 'Password is too long' });
-    }
-    
-    // Check for SQL injection patterns (basic)
-    const sqlInjectionPattern = /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)|(--)|(\/\*)|(\*\/)|(;)/i;
-    if (sqlInjectionPattern.test(username) || sqlInjectionPattern.test(password)) {
-        return res.status(400).json({ error: 'Invalid characters detected' });
-    }
-    
-    next();
-};
+// Note: Removed validateLogin middleware as we now handle validation directly in the login endpoint
+// to support both password and OTP login methods
 
-// Login endpoint
-router.post('/login', validateLogin, async (req, res) => {
+// Send OTP endpoint
+router.post('/send-otp', async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const { username } = req.body;
+        
+        if (!username || typeof username !== 'string' || username.trim().length === 0) {
+            return res.status(400).json({ error: 'Username/Email is required' });
+        }
+        
+        const usernameLower = username.toLowerCase().trim();
+        
+        // Find user by username or email
+        const userResult = await dbPool.query(
+            `SELECT u.id, u.username, u.email, c.email as customer_email 
+             FROM users u 
+             LEFT JOIN customers c ON u.id = c.user_id 
+             WHERE LOWER(u.username) = $1 OR LOWER(u.email) = $1 OR LOWER(c.email) = $1 
+             LIMIT 1`,
+            [usernameLower]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found. Please check your email address.' });
+        }
+        
+        const user = userResult.rows[0];
+        const userEmail = user.email || user.customer_email;
+        
+        if (!userEmail) {
+            return res.status(400).json({ error: 'No email address found for this user' });
+        }
+        
+        // Generate OTP
+        const otp = generateOTP();
+        const expiresAt = Date.now() + OTP_EXPIRY_TIME;
+        
+        // Store OTP
+        otpStore.set(usernameLower, {
+            otp,
+            expiresAt,
+            attempts: 0
+        });
+        
+        // Send OTP email
+        const transporter = createEmailTransporter();
+        if (transporter) {
+            try {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
+                    to: userEmail,
+                    subject: 'Your Login OTP - Nexus Tax Filing',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <div style="background-color: #063232; color: #ffffff; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+                                <h1 style="margin: 0; font-size: 28px;">Your Login OTP</h1>
+                            </div>
+                            <div style="background-color: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 5px 5px;">
+                                <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
+                                    Hello,
+                                </p>
+                                <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
+                                    Your One-Time Password (OTP) for logging into Nexus Tax Filing CRM is:
+                                </p>
+                                <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-radius: 5px; margin: 20px 0;">
+                                    <h2 style="margin: 0; font-size: 32px; color: #063232; letter-spacing: 5px;">${otp}</h2>
+                                </div>
+                                <p style="font-size: 14px; line-height: 1.6; color: #666666; margin: 20px 0 0 0;">
+                                    This OTP is valid for 10 minutes. Please do not share this code with anyone.
+                                </p>
+                                <p style="font-size: 14px; line-height: 1.6; color: #666666; margin: 10px 0 0 0;">
+                                    If you did not request this OTP, please ignore this email.
+                                </p>
+                            </div>
+                        </div>
+                    `
+                });
+                console.log(`✅ OTP sent to ${userEmail} for user: ${usernameLower}`);
+            } catch (emailError) {
+                console.error('❌ Error sending OTP email:', emailError);
+                otpStore.delete(usernameLower);
+                return res.status(500).json({ error: 'Failed to send OTP email. Please try again later.' });
+            }
+        } else {
+            // For development/testing without email configured
+            console.log(`📧 OTP for ${usernameLower}: ${otp} (Email not configured)`);
+        }
+        
+        res.json({ 
+            message: 'OTP sent successfully to your email address',
+            // In development, return OTP for testing (remove in production)
+            ...(process.env.NODE_ENV !== 'production' && { otp })
+        });
+    } catch (error) {
+        console.error('Send OTP error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Login endpoint (supports both password and OTP)
+router.post('/login', async (req, res) => {
     try {
         // Get pool from request app (fallback if not initialized)
         const dbPool = pool || req.app.locals.pool;
@@ -74,48 +190,102 @@ router.post('/login', validateLogin, async (req, res) => {
             return res.status(500).json({ error: 'Database not initialized' });
         }
         
-        const { username, password } = req.body;
+        const { username, password, otp } = req.body;
         
-        // Convert username to lowercase for case-insensitive comparison
+        // Validate username
+        if (!username || typeof username !== 'string' || username.trim().length === 0) {
+            return res.status(400).json({ error: 'Username/Email is required' });
+        }
+        
         const usernameLower = username.toLowerCase().trim();
         
-        // Find user in database (case-insensitive username comparison)
-        console.log(`🔍 Searching for user with username: ${usernameLower}`);
+        // Determine login method
+        const isOTPLogin = otp !== undefined && otp !== null;
+        const isPasswordLogin = password !== undefined && password !== null;
+        
+        if (!isOTPLogin && !isPasswordLogin) {
+            return res.status(400).json({ error: 'Either password or OTP is required' });
+        }
+        
+        if (isOTPLogin && isPasswordLogin) {
+            return res.status(400).json({ error: 'Please use either password or OTP, not both' });
+        }
+        
+        // Find user in database (case-insensitive username or email comparison)
+        console.log(`🔍 Searching for user with username/email: ${usernameLower}`);
         const result = await dbPool.query(
-            'SELECT * FROM users WHERE LOWER(username) = $1 AND locked = FALSE',
+            `SELECT u.*, c.email as customer_email 
+             FROM users u 
+             LEFT JOIN customers c ON u.id = c.user_id 
+             WHERE (LOWER(u.username) = $1 OR LOWER(u.email) = $1 OR LOWER(c.email) = $1) 
+             AND u.locked = FALSE 
+             LIMIT 1`,
             [usernameLower]
         );
         
-        console.log(`📊 Found ${result.rows.length} user(s) with username: ${usernameLower}`);
+        console.log(`📊 Found ${result.rows.length} user(s) with username/email: ${usernameLower}`);
         
         if (result.rows.length === 0) {
             console.log(`❌ User not found or account is locked: ${usernameLower}`);
-            return res.status(401).json({ error: 'Invalid username or password' });
+            return res.status(401).json({ error: 'Invalid username/email or password' });
         }
         
         const user = result.rows[0];
         
-        // Check if password is hashed (starts with $2a$ or $2b$) or plain text (legacy)
         let isValid = false;
-        if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
-            // Hashed password - use bcrypt
-            isValid = await bcrypt.compare(password, user.password);
-        } else {
-            // Plain text password (legacy) - hash it and update the database
-            isValid = (password === user.password);
-            if (isValid) {
-                // Hash the password and update it in database
-                const hashedPassword = await bcrypt.hash(password, 10);
-                await dbPool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, user.id]);
+        
+        // Handle OTP login
+        if (isOTPLogin) {
+            const otpData = otpStore.get(usernameLower);
+            
+            if (!otpData) {
+                return res.status(401).json({ error: 'OTP not found or expired. Please request a new OTP.' });
             }
+            
+            if (otpData.expiresAt < Date.now()) {
+                otpStore.delete(usernameLower);
+                return res.status(401).json({ error: 'OTP has expired. Please request a new OTP.' });
+            }
+            
+            if (otpData.attempts >= 5) {
+                otpStore.delete(usernameLower);
+                return res.status(401).json({ error: 'Too many failed attempts. Please request a new OTP.' });
+            }
+            
+            if (otpData.otp !== otp) {
+                otpData.attempts++;
+                return res.status(401).json({ error: 'Invalid OTP' });
+            }
+            
+            // OTP is valid - remove it from store
+            otpStore.delete(usernameLower);
+            isValid = true;
+            console.log(`✅ OTP validated successfully for user: ${usernameLower}, role: ${user.role}`);
         }
         
-        if (!isValid) {
-            console.log(`❌ Password validation failed for user: ${usernameLower}`);
-            return res.status(401).json({ error: 'Invalid username or password' });
+        // Handle password login
+        if (isPasswordLogin) {
+            // Check if password is hashed (starts with $2a$ or $2b$) or plain text (legacy)
+            if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+                // Hashed password - use bcrypt
+                isValid = await bcrypt.compare(password, user.password);
+            } else {
+                // Plain text password (legacy) - hash it and update the database
+                isValid = (password === user.password);
+                if (isValid) {
+                    // Hash the password and update it in database
+                    const hashedPassword = await bcrypt.hash(password, 10);
+                    await dbPool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, user.id]);
+                }
+            }
+            
+            if (!isValid) {
+                console.log(`❌ Password validation failed for user: ${usernameLower}`);
+                return res.status(401).json({ error: 'Invalid username/email or password' });
+            }
+            
+            console.log(`✅ Password validated successfully for user: ${usernameLower}, role: ${user.role}`);
         }
-        
-        console.log(`✅ Password validated successfully for user: ${usernameLower}, role: ${user.role}`);
         
         // Generate JWT token
         if (!process.env.JWT_SECRET) {

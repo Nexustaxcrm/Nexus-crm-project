@@ -2785,6 +2785,63 @@
             font-size: 10px;
         }
         
+        /* Login Method Buttons */
+        .login-method-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .login-method-btn {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid var(--primary-color);
+            background: transparent;
+            color: var(--primary-color);
+            border-radius: 5px;
+            font-size: clamp(12px, 1.5vw, 14px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .login-method-btn:hover {
+            background: rgba(6, 50, 50, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .login-method-btn.active {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+        
+        .otp-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .otp-input-group .form-control {
+            flex: 1;
+        }
+        
+        .otp-input-group .btn {
+            white-space: nowrap;
+            padding: clamp(10px, 1.5vh, 12px) clamp(15px, 2vw, 20px);
+        }
+        
+        #otpMessage {
+            margin-top: 8px;
+            font-size: clamp(11px, 1.3vw, 13px);
+        }
+        
+        #otpMessage.success {
+            color: #28a745;
+        }
+        
+        #otpMessage.error {
+            color: #dc3545;
+        }
+        
         /* Responsive adjustments for login form */
         @media (max-height: 700px) {
             .login-container {
@@ -3466,12 +3523,31 @@
             </div>
             <form id="loginForm">
                 <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter username" required="">
+                    <label class="form-label">User Name / Email</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter user name or email" required="">
                 </div>
                 <div class="mb-3">
+                    <label class="form-label">Login Method</label>
+                    <div class="login-method-buttons">
+                        <button type="button" class="btn btn-outline-primary login-method-btn active" data-method="password">
+                            Login via Password
+                        </button>
+                        <button type="button" class="btn btn-outline-primary login-method-btn" data-method="otp">
+                            Login via OTP
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3" id="passwordField">
                     <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter password" required="">
+                    <input type="password" id="password" class="form-control" placeholder="Enter password">
+                </div>
+                <div class="mb-3" id="otpField" style="display: none;">
+                    <label class="form-label">OTP</label>
+                    <div class="otp-input-group">
+                        <input type="text" id="otp" class="form-control" placeholder="Enter OTP" maxlength="6">
+                        <button type="button" class="btn btn-outline-secondary" id="sendOtpBtn">Send OTP</button>
+                    </div>
+                    <small class="form-text text-muted" id="otpMessage" style="display: none;"></small>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
@@ -3523,6 +3599,115 @@
         
         // Also check immediately
         setTimeout(updateLoginFooterVisibility, 100);
+        
+        // Login Method Selection Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginMethodBtns = document.querySelectorAll('.login-method-btn');
+            const passwordField = document.getElementById('passwordField');
+            const otpField = document.getElementById('otpField');
+            const passwordInput = document.getElementById('password');
+            const otpInput = document.getElementById('otp');
+            
+            loginMethodBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    loginMethodBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const method = this.getAttribute('data-method');
+                    
+                    if (method === 'password') {
+                        passwordField.style.display = 'block';
+                        otpField.style.display = 'none';
+                        passwordInput.setAttribute('required', '');
+                        otpInput.removeAttribute('required');
+                        otpInput.value = '';
+                    } else if (method === 'otp') {
+                        passwordField.style.display = 'none';
+                        otpField.style.display = 'block';
+                        passwordInput.removeAttribute('required');
+                        otpInput.setAttribute('required', '');
+                        passwordInput.value = '';
+                    }
+                });
+            });
+            
+            // Send OTP Button Handler
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            const otpMessage = document.getElementById('otpMessage');
+            
+            if (sendOtpBtn) {
+                sendOtpBtn.addEventListener('click', async function() {
+                    const username = document.getElementById('username').value.trim();
+                    
+                    if (!username) {
+                        otpMessage.textContent = 'Please enter your User Name / Email first';
+                        otpMessage.className = 'form-text text-muted error';
+                        otpMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Check if API_BASE_URL is defined
+                    if (typeof API_BASE_URL === 'undefined') {
+                        console.error('❌ API_BASE_URL is not defined!');
+                        otpMessage.textContent = 'API URL is not configured. Please contact support.';
+                        otpMessage.className = 'form-text text-muted error';
+                        otpMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    sendOtpBtn.disabled = true;
+                    sendOtpBtn.textContent = 'Sending...';
+                    otpMessage.style.display = 'none';
+                    
+                    try {
+                        const response = await fetch(API_BASE_URL + '/auth/send-otp', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ username: username.toLowerCase().trim() })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            otpMessage.textContent = 'OTP sent successfully to your email!';
+                            otpMessage.className = 'form-text text-muted success';
+                            otpMessage.style.display = 'block';
+                            
+                            // Disable button for 60 seconds
+                            let countdown = 60;
+                            sendOtpBtn.textContent = `Resend OTP (${countdown}s)`;
+                            const countdownInterval = setInterval(() => {
+                                countdown--;
+                                if (countdown > 0) {
+                                    sendOtpBtn.textContent = `Resend OTP (${countdown}s)`;
+                                } else {
+                                    clearInterval(countdownInterval);
+                                    sendOtpBtn.disabled = false;
+                                    sendOtpBtn.textContent = 'Send OTP';
+                                }
+                            }, 1000);
+                        } else {
+                            otpMessage.textContent = data.error || 'Failed to send OTP';
+                            otpMessage.className = 'form-text text-muted error';
+                            otpMessage.style.display = 'block';
+                            sendOtpBtn.disabled = false;
+                            sendOtpBtn.textContent = 'Send OTP';
+                        }
+                    } catch (error) {
+                        console.error('Error sending OTP:', error);
+                        otpMessage.textContent = 'Failed to send OTP. Please try again.';
+                        otpMessage.className = 'form-text text-muted error';
+                        otpMessage.style.display = 'block';
+                        sendOtpBtn.disabled = false;
+                        sendOtpBtn.textContent = 'Send OTP';
+                    }
+                });
+            }
+        });
     </script>
 
     <!-- Customer Dashboard Page -->

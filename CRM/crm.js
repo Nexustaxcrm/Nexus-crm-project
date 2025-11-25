@@ -397,17 +397,32 @@ function setupEventListeners() {
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('username').value.trim();
+    const activeMethodBtn = document.querySelector('.login-method-btn.active');
+    const loginMethod = activeMethodBtn ? activeMethodBtn.getAttribute('data-method') : 'password';
     const password = document.getElementById('password').value;
+    const otp = document.getElementById('otp').value.trim();
     
     // Validate inputs
     if (!username) {
-        showNotification('error', 'Validation Error', 'Username is required');
+        showNotification('error', 'Validation Error', 'User Name / Email is required');
         return;
     }
     
-    if (!password) {
-        showNotification('error', 'Validation Error', 'Password is required');
-        return;
+    // Validate based on login method
+    if (loginMethod === 'password') {
+        if (!password) {
+            showNotification('error', 'Validation Error', 'Password is required');
+            return;
+        }
+    } else if (loginMethod === 'otp') {
+        if (!otp) {
+            showNotification('error', 'Validation Error', 'OTP is required');
+            return;
+        }
+        if (otp.length !== 6 || !/^\d+$/.test(otp)) {
+            showNotification('error', 'Validation Error', 'OTP must be 6 digits');
+            return;
+        }
     }
     
     // Check if API_BASE_URL is defined
@@ -477,12 +492,17 @@ async function handleLogin(e) {
         console.log('📡 Attempting login for username:', usernameLower);
         console.log('📡 API URL:', API_BASE_URL + '/auth/login');
         
+        // Prepare request body based on login method
+        const requestBody = loginMethod === 'otp' 
+            ? { username: usernameLower, otp: otp }
+            : { username: usernameLower, password: password };
+        
         const response = await fetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username: usernameLower, password }),
+            body: JSON.stringify(requestBody),
             signal: controller.signal
         });
         
