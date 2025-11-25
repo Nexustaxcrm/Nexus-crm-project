@@ -3488,9 +3488,10 @@
             }
         }
         
-        /* Login Page Button Styling with Gradient Fade Effect */
+        /* Login Page Button Styling */
         #loginPage .btn-primary {
-            background: linear-gradient(90deg, #042828 0%, #063232 25%, #0a4a4a 50%, rgba(6, 50, 50, 0.6) 75%, rgba(6, 50, 50, 0.2) 100%) !important;
+            background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #063232 100%) !important;
+            background-size: 200% 100%;
             border: none !important;
             border-radius: 14px !important;
             padding: 16px 32px !important;
@@ -3502,29 +3503,19 @@
             position: relative;
             overflow: hidden;
             color: #ffffff !important;
+            animation: buttonGradient 3s ease infinite;
         }
         
-        /* Gradient overlay for enhanced fade effect */
+        @keyframes buttonGradient {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        
         #loginPage .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                rgba(255, 255, 255, 0) 0%, 
-                rgba(255, 255, 255, 0) 30%, 
-                rgba(255, 255, 255, 0.05) 50%, 
-                rgba(255, 255, 255, 0.15) 75%, 
-                rgba(255, 255, 255, 0.25) 100%);
-            border-radius: 14px;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        /* Shimmer effect overlay */
-        #loginPage .btn-primary::after {
             content: '';
             position: absolute;
             top: 0;
@@ -3533,37 +3524,19 @@
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(249, 214, 124, 0.4), transparent);
             transition: left 0.5s ease;
-            z-index: 2;
-            border-radius: 14px;
         }
         
         #loginPage .btn-primary:hover {
-            background: linear-gradient(90deg, #031f1f 0%, #042828 20%, #063232 45%, rgba(6, 50, 50, 0.7) 70%, rgba(6, 50, 50, 0.3) 100%) !important;
             transform: translateY(-4px) scale(1.03) !important;
             box-shadow: 0 10px 30px rgba(6, 50, 50, 0.4), 0 0 0 4px rgba(249, 214, 124, 0.3) !important;
         }
         
         #loginPage .btn-primary:hover::before {
-            background: linear-gradient(90deg, 
-                rgba(255, 255, 255, 0) 0%, 
-                rgba(255, 255, 255, 0) 25%, 
-                rgba(255, 255, 255, 0.08) 50%, 
-                rgba(255, 255, 255, 0.2) 75%, 
-                rgba(255, 255, 255, 0.3) 100%);
-        }
-        
-        #loginPage .btn-primary:hover::after {
             left: 100%;
         }
         
         #loginPage .btn-primary:active {
             transform: translateY(-2px) scale(1.01) !important;
-        }
-        
-        /* Ensure text stays above gradients */
-        #loginPage .btn-primary > * {
-            position: relative;
-            z-index: 10;
         }
         
         #loginPage .btn-outline-secondary {
