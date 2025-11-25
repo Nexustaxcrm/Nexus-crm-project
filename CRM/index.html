@@ -24,23 +24,33 @@
     <!-- Custom Styles -->
     <style>
         :root {
-            /* Fingcon Theme Colors */
+            /* Modern Premium Theme Colors */
             --primary-color: #063232;
+            --primary-gradient: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #0d5c5c 100%);
             --secondary-color: #545454;
-            --success-color: #063232;
+            --success-color: #10b981;
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
             --warning-color: #fb6340;
-            --info-color: #11cdef;
+            --info-color: #3b82f6;
+            --info-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --accent-color: #f59e0b;
+            --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             --dark-color: #262626;
             --navbar-height: 70px;
             
-            /* Fingcon Light mode colors (default) */
-            --bg-color: #faf0e6;
-            --card-bg: #f8f9fa;
-            --text-color: #545454;
-            --text-secondary: #707070;
-            --border-color: #e0e0e0;
-            --shadow: rgba(0, 0, 0, 0.08);
-            --shadow-hover: rgba(0, 0, 0, 0.15);
+            /* Modern Light mode colors */
+            --bg-color: #f8fafc;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: #ffffff;
+            --card-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: rgba(15, 23, 42, 0.08);
+            --shadow-hover: rgba(15, 23, 42, 0.15);
+            --shadow-lg: rgba(15, 23, 42, 0.25);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.18);
         }
         
         [data-theme="dark"] {
@@ -55,34 +65,77 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
             color: var(--text-color);
             overflow-x: hidden;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
+        
+        /* Modern Welcome Animation */
+        @keyframes welcomeSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+        
+        .welcome-animation {
+            animation: welcomeSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
 
-        /* Horizontal Navigation Bar - Fingcon Style */
+        /* Modern Premium Navigation Bar */
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             height: var(--navbar-height);
-            background: #EDE8D0;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            /* Cross-browser compatibility */
-            -webkit-box-align: center;
-            -ms-flex-align: center;
+            padding: 0 30px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(6, 50, 50, 0.03) 50%, transparent 100%);
+            pointer-events: none;
         }
         
         [data-theme="dark"] .navbar {
@@ -299,23 +352,43 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: var(--primary-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: bold;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 20px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(6, 50, 50, 0.3);
-            box-shadow: 0 4px 15px rgba(6, 50, 50, 0.2);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(6, 50, 50, 0.25), 0 2px 8px rgba(15, 23, 42, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .navbar .user-avatar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
         }
 
         .navbar .user-avatar:hover {
-            background: #042828;
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(6, 50, 50, 0.4);
+            background: linear-gradient(135deg, #042828 0%, #063232 100%);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 30px rgba(6, 50, 50, 0.4), 0 4px 12px rgba(15, 23, 42, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .navbar .user-avatar:hover::before {
+            left: 100%;
+            top: 100%;
         }
 
         /* Main Content */
@@ -2768,7 +2841,7 @@
         }
         
         .customer-section {
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             min-height: 200px;
         }
         
@@ -2776,6 +2849,36 @@
             display: block !important;
             visibility: visible !important;
             opacity: 1 !important;
+            background: var(--card-gradient) !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1) !important;
+            transition: all 0.3s ease !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .customer-section .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .customer-section .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(15, 23, 42, 0.15), 0 4px 12px rgba(15, 23, 42, 0.1) !important;
+        }
+        
+        .customer-section .card:hover::before {
+            opacity: 1;
         }
         
         #customer-section-bank-info {
@@ -2791,18 +2894,79 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(20px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
+        }
+        
+        /* Modern Card Headers */
+        .customer-section .card h4 {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a4a4a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+        
+        .customer-section .card h4 i {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 12px;
+            font-size: 1.3em;
         }
         
         #customerDashboardPage .form-control {
             border: 2px solid var(--border-color);
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.9);
             color: var(--text-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+        
+        #customerDashboardPage .form-control:focus {
+            border-color: var(--primary-color);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(6, 50, 50, 0.1), 0 4px 12px rgba(15, 23, 42, 0.1);
+            outline: none;
+            transform: translateY(-2px);
+        }
+        
+        #customerDashboardPage .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 15px rgba(6, 50, 50, 0.25);
+            letter-spacing: 0.3px;
+        }
+        
+        #customerDashboardPage .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(6, 50, 50, 0.35);
+        }
+        
+        #customerDashboardPage .btn-primary:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        #customerDashboardPage .form-label {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            font-size: 14px;
+            letter-spacing: 0.2px;
         }
         
         #customerDashboardPage .form-control:focus {
@@ -3916,25 +4080,25 @@
                 <div class="customer-nav-container">
                     <div class="customer-nav-item active" onclick="showCustomerSection('personal-info')">
                         <div class="customer-nav-icon">
-                            <i class="fas fa-user-circle"></i>
+                            <i class="fas fa-user-shield"></i>
                         </div>
                         <div class="customer-nav-label">Personal Info</div>
                     </div>
                     <div class="customer-nav-item" onclick="showCustomerSection('tax-filings')">
                         <div class="customer-nav-icon">
-                            <i class="fas fa-file-invoice-dollar"></i>
+                            <i class="fas fa-receipt"></i>
                         </div>
                         <div class="customer-nav-label">Tax Filings</div>
                     </div>
                     <div class="customer-nav-item" onclick="showCustomerSection('documents')">
                         <div class="customer-nav-icon">
-                            <i class="fas fa-folder-open"></i>
+                            <i class="fas fa-cloud-upload-alt"></i>
                         </div>
                         <div class="customer-nav-label">Documents</div>
                     </div>
                     <div class="customer-nav-item" onclick="showCustomerSection('bank-info')">
                         <div class="customer-nav-icon">
-                            <i class="fas fa-university"></i>
+                            <i class="fas fa-landmark"></i>
                         </div>
                         <div class="customer-nav-label">Bank Info</div>
                     </div>
@@ -3962,9 +4126,9 @@
                         <!-- Personal Info Section -->
                         <div id="customer-section-personal-info" class="customer-section">
                             <!-- My Information -->
-                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-user"></i> My Information
+                            <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                            <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                <i class="fas fa-user-shield" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> My Information
                             </h4>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -4307,9 +4471,9 @@
                         </div>
                 
                         <!-- Dependents Information -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-child"></i> Dependents
+                        <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                            <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                <i class="fas fa-users" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> Dependents
                             </h4>
                             <div id="dependentsContainer">
                                 <p class="text-muted">No dependents added yet.</p>
@@ -4320,9 +4484,9 @@
                         </div>
                         
                         <!-- Address Info Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-map-marker-alt"></i> Address Info
+                        <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                            <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                <i class="fas fa-map-marked-alt" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> Address Info
                             </h4>
                             <div class="row">
                                 <div class="col-md-12 mb-3">
@@ -4405,9 +4569,9 @@
                 </div>
                 
                         <!-- Identification Details Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-id-card"></i> Identification Details
+                        <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                            <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                <i class="fas fa-fingerprint" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> Identification Details
                             </h4>
                             
                             <!-- SSN/ITIN Section (shown when US is selected in Country of Citizenship) -->
@@ -4613,9 +4777,9 @@
                         <!-- Tax Filings Section -->
                         <div id="customer-section-tax-filings" class="customer-section" style="display: none;">
                             <!-- Tax Filing Information Section -->
-                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                    <i class="fas fa-file-invoice"></i> Tax Filing Information
+                            <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                                <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                    <i class="fas fa-receipt" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> Tax Filing Information
                                 </h4>
                                 
                                 <!-- Filing Years Selection -->
@@ -4942,9 +5106,9 @@
                         <!-- Documents Section -->
                         <div id="customer-section-documents" class="customer-section" style="display: none;">
                             <!-- Upload Documents -->
-                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                    <i class="fas fa-cloud-upload-alt"></i> Upload Documents
+                            <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                                <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                    <i class="fas fa-cloud-upload-alt" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> Upload Documents
                                 </h4>
                             <div class="mb-3">
                                 <label class="form-label" style="color: var(--text-color); font-weight: 600;">Upload Documents (PDF, JPEG, PNG)</label>
@@ -4979,9 +5143,9 @@
 
                         <!-- Bank Info Section -->
                         <div id="customer-section-bank-info" class="customer-section" style="display: none;">
-                            <div class="card mb-4" style="background: var(--card-bg) !important; border: 1px solid var(--border-color) !important; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow); display: block !important; visibility: visible !important; opacity: 1 !important; min-height: 200px;">
-                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                    <i class="fas fa-university"></i> Bank Information for Direct Deposit
+                            <div class="card mb-4" style="background: var(--card-gradient) !important; border: 1px solid rgba(226, 232, 240, 0.8) !important; border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1); display: block !important; visibility: visible !important; opacity: 1 !important; min-height: 200px;">
+                                <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
+                                    <i class="fas fa-landmark" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> Bank Information for Direct Deposit
                                 </h4>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">

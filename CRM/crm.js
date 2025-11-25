@@ -1037,6 +1037,12 @@ async function loadCustomerDashboard() {
             handleCountryOfCitizenshipChange();
         }
         
+        // Add welcome animation class to main content
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.classList.add('welcome-animation');
+        }
+        
         console.log('✅ Customer dashboard loaded successfully');
     } catch (error) {
         console.error('❌ Error loading customer dashboard:', error);
