@@ -5059,6 +5059,23 @@ async function loadTaxInformation() {
             if (taxInfo.filing_years && document.getElementById('personalFilingYears')) {
                 document.getElementById('personalFilingYears').value = taxInfo.filing_years;
             }
+            
+            // Load Bank Information
+            if (taxInfo.bank_tax_payer && document.getElementById('taxBankTaxPayer')) {
+                document.getElementById('taxBankTaxPayer').value = taxInfo.bank_tax_payer;
+            }
+            if (taxInfo.bank_name && document.getElementById('taxBankName')) {
+                document.getElementById('taxBankName').value = taxInfo.bank_name;
+            }
+            if (taxInfo.bank_account_number && document.getElementById('taxBankAccountNumber')) {
+                document.getElementById('taxBankAccountNumber').value = taxInfo.bank_account_number;
+            }
+            if (taxInfo.bank_routing_number && document.getElementById('taxBankRoutingNumber')) {
+                document.getElementById('taxBankRoutingNumber').value = taxInfo.bank_routing_number;
+            }
+            if (taxInfo.bank_account_type && document.getElementById('taxBankAccountType')) {
+                document.getElementById('taxBankAccountType').value = taxInfo.bank_account_type;
+            }
         }
     } catch (error) {
         console.error('Error loading tax information:', error);
@@ -8653,7 +8670,7 @@ function showCustomerSection(sectionName) {
         targetSection.style.display = 'block';
         console.log(`✅ Section ${targetSectionId} is now visible`);
         
-        // If it's bank-info, also populate the dropdown
+        // If it's bank-info, also populate the dropdown and load bank info
         if (sectionName === 'bank-info') {
             console.log(`🏦 Bank Info section opened, populating tax payer dropdown...`);
             // Get customer info from sessionStorage or fetch it
@@ -8669,6 +8686,8 @@ function showCustomerSection(sectionName) {
                     .then(customer => {
                         console.log(`👤 Customer data loaded:`, customer);
                         populateTaxPayerDropdown(customer);
+                        // Load bank information if available
+                        loadBankInformation(customer.id);
                     })
                     .catch(error => {
                         console.error('❌ Error loading customer data:', error);
@@ -8750,6 +8769,49 @@ function updateTaxPayerDropdownWithDependents() {
             taxPayerSelect.appendChild(dependentOption);
         }
     });
+}
+
+/**
+ * Load Bank Information from tax info
+ */
+async function loadBankInformation(customerId) {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) return;
+
+        const taxYear = document.getElementById('taxYear')?.value || '2024';
+
+        // Fetch tax information
+        const response = await fetch(API_BASE_URL + `/customers/tax-info/${customerId}?tax_year=${taxYear}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const taxInfo = await response.json();
+            
+            // Check if taxInfo exists and has bank information
+            if (taxInfo && typeof taxInfo === 'object') {
+                // Populate bank fields
+                if (taxInfo.bank_tax_payer && document.getElementById('taxBankTaxPayer')) {
+                    document.getElementById('taxBankTaxPayer').value = taxInfo.bank_tax_payer;
+                }
+                if (taxInfo.bank_name && document.getElementById('taxBankName')) {
+                    document.getElementById('taxBankName').value = taxInfo.bank_name;
+                }
+                if (taxInfo.bank_account_number && document.getElementById('taxBankAccountNumber')) {
+                    document.getElementById('taxBankAccountNumber').value = taxInfo.bank_account_number;
+                }
+                if (taxInfo.bank_routing_number && document.getElementById('taxBankRoutingNumber')) {
+                    document.getElementById('taxBankRoutingNumber').value = taxInfo.bank_routing_number;
+                }
+                if (taxInfo.bank_account_type && document.getElementById('taxBankAccountType')) {
+                    document.getElementById('taxBankAccountType').value = taxInfo.bank_account_type;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading bank information:', error);
+    }
 }
 
 // Add event listener to update dropdown when dependents are added/removed
