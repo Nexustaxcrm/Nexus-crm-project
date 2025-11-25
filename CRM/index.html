@@ -2664,34 +2664,42 @@
         .nav-center-group {
             flex: 1;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
             padding: 0 20px;
+            height: 100%;
+            overflow: hidden;
         }
         
         .customer-nav-container {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 12px;
             align-items: center;
+            height: 100%;
+            flex-wrap: nowrap;
+            max-width: 100%;
         }
         
         .customer-nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             cursor: pointer;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 8px;
             transition: all 0.3s ease;
-            min-width: 100px;
+            min-width: 90px;
+            max-width: 110px;
+            height: calc(100% - 10px);
+            max-height: 60px;
             background: transparent;
+            flex-shrink: 0;
         }
         
         .customer-nav-item:hover {
-            background: var(--bg-color);
-            transform: translateY(-2px);
+            background: rgba(6, 50, 50, 0.1);
         }
         
         .customer-nav-item.active {
@@ -2704,15 +2712,15 @@
         }
         
         .customer-nav-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-            color: var(--text-secondary);
+            font-size: 20px;
+            margin-bottom: 4px;
+            color: #545454;
             transition: all 0.3s ease;
+            line-height: 1;
         }
         
         .customer-nav-item:hover .customer-nav-icon {
             color: var(--primary-color);
-            transform: scale(1.1);
         }
         
         .customer-nav-item.active .customer-nav-icon {
@@ -2720,10 +2728,13 @@
         }
         
         .customer-nav-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--text-color);
+            color: #545454;
             transition: color 0.3s ease;
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
         }
         
         .customer-nav-item.active .customer-nav-label {
@@ -3887,9 +3898,6 @@
                 </div>
             </div>
             <div class="nav-right-group">
-                <ul class="nav-menu">
-                    <li><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" class="nav-link active"><i class="fas fa-user"></i> <span>My Information</span></a></li>
-                </ul>
                 <div class="user-section">
                     <div class="dropdown">
                         <div class="user-avatar dropdown-toggle" id="customerUserAvatar" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">C</div>
