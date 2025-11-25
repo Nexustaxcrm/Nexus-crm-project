@@ -563,6 +563,15 @@ async function handleLogin(e) {
             // If customer role, ensure customer dashboard is shown
             if (data.user.role === 'customer') {
                 console.log('🎯 Customer login detected, routing to customer dashboard');
+                
+                // Check if password change is required
+                if (data.requiresPasswordChange || data.user.tempPassword) {
+                    console.log('🔐 Temporary password detected - showing password change modal');
+                    // Show password change modal instead of dashboard
+                    showPasswordChangeModal();
+                    return;
+                }
+                
                 // Hide login page and admin dashboard
                 const loginPage = document.getElementById('loginPage');
                 const dashboardPage = document.getElementById('dashboardPage');
@@ -4980,6 +4989,138 @@ document.addEventListener('DOMContentLoaded', function() {
         taxYearSelect.addEventListener('change', loadTaxInformation);
     }
 });
+
+// Show password change modal
+function showPasswordChangeModal() {
+    const modal = new bootstrap.Modal(document.getElementById('passwordChangeModal'));
+    modal.show();
+    
+    // Clear form
+    document.getElementById('passwordChangeForm').reset();
+    document.getElementById('passwordChangeError').style.display = 'none';
+    document.getElementById('passwordChangeSuccess').style.display = 'none';
+    
+    // Focus on current password field
+    setTimeout(() => {
+        document.getElementById('currentPassword').focus();
+    }, 300);
+}
+
+// Change password function
+async function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('passwordChangeError');
+    const successDiv = document.getElementById('passwordChangeSuccess');
+    const changeBtn = document.getElementById('changePasswordBtn');
+    
+    // Clear previous messages
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    // Validate inputs
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        errorDiv.textContent = 'All fields are required';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        errorDiv.textContent = 'New password must be at least 6 characters long';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        errorDiv.textContent = 'New password and confirm password do not match';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    // Disable button during request
+    changeBtn.disabled = true;
+    changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Changing Password...';
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            throw new Error('Authentication token not found. Please log in again.');
+        }
+        
+        const response = await fetch(API_BASE_URL + '/auth/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                currentPassword: currentPassword,
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Show success message
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            
+            // Hide form
+            document.getElementById('passwordChangeForm').style.display = 'none';
+            changeBtn.style.display = 'none';
+            
+            // Wait 2 seconds, then redirect to login
+            setTimeout(() => {
+                // Clear session
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('currentUser');
+                currentUser = null;
+                
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('passwordChangeModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                // Show login page
+                const loginPage = document.getElementById('loginPage');
+                const customerDashboard = document.getElementById('customerDashboardPage');
+                if (loginPage) {
+                    loginPage.style.display = 'block';
+                }
+                if (customerDashboard) {
+                    customerDashboard.style.display = 'none';
+                }
+                
+                // Show success notification
+                showNotification('success', 'Password Changed', 'Your password has been changed successfully. Please log in again with your new password.');
+                
+                // Clear login form
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) {
+                    loginForm.reset();
+                }
+            }, 2000);
+            
+        } else {
+            // Show error
+            errorDiv.textContent = data.error || 'Failed to change password. Please try again.';
+            errorDiv.style.display = 'block';
+            changeBtn.disabled = false;
+            changeBtn.innerHTML = '<i class="fas fa-save me-2"></i>Change Password';
+        }
+        
+    } catch (error) {
+        console.error('Error changing password:', error);
+        errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+        changeBtn.disabled = false;
+        changeBtn.innerHTML = '<i class="fas fa-save me-2"></i>Change Password';
+    }
+}
 
 // Load customer documents for admin/preparation view
 async function loadCustomerDocuments(customerId) {

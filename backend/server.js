@@ -193,6 +193,26 @@ async function createCustomerDocumentsTableMigration(pool) {
                 console.error('⚠️ Error adding stored_file_name column:', columnError.message);
             }
         }
+        
+        // Add temp_password column to users table if it doesn't exist
+        try {
+            const tempPasswordColumnCheck = await pool.query(`
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name='users' AND column_name='temp_password'
+            `);
+            
+            if (tempPasswordColumnCheck.rows.length === 0) {
+                console.log('🔄 Adding temp_password column to users table...');
+                await pool.query(`
+                    ALTER TABLE users 
+                    ADD COLUMN temp_password BOOLEAN DEFAULT FALSE
+                `);
+                console.log('✅ temp_password column added successfully');
+            }
+        } catch (tempPasswordError) {
+            console.error('⚠️ Error adding temp_password column:', tempPasswordError.message);
+        }
     } catch (error) {
         console.error('❌ Error creating customer_documents table:', error.message);
         throw error;
@@ -326,6 +346,7 @@ async function initializeDatabase() {
                     password VARCHAR(255) NOT NULL,
                     role VARCHAR(50) NOT NULL DEFAULT 'employee',
                     locked BOOLEAN DEFAULT FALSE,
+                    temp_password BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )

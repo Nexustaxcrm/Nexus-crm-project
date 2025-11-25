@@ -5504,6 +5504,50 @@
         </div>
     </div>
 
+    <!-- Password Change Modal (for temporary passwords) -->
+    <div class="modal fade" id="passwordChangeModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key me-2"></i>Change Your Password
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Password Change Required:</strong> You are using a temporary password. Please set a new password to continue.
+                    </div>
+                    <form id="passwordChangeForm">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password (Temporary Password)</label>
+                            <input type="password" class="form-control" id="currentPassword" placeholder="Enter your temporary password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password (min. 6 characters)" required minlength="6">
+                            <small class="form-text text-muted">Password must be at least 6 characters long</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password" required minlength="6">
+                        </div>
+                        <div id="passwordChangeError" class="alert alert-danger" style="display: none;"></div>
+                        <div id="passwordChangeSuccess" class="alert alert-success" style="display: none;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Password confirmed!</strong> Please log in again with your new password.
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="changePasswordBtn" onclick="changePassword()">
+                        <i class="fas fa-save me-2"></i>Change Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add User Modal -->
     <div class="modal fade" id="addUserModal" tabindex="-1">
         <div class="modal-dialog">

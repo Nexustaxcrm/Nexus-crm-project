@@ -264,6 +264,12 @@ router.post('/login', async (req, res) => {
             );
         }
         
+        // Ensure temp_password column exists (for existing databases)
+        if (result.rows.length > 0 && result.rows[0].temp_password === undefined) {
+            // If column doesn't exist, default to false
+            result.rows[0].temp_password = false;
+        }
+        
         console.log(`📊 Found ${result.rows.length} user(s) with username/email: ${usernameLower}`);
         
         if (result.rows.length === 0) {
@@ -397,16 +403,85 @@ router.post('/login', async (req, res) => {
             }
         }
         
+        // Check if user has temporary password
+        const hasTempPassword = user.temp_password === true;
+        
         res.json({
             token,
             user: {
                 id: user.id,
                 username: user.username,
-                role: user.role
-            }
+                role: user.role,
+                tempPassword: hasTempPassword // Include flag to indicate temp password
+            },
+            requiresPasswordChange: hasTempPassword // Flag for frontend to show password change
         });
     } catch (error) {
         console.error('Login error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Change password endpoint (for customers with temporary passwords)
+router.post('/change-password', verifyToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+        const userId = req.user.userId;
+
+        // Validate inputs
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ error: 'All password fields are required' });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ error: 'New password and confirm password do not match' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+        }
+
+        // Get user from database
+        const userResult = await dbPool.query(
+            'SELECT id, username, password, temp_password FROM users WHERE id = $1',
+            [userId]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = userResult.rows[0];
+
+        // Verify current password
+        const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!isValidPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+
+        // Hash new password
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear temp_password flag
+        await dbPool.query(
+            'UPDATE users SET password = $1, temp_password = FALSE, updated_at = NOW() WHERE id = $2',
+            [hashedNewPassword, userId]
+        );
+
+        console.log(`✅ Password changed for user ID: ${userId}, username: ${user.username}`);
+
+        res.json({
+            success: true,
+            message: 'Password changed successfully. Please log in again with your new password.'
+        });
+
+    } catch (error) {
+        console.error('Change password error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
