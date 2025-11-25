@@ -1751,4 +1751,205 @@ router.delete('/documents/:documentId', authenticateToken, async (req, res) => {
     }
 });
 
+// ============================================
+// TAX INFORMATION ENDPOINTS
+// ============================================
+
+// Save or update tax information
+router.post('/tax-info', verifyToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const { customer_id, tax_year, ...taxData } = req.body;
+
+        // Validate customer_id - customers can only save their own tax info
+        if (req.user.role === 'customer') {
+            // Get customer record to verify ownership
+            const customerCheck = await dbPool.query(
+                'SELECT id FROM customers WHERE user_id = $1 AND id = $2',
+                [userId, customer_id]
+            );
+            
+            if (customerCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Access denied. You can only update your own tax information.' });
+            }
+        }
+
+        // Prepare tax data for insertion/update
+        const taxInfoData = {
+            customer_id: customer_id,
+            tax_year: tax_year || '2024',
+            ssn_itin: taxData.ssn_itin || null,
+            date_of_birth: taxData.date_of_birth || null,
+            filing_status: taxData.filing_status || null,
+            spouse_name: taxData.spouse_name || null,
+            spouse_ssn_itin: taxData.spouse_ssn_itin || null,
+            spouse_date_of_birth: taxData.spouse_date_of_birth || null,
+            bank_account_number: taxData.bank_account_number || null,
+            bank_routing_number: taxData.bank_routing_number || null,
+            bank_account_type: taxData.bank_account_type || null,
+            rental_income: taxData.rental_income || 0,
+            unemployment_compensation: taxData.unemployment_compensation || 0,
+            social_security_benefits: taxData.social_security_benefits || 0,
+            other_income: taxData.other_income || 0,
+            other_income_description: taxData.other_income_description || null,
+            standard_deduction: taxData.standard_deduction !== undefined ? taxData.standard_deduction : true,
+            health_insurance_coverage: taxData.health_insurance_coverage || null,
+            estimated_tax_payments: taxData.estimated_tax_payments || 0,
+            prior_year_agi: taxData.prior_year_agi || 0,
+            prior_year_tax_return_available: taxData.prior_year_tax_return_available || false,
+            w2_income: taxData.w2_income ? JSON.stringify(taxData.w2_income) : null,
+            income_1099: taxData.income_1099 ? JSON.stringify(taxData.income_1099) : null,
+            dependents: taxData.dependents ? JSON.stringify(taxData.dependents) : null,
+            itemized_deductions: taxData.itemized_deductions ? JSON.stringify(taxData.itemized_deductions) : null,
+            tax_credits: taxData.tax_credits ? JSON.stringify(taxData.tax_credits) : null,
+            self_employment_income: taxData.self_employment_income ? JSON.stringify(taxData.self_employment_income) : null,
+            business_expenses: taxData.business_expenses ? JSON.stringify(taxData.business_expenses) : null,
+            foreign_accounts: taxData.foreign_accounts || false,
+            foreign_account_details: taxData.foreign_account_details || null,
+            home_office_deduction: taxData.home_office_deduction || false,
+            home_office_details: taxData.home_office_details || null,
+            filing_checklist: taxData.filing_checklist ? JSON.stringify(taxData.filing_checklist) : null
+        };
+
+        // Use UPSERT (INSERT ... ON CONFLICT UPDATE)
+        const result = await dbPool.query(`
+            INSERT INTO customer_tax_info (
+                customer_id, tax_year, ssn_itin, date_of_birth, filing_status,
+                spouse_name, spouse_ssn_itin, spouse_date_of_birth,
+                bank_account_number, bank_routing_number, bank_account_type,
+                rental_income, unemployment_compensation, social_security_benefits,
+                other_income, other_income_description, standard_deduction,
+                health_insurance_coverage, estimated_tax_payments, prior_year_agi,
+                prior_year_tax_return_available, w2_income, income_1099, dependents,
+                itemized_deductions, tax_credits, self_employment_income,
+                business_expenses, foreign_accounts, foreign_account_details,
+                home_office_deduction, home_office_details, filing_checklist,
+                updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, CURRENT_TIMESTAMP
+            )
+            ON CONFLICT (customer_id, tax_year) 
+            DO UPDATE SET
+                ssn_itin = EXCLUDED.ssn_itin,
+                date_of_birth = EXCLUDED.date_of_birth,
+                filing_status = EXCLUDED.filing_status,
+                spouse_name = EXCLUDED.spouse_name,
+                spouse_ssn_itin = EXCLUDED.spouse_ssn_itin,
+                spouse_date_of_birth = EXCLUDED.spouse_date_of_birth,
+                bank_account_number = EXCLUDED.bank_account_number,
+                bank_routing_number = EXCLUDED.bank_routing_number,
+                bank_account_type = EXCLUDED.bank_account_type,
+                rental_income = EXCLUDED.rental_income,
+                unemployment_compensation = EXCLUDED.unemployment_compensation,
+                social_security_benefits = EXCLUDED.social_security_benefits,
+                other_income = EXCLUDED.other_income,
+                other_income_description = EXCLUDED.other_income_description,
+                standard_deduction = EXCLUDED.standard_deduction,
+                health_insurance_coverage = EXCLUDED.health_insurance_coverage,
+                estimated_tax_payments = EXCLUDED.estimated_tax_payments,
+                prior_year_agi = EXCLUDED.prior_year_agi,
+                prior_year_tax_return_available = EXCLUDED.prior_year_tax_return_available,
+                w2_income = EXCLUDED.w2_income,
+                income_1099 = EXCLUDED.income_1099,
+                dependents = EXCLUDED.dependents,
+                itemized_deductions = EXCLUDED.itemized_deductions,
+                tax_credits = EXCLUDED.tax_credits,
+                self_employment_income = EXCLUDED.self_employment_income,
+                business_expenses = EXCLUDED.business_expenses,
+                foreign_accounts = EXCLUDED.foreign_accounts,
+                foreign_account_details = EXCLUDED.foreign_account_details,
+                home_office_deduction = EXCLUDED.home_office_deduction,
+                home_office_details = EXCLUDED.home_office_details,
+                filing_checklist = EXCLUDED.filing_checklist,
+                updated_at = CURRENT_TIMESTAMP
+            RETURNING *
+        `, [
+            taxInfoData.customer_id, taxInfoData.tax_year, taxInfoData.ssn_itin, taxInfoData.date_of_birth,
+            taxInfoData.filing_status, taxInfoData.spouse_name, taxInfoData.spouse_ssn_itin,
+            taxInfoData.spouse_date_of_birth, taxInfoData.bank_account_number, taxInfoData.bank_routing_number,
+            taxInfoData.bank_account_type, taxInfoData.rental_income, taxInfoData.unemployment_compensation,
+            taxInfoData.social_security_benefits, taxInfoData.other_income, taxInfoData.other_income_description,
+            taxInfoData.standard_deduction, taxInfoData.health_insurance_coverage, taxInfoData.estimated_tax_payments,
+            taxInfoData.prior_year_agi, taxInfoData.prior_year_tax_return_available, taxInfoData.w2_income,
+            taxInfoData.income_1099, taxInfoData.dependents, taxInfoData.itemized_deductions,
+            taxInfoData.tax_credits, taxInfoData.self_employment_income, taxInfoData.business_expenses,
+            taxInfoData.foreign_accounts, taxInfoData.foreign_account_details, taxInfoData.home_office_deduction,
+            taxInfoData.home_office_details, taxInfoData.filing_checklist
+        ]);
+
+        // Parse JSON fields for response
+        const taxInfo = result.rows[0];
+        if (taxInfo.w2_income) taxInfo.w2_income = JSON.parse(taxInfo.w2_income);
+        if (taxInfo.income_1099) taxInfo.income_1099 = JSON.parse(taxInfo.income_1099);
+        if (taxInfo.dependents) taxInfo.dependents = JSON.parse(taxInfo.dependents);
+        if (taxInfo.itemized_deductions) taxInfo.itemized_deductions = JSON.parse(taxInfo.itemized_deductions);
+        if (taxInfo.tax_credits) taxInfo.tax_credits = JSON.parse(taxInfo.tax_credits);
+        if (taxInfo.self_employment_income) taxInfo.self_employment_income = JSON.parse(taxInfo.self_employment_income);
+        if (taxInfo.business_expenses) taxInfo.business_expenses = JSON.parse(taxInfo.business_expenses);
+        if (taxInfo.filing_checklist) taxInfo.filing_checklist = JSON.parse(taxInfo.filing_checklist);
+
+        console.log(`✅ Tax information saved for customer ID: ${customer_id}, tax year: ${tax_year}`);
+        res.json({ success: true, message: 'Tax information saved successfully', tax_info: taxInfo });
+    } catch (error) {
+        console.error('❌ Error saving tax information:', error);
+        res.status(500).json({ error: 'Server error saving tax information', details: error.message });
+    }
+});
+
+// Get tax information
+router.get('/tax-info/:customerId', verifyToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const customerId = parseInt(req.params.customerId);
+        const taxYear = req.query.tax_year || '2024';
+
+        // Validate access - customers can only view their own tax info
+        if (req.user.role === 'customer') {
+            const customerCheck = await dbPool.query(
+                'SELECT id FROM customers WHERE user_id = $1 AND id = $2',
+                [userId, customerId]
+            );
+            
+            if (customerCheck.rows.length === 0) {
+                return res.status(403).json({ error: 'Access denied. You can only view your own tax information.' });
+            }
+        }
+
+        const result = await dbPool.query(
+            'SELECT * FROM customer_tax_info WHERE customer_id = $1 AND tax_year = $2',
+            [customerId, taxYear]
+        );
+
+        if (result.rows.length === 0) {
+            return res.json(null); // Return null if no tax info found
+        }
+
+        // Parse JSON fields
+        const taxInfo = result.rows[0];
+        if (taxInfo.w2_income) taxInfo.w2_income = JSON.parse(taxInfo.w2_income);
+        if (taxInfo.income_1099) taxInfo.income_1099 = JSON.parse(taxInfo.income_1099);
+        if (taxInfo.dependents) taxInfo.dependents = JSON.parse(taxInfo.dependents);
+        if (taxInfo.itemized_deductions) taxInfo.itemized_deductions = JSON.parse(taxInfo.itemized_deductions);
+        if (taxInfo.tax_credits) taxInfo.tax_credits = JSON.parse(taxInfo.tax_credits);
+        if (taxInfo.self_employment_income) taxInfo.self_employment_income = JSON.parse(taxInfo.self_employment_income);
+        if (taxInfo.business_expenses) taxInfo.business_expenses = JSON.parse(taxInfo.business_expenses);
+        if (taxInfo.filing_checklist) taxInfo.filing_checklist = JSON.parse(taxInfo.filing_checklist);
+
+        res.json(taxInfo);
+    } catch (error) {
+        console.error('❌ Error fetching tax information:', error);
+        res.status(500).json({ error: 'Server error fetching tax information', details: error.message });
+    }
+});
+
 module.exports = router;

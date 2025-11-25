@@ -3943,6 +3943,293 @@
                             </div>
                         </div>
 
+                        <!-- Tax Filing Information Section -->
+                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-file-invoice"></i> Tax Filing Information
+                            </h4>
+                            
+                            <!-- Tax Year Selection -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Tax Year</label>
+                                    <select id="taxYear" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                        <option value="2022">2022</option>
+                                        <option value="2021">2021</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Personal Tax Information -->
+                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-user-circle"></i> Personal Information
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">SSN/ITIN <span class="text-danger">*</span></label>
+                                        <input type="text" id="taxSsnItin" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        <small class="text-muted">Social Security Number or ITIN</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Date of Birth <span class="text-danger">*</span></label>
+                                        <input type="date" id="taxDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Filing Status <span class="text-danger">*</span></label>
+                                        <select id="taxFilingStatus" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="">Select Filing Status</option>
+                                            <option value="single">Single</option>
+                                            <option value="married_jointly">Married Filing Jointly</option>
+                                            <option value="married_separately">Married Filing Separately</option>
+                                            <option value="head_of_household">Head of Household</option>
+                                            <option value="qualifying_widow">Qualifying Widow(er)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Spouse Information (shown when married filing jointly/separately) -->
+                            <div class="mb-4" id="spouseInfoSection" style="display: none; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-user-friends"></i> Spouse Information
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Spouse Name</label>
+                                        <input type="text" id="taxSpouseName" class="form-control" placeholder="Spouse Full Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Spouse SSN/ITIN</label>
+                                        <input type="text" id="taxSpouseSsnItin" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Spouse Date of Birth</label>
+                                        <input type="date" id="taxSpouseDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bank Information -->
+                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-university"></i> Bank Information (for Direct Deposit)
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Account Number</label>
+                                        <input type="text" id="taxBankAccountNumber" class="form-control" placeholder="Account Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Routing Number</label>
+                                        <input type="text" id="taxBankRoutingNumber" class="form-control" placeholder="Routing Number" maxlength="9" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Account Type</label>
+                                        <select id="taxBankAccountType" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="">Select Type</option>
+                                            <option value="checking">Checking</option>
+                                            <option value="savings">Savings</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Income Information -->
+                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-dollar-sign"></i> Income Information
+                                </h5>
+                                
+                                <!-- W-2 Income -->
+                                <div class="mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">W-2 Forms</label>
+                                    <div id="w2FormsContainer">
+                                        <div class="w2-form-entry mb-3 p-3 border rounded" style="background: var(--card-bg); border-color: var(--border-color);">
+                                            <div class="row">
+                                                <div class="col-md-3 mb-2">
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Employer Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Wages (Box 1)" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Federal Tax Withheld" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="removeW2Form(this)">
+                                                        <i class="fas fa-times"></i> Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addW2Form()">
+                                        <i class="fas fa-plus"></i> Add Another W-2
+                                    </button>
+                                </div>
+
+                                <!-- 1099 Income -->
+                                <div class="mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">1099 Forms</label>
+                                    <div id="income1099Container">
+                                        <div class="income-1099-entry mb-3 p-3 border rounded" style="background: var(--card-bg); border-color: var(--border-color);">
+                                            <div class="row">
+                                                <div class="col-md-3 mb-2">
+                                                    <select class="form-control form-control-sm" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                        <option value="">Form Type</option>
+                                                        <option value="1099-NEC">1099-NEC</option>
+                                                        <option value="1099-MISC">1099-MISC</option>
+                                                        <option value="1099-INT">1099-INT</option>
+                                                        <option value="1099-DIV">1099-DIV</option>
+                                                        <option value="1099-B">1099-B</option>
+                                                        <option value="1099-R">1099-R</option>
+                                                        <option value="1099-G">1099-G</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Payer Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Amount" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="remove1099Form(this)">
+                                                        <i class="fas fa-times"></i> Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="add1099Form()">
+                                        <i class="fas fa-plus"></i> Add Another 1099
+                                    </button>
+                                </div>
+
+                                <!-- Other Income -->
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Rental Income</label>
+                                        <input type="number" id="taxRentalIncome" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Unemployment Compensation</label>
+                                        <input type="number" id="taxUnemploymentComp" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Social Security Benefits</label>
+                                        <input type="number" id="taxSocialSecurity" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Other Income</label>
+                                        <input type="number" id="taxOtherIncome" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Other Income Description</label>
+                                        <textarea id="taxOtherIncomeDesc" class="form-control" rows="2" placeholder="Describe other income sources" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dependents Information -->
+                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-child"></i> Dependents
+                                </h5>
+                                <div id="dependentsContainer">
+                                    <p class="text-muted">No dependents added yet.</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDependent()">
+                                    <i class="fas fa-plus"></i> Add Dependent
+                                </button>
+                            </div>
+
+                            <!-- Deductions & Credits -->
+                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-receipt"></i> Deductions & Credits
+                                </h5>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="deductionType" id="standardDeduction" value="standard" checked style="background: var(--card-bg); border-color: var(--border-color);">
+                                        <label class="form-check-label" for="standardDeduction" style="color: var(--text-color);">
+                                            Standard Deduction
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="deductionType" id="itemizedDeduction" value="itemized" style="background: var(--card-bg); border-color: var(--border-color);">
+                                        <label class="form-check-label" for="itemizedDeduction" style="color: var(--text-color);">
+                                            Itemized Deductions
+                                        </label>
+                                    </div>
+                                </div>
+                                <div id="itemizedDeductionsSection" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Medical Expenses</label>
+                                            <input type="number" id="taxMedicalExpenses" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">State & Local Taxes (SALT)</label>
+                                            <input type="number" id="taxSalt" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Mortgage Interest</label>
+                                            <input type="number" id="taxMortgageInterest" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Charitable Contributions</label>
+                                            <input type="number" id="taxCharitable" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Information -->
+                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                <h5 class="mb-3" style="color: var(--text-color);">
+                                    <i class="fas fa-info-circle"></i> Additional Information
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Health Insurance Coverage</label>
+                                        <select id="taxHealthInsurance" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="">Select</option>
+                                            <option value="1095-A">1095-A (Marketplace)</option>
+                                            <option value="1095-B">1095-B (Insurance Provider)</option>
+                                            <option value="1095-C">1095-C (Employer)</option>
+                                            <option value="none">None</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Estimated Tax Payments Made</label>
+                                        <input type="number" id="taxEstimatedPayments" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label" style="color: var(--text-color);">Prior Year AGI</label>
+                                        <input type="number" id="taxPriorYearAgi" class="form-control" placeholder="0.00" step="0.01" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox" id="taxPriorYearReturn" style="background: var(--card-bg); border-color: var(--border-color);">
+                                            <label class="form-check-label" for="taxPriorYearReturn" style="color: var(--text-color);">
+                                                Prior Year Tax Return Available
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Tax Information Button -->
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="saveTaxInformation()">
+                                    <i class="fas fa-save"></i> Save Tax Information
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Refund Status Section -->
                         <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
                             <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">

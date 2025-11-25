@@ -171,6 +171,97 @@ async function createCustomerDocumentsTableMigration(pool) {
     }
 }
 
+// Migration function to create customer_tax_info table
+async function createCustomerTaxInfoTableMigration(pool) {
+    try {
+        const tableCheck = await pool.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='customer_tax_info'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('🔄 Creating customer_tax_info table...');
+            await pool.query(`
+                CREATE TABLE customer_tax_info (
+                    id SERIAL PRIMARY KEY,
+                    customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+                    tax_year VARCHAR(4) NOT NULL DEFAULT '2024',
+                    
+                    -- Personal Information
+                    ssn_itin VARCHAR(20),
+                    date_of_birth DATE,
+                    filing_status VARCHAR(50),
+                    
+                    -- Spouse Information
+                    spouse_name VARCHAR(255),
+                    spouse_ssn_itin VARCHAR(20),
+                    spouse_date_of_birth DATE,
+                    
+                    -- Bank Information
+                    bank_account_number VARCHAR(50),
+                    bank_routing_number VARCHAR(20),
+                    bank_account_type VARCHAR(20),
+                    
+                    -- Income Information (stored as JSON)
+                    w2_income JSONB,
+                    income_1099 JSONB,
+                    self_employment_income JSONB,
+                    rental_income DECIMAL(12, 2),
+                    unemployment_compensation DECIMAL(12, 2),
+                    social_security_benefits DECIMAL(12, 2),
+                    other_income DECIMAL(12, 2),
+                    other_income_description TEXT,
+                    
+                    -- Deductions
+                    itemized_deductions JSONB,
+                    standard_deduction BOOLEAN DEFAULT TRUE,
+                    
+                    -- Tax Credits
+                    tax_credits JSONB,
+                    
+                    -- Dependents
+                    dependents JSONB,
+                    
+                    -- Prior Year Information
+                    prior_year_agi DECIMAL(12, 2),
+                    prior_year_tax_return_available BOOLEAN DEFAULT FALSE,
+                    
+                    -- Additional Information
+                    health_insurance_coverage VARCHAR(50),
+                    estimated_tax_payments DECIMAL(12, 2),
+                    foreign_accounts BOOLEAN DEFAULT FALSE,
+                    foreign_account_details TEXT,
+                    business_expenses JSONB,
+                    home_office_deduction BOOLEAN DEFAULT FALSE,
+                    home_office_details TEXT,
+                    
+                    -- Filing Checklist
+                    filing_checklist JSONB,
+                    
+                    -- Metadata
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    
+                    UNIQUE(customer_id, tax_year)
+                )
+            `);
+            
+            // Create indexes
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_customer_tax_info_customer_id ON customer_tax_info(customer_id)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_customer_tax_info_tax_year ON customer_tax_info(tax_year)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_customer_tax_info_customer_year ON customer_tax_info(customer_id, tax_year)');
+            
+            console.log('✅ customer_tax_info table created successfully');
+        } else {
+            console.log('✅ customer_tax_info table already exists');
+        }
+    } catch (error) {
+        console.error('❌ Error creating customer_tax_info table:', error.message);
+        throw error;
+    }
+}
+
 // Initialize database schema and create admin user if needed
 async function initializeDatabase() {
     try {
@@ -259,6 +350,14 @@ async function initializeDatabase() {
         // Run migration to create customer_documents table
         try {
             await createCustomerDocumentsTableMigration(pool);
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to create customer_tax_info table
+        try {
+            await createCustomerTaxInfoTableMigration(pool);
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup

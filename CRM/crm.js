@@ -1000,6 +1000,11 @@ async function loadCustomerDashboard() {
         // Load customer documents
         await loadCustomerUploadedDocuments(customer.id);
         
+        // Load tax information
+        if (typeof loadTaxInformation === 'function') {
+            await loadTaxInformation();
+        }
+        
         console.log('✅ Customer dashboard loaded successfully');
     } catch (error) {
         console.error('❌ Error loading customer dashboard:', error);
@@ -4504,8 +4509,449 @@ function openUpdateStatusModal(customerId) {
     modal.show();
 }
 
+// ============================================
+// TAX INFORMATION FUNCTIONS
+// ============================================
+
+// Show/hide spouse section based on filing status
+function toggleSpouseSection() {
+    const filingStatus = document.getElementById('taxFilingStatus');
+    if (!filingStatus) return;
+    
+    const filingStatusValue = filingStatus.value;
+    const spouseSection = document.getElementById('spouseInfoSection');
+    
+    if (spouseSection) {
+        if (filingStatusValue === 'married_jointly' || filingStatusValue === 'married_separately') {
+            spouseSection.style.display = 'block';
+        } else {
+            spouseSection.style.display = 'none';
+        }
+    }
+}
+
+// Add W-2 Form
+function addW2Form() {
+    const container = document.getElementById('w2FormsContainer');
+    if (!container) return;
+    
+    const newForm = document.createElement('div');
+    newForm.className = 'w2-form-entry mb-3 p-3 border rounded';
+    newForm.style.background = 'var(--card-bg)';
+    newForm.style.borderColor = 'var(--border-color)';
+    newForm.innerHTML = `
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm w2-employer" placeholder="Employer Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm w2-wages" placeholder="Wages (Box 1)" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm w2-federal-tax" placeholder="Federal Tax Withheld" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-3 mb-2">
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeW2Form(this)">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newForm);
+}
+
+// Remove W-2 Form
+function removeW2Form(button) {
+    button.closest('.w2-form-entry').remove();
+}
+
+// Add 1099 Form
+function add1099Form() {
+    const container = document.getElementById('income1099Container');
+    if (!container) return;
+    
+    const newForm = document.createElement('div');
+    newForm.className = 'income-1099-entry mb-3 p-3 border rounded';
+    newForm.style.background = 'var(--card-bg)';
+    newForm.style.borderColor = 'var(--border-color)';
+    newForm.innerHTML = `
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <select class="form-control form-control-sm 1099-type" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                    <option value="">Form Type</option>
+                    <option value="1099-NEC">1099-NEC</option>
+                    <option value="1099-MISC">1099-MISC</option>
+                    <option value="1099-INT">1099-INT</option>
+                    <option value="1099-DIV">1099-DIV</option>
+                    <option value="1099-B">1099-B</option>
+                    <option value="1099-R">1099-R</option>
+                    <option value="1099-G">1099-G</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm 1099-payer" placeholder="Payer Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm 1099-amount" placeholder="Amount" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-3 mb-2">
+                <button type="button" class="btn btn-sm btn-danger" onclick="remove1099Form(this)">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newForm);
+}
+
+// Remove 1099 Form
+function remove1099Form(button) {
+    button.closest('.income-1099-entry').remove();
+}
+
+// Add Dependent
+function addDependent() {
+    const container = document.getElementById('dependentsContainer');
+    if (!container) return;
+    
+    const dependentCount = container.querySelectorAll('.dependent-entry').length;
+    
+    if (dependentCount === 0) {
+        container.innerHTML = '';
+    }
+    
+    const newDependent = document.createElement('div');
+    newDependent.className = 'dependent-entry mb-3 p-3 border rounded';
+    newDependent.style.background = 'var(--card-bg)';
+    newDependent.style.borderColor = 'var(--border-color)';
+    newDependent.innerHTML = `
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm dependent-name" placeholder="Dependent Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control form-control-sm dependent-ssn" placeholder="SSN/ITIN" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-2 mb-2">
+                <input type="date" class="form-control form-control-sm dependent-dob" placeholder="Date of Birth" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-2 mb-2">
+                <input type="text" class="form-control form-control-sm dependent-relationship" placeholder="Relationship" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-2 mb-2">
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeDependent(this)">
+                    <i class="fas fa-times"></i> Remove
+                </button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newDependent);
+}
+
+// Remove Dependent
+function removeDependent(button) {
+    const container = document.getElementById('dependentsContainer');
+    if (!container) return;
+    
+    button.closest('.dependent-entry').remove();
+    
+    if (container.querySelectorAll('.dependent-entry').length === 0) {
+        container.innerHTML = '<p class="text-muted">No dependents added yet.</p>';
+    }
+}
+
+// Save Tax Information
+async function saveTaxInformation() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You are not logged in. Please log in again.');
+            return;
+        }
+
+        // Get customer ID
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'customer') {
+            showNotification('error', 'Error', 'Customer information not found.');
+            return;
+        }
+
+        // Get customer record to get customer_id
+        const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!meResponse.ok) {
+            throw new Error('Failed to fetch customer information');
+        }
+
+        const customer = await meResponse.json();
+        const customerId = customer.id;
+
+        // Collect all tax information
+        const taxYear = document.getElementById('taxYear')?.value || '2024';
+        
+        // Personal Information
+        const taxData = {
+            customer_id: customerId,
+            tax_year: taxYear,
+            ssn_itin: document.getElementById('taxSsnItin')?.value.trim() || '',
+            date_of_birth: document.getElementById('taxDateOfBirth')?.value || '',
+            filing_status: document.getElementById('taxFilingStatus')?.value || '',
+            spouse_name: document.getElementById('taxSpouseName')?.value.trim() || '',
+            spouse_ssn_itin: document.getElementById('taxSpouseSsnItin')?.value.trim() || '',
+            spouse_date_of_birth: document.getElementById('taxSpouseDateOfBirth')?.value || '',
+            bank_account_number: document.getElementById('taxBankAccountNumber')?.value.trim() || '',
+            bank_routing_number: document.getElementById('taxBankRoutingNumber')?.value.trim() || '',
+            bank_account_type: document.getElementById('taxBankAccountType')?.value || '',
+            rental_income: parseFloat(document.getElementById('taxRentalIncome')?.value) || 0,
+            unemployment_compensation: parseFloat(document.getElementById('taxUnemploymentComp')?.value) || 0,
+            social_security_benefits: parseFloat(document.getElementById('taxSocialSecurity')?.value) || 0,
+            other_income: parseFloat(document.getElementById('taxOtherIncome')?.value) || 0,
+            other_income_description: document.getElementById('taxOtherIncomeDesc')?.value.trim() || '',
+            standard_deduction: document.getElementById('standardDeduction')?.checked !== false,
+            health_insurance_coverage: document.getElementById('taxHealthInsurance')?.value || '',
+            estimated_tax_payments: parseFloat(document.getElementById('taxEstimatedPayments')?.value) || 0,
+            prior_year_agi: parseFloat(document.getElementById('taxPriorYearAgi')?.value) || 0,
+            prior_year_tax_return_available: document.getElementById('taxPriorYearReturn')?.checked || false
+        };
+
+        // Collect W-2 Forms
+        const w2Forms = [];
+        document.querySelectorAll('.w2-form-entry').forEach(form => {
+            const employer = form.querySelector('.w2-employer')?.value.trim() || '';
+            const wages = form.querySelector('.w2-wages')?.value.trim() || '';
+            const federalTax = form.querySelector('.w2-federal-tax')?.value.trim() || '';
+            
+            if (employer || wages || federalTax) {
+                w2Forms.push({
+                    employer: employer,
+                    wages: wages,
+                    federal_tax_withheld: federalTax
+                });
+            }
+        });
+        taxData.w2_income = w2Forms;
+
+        // Collect 1099 Forms
+        const income1099 = [];
+        document.querySelectorAll('.income-1099-entry').forEach(form => {
+            const type = form.querySelector('.1099-type')?.value || '';
+            const payer = form.querySelector('.1099-payer')?.value.trim() || '';
+            const amount = form.querySelector('.1099-amount')?.value.trim() || '';
+            
+            if (type || payer || amount) {
+                income1099.push({
+                    type: type,
+                    payer: payer,
+                    amount: amount
+                });
+            }
+        });
+        taxData.income_1099 = income1099;
+
+        // Collect Dependents
+        const dependents = [];
+        document.querySelectorAll('.dependent-entry').forEach(dep => {
+            const name = dep.querySelector('.dependent-name')?.value.trim() || '';
+            const ssn = dep.querySelector('.dependent-ssn')?.value.trim() || '';
+            const dob = dep.querySelector('.dependent-dob')?.value || '';
+            const relationship = dep.querySelector('.dependent-relationship')?.value.trim() || '';
+            
+            if (name || ssn || dob || relationship) {
+                dependents.push({
+                    name: name,
+                    ssn_itin: ssn,
+                    date_of_birth: dob,
+                    relationship: relationship
+                });
+            }
+        });
+        taxData.dependents = dependents;
+
+        // Collect Itemized Deductions
+        if (!taxData.standard_deduction) {
+            taxData.itemized_deductions = {
+                medical_expenses: parseFloat(document.getElementById('taxMedicalExpenses')?.value) || 0,
+                salt: parseFloat(document.getElementById('taxSalt')?.value) || 0,
+                mortgage_interest: parseFloat(document.getElementById('taxMortgageInterest')?.value) || 0,
+                charitable_contributions: parseFloat(document.getElementById('taxCharitable')?.value) || 0
+            };
+        }
+
+        // Save to backend
+        const response = await fetch(API_BASE_URL + '/customers/tax-info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(taxData)
+        });
+
+        if (response.ok) {
+            showNotification('success', 'Tax Information Saved', 'Your tax information has been saved successfully!');
+        } else {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to save tax information');
+        }
+    } catch (error) {
+        console.error('Error saving tax information:', error);
+        showNotification('error', 'Save Failed', error.message || 'Failed to save tax information. Please try again.');
+    }
+}
+
+// Load Tax Information
+async function loadTaxInformation() {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) return;
+
+        // Get customer ID
+        const meResponse = await fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!meResponse.ok) return;
+
+        const customer = await meResponse.json();
+        const customerId = customer.id;
+        const taxYear = document.getElementById('taxYear')?.value || '2024';
+
+        // Fetch tax information
+        const response = await fetch(API_BASE_URL + `/customers/tax-info/${customerId}?tax_year=${taxYear}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const taxInfo = await response.json();
+            
+            // Populate form fields
+            if (taxInfo.ssn_itin && document.getElementById('taxSsnItin')) document.getElementById('taxSsnItin').value = taxInfo.ssn_itin;
+            if (taxInfo.date_of_birth && document.getElementById('taxDateOfBirth')) document.getElementById('taxDateOfBirth').value = taxInfo.date_of_birth;
+            if (taxInfo.filing_status && document.getElementById('taxFilingStatus')) {
+                document.getElementById('taxFilingStatus').value = taxInfo.filing_status;
+                toggleSpouseSection();
+            }
+            if (taxInfo.spouse_name && document.getElementById('taxSpouseName')) document.getElementById('taxSpouseName').value = taxInfo.spouse_name;
+            if (taxInfo.spouse_ssn_itin && document.getElementById('taxSpouseSsnItin')) document.getElementById('taxSpouseSsnItin').value = taxInfo.spouse_ssn_itin;
+            if (taxInfo.spouse_date_of_birth && document.getElementById('taxSpouseDateOfBirth')) document.getElementById('taxSpouseDateOfBirth').value = taxInfo.spouse_date_of_birth;
+            if (taxInfo.bank_account_number && document.getElementById('taxBankAccountNumber')) document.getElementById('taxBankAccountNumber').value = taxInfo.bank_account_number;
+            if (taxInfo.bank_routing_number && document.getElementById('taxBankRoutingNumber')) document.getElementById('taxBankRoutingNumber').value = taxInfo.bank_routing_number;
+            if (taxInfo.bank_account_type && document.getElementById('taxBankAccountType')) document.getElementById('taxBankAccountType').value = taxInfo.bank_account_type;
+            if (taxInfo.rental_income && document.getElementById('taxRentalIncome')) document.getElementById('taxRentalIncome').value = taxInfo.rental_income;
+            if (taxInfo.unemployment_compensation && document.getElementById('taxUnemploymentComp')) document.getElementById('taxUnemploymentComp').value = taxInfo.unemployment_compensation;
+            if (taxInfo.social_security_benefits && document.getElementById('taxSocialSecurity')) document.getElementById('taxSocialSecurity').value = taxInfo.social_security_benefits;
+            if (taxInfo.other_income && document.getElementById('taxOtherIncome')) document.getElementById('taxOtherIncome').value = taxInfo.other_income;
+            if (taxInfo.other_income_description && document.getElementById('taxOtherIncomeDesc')) document.getElementById('taxOtherIncomeDesc').value = taxInfo.other_income_description;
+            if (taxInfo.health_insurance_coverage && document.getElementById('taxHealthInsurance')) document.getElementById('taxHealthInsurance').value = taxInfo.health_insurance_coverage;
+            if (taxInfo.estimated_tax_payments && document.getElementById('taxEstimatedPayments')) document.getElementById('taxEstimatedPayments').value = taxInfo.estimated_tax_payments;
+            if (taxInfo.prior_year_agi && document.getElementById('taxPriorYearAgi')) document.getElementById('taxPriorYearAgi').value = taxInfo.prior_year_agi;
+            if (taxInfo.prior_year_tax_return_available !== undefined && document.getElementById('taxPriorYearReturn')) document.getElementById('taxPriorYearReturn').checked = taxInfo.prior_year_tax_return_available;
+
+            // Load W-2 Forms
+            if (taxInfo.w2_income && Array.isArray(taxInfo.w2_income) && document.getElementById('w2FormsContainer')) {
+                const container = document.getElementById('w2FormsContainer');
+                container.innerHTML = '';
+                taxInfo.w2_income.forEach(w2 => {
+                    addW2Form();
+                    const lastForm = container.lastElementChild;
+                    if (lastForm) {
+                        if (lastForm.querySelector('.w2-employer')) lastForm.querySelector('.w2-employer').value = w2.employer || '';
+                        if (lastForm.querySelector('.w2-wages')) lastForm.querySelector('.w2-wages').value = w2.wages || '';
+                        if (lastForm.querySelector('.w2-federal-tax')) lastForm.querySelector('.w2-federal-tax').value = w2.federal_tax_withheld || '';
+                    }
+                });
+            }
+
+            // Load 1099 Forms
+            if (taxInfo.income_1099 && Array.isArray(taxInfo.income_1099) && document.getElementById('income1099Container')) {
+                const container = document.getElementById('income1099Container');
+                container.innerHTML = '';
+                taxInfo.income_1099.forEach(form1099 => {
+                    add1099Form();
+                    const lastForm = container.lastElementChild;
+                    if (lastForm) {
+                        if (lastForm.querySelector('.1099-type')) lastForm.querySelector('.1099-type').value = form1099.type || '';
+                        if (lastForm.querySelector('.1099-payer')) lastForm.querySelector('.1099-payer').value = form1099.payer || '';
+                        if (lastForm.querySelector('.1099-amount')) lastForm.querySelector('.1099-amount').value = form1099.amount || '';
+                    }
+                });
+            }
+
+            // Load Dependents
+            if (taxInfo.dependents && Array.isArray(taxInfo.dependents) && document.getElementById('dependentsContainer')) {
+                const container = document.getElementById('dependentsContainer');
+                container.innerHTML = '';
+                taxInfo.dependents.forEach(dep => {
+                    addDependent();
+                    const lastDep = container.lastElementChild;
+                    if (lastDep) {
+                        if (lastDep.querySelector('.dependent-name')) lastDep.querySelector('.dependent-name').value = dep.name || '';
+                        if (lastDep.querySelector('.dependent-ssn')) lastDep.querySelector('.dependent-ssn').value = dep.ssn_itin || '';
+                        if (lastDep.querySelector('.dependent-dob')) lastDep.querySelector('.dependent-dob').value = dep.date_of_birth || '';
+                        if (lastDep.querySelector('.dependent-relationship')) lastDep.querySelector('.dependent-relationship').value = dep.relationship || '';
+                    }
+                });
+            }
+
+            // Load Deductions
+            if (taxInfo.standard_deduction !== undefined) {
+                if (document.getElementById('standardDeduction')) document.getElementById('standardDeduction').checked = taxInfo.standard_deduction;
+                if (document.getElementById('itemizedDeduction')) document.getElementById('itemizedDeduction').checked = !taxInfo.standard_deduction;
+                if (!taxInfo.standard_deduction && document.getElementById('itemizedDeductionsSection')) {
+                    document.getElementById('itemizedDeductionsSection').style.display = 'block';
+                    if (taxInfo.itemized_deductions) {
+                        if (taxInfo.itemized_deductions.medical_expenses && document.getElementById('taxMedicalExpenses')) document.getElementById('taxMedicalExpenses').value = taxInfo.itemized_deductions.medical_expenses;
+                        if (taxInfo.itemized_deductions.salt && document.getElementById('taxSalt')) document.getElementById('taxSalt').value = taxInfo.itemized_deductions.salt;
+                        if (taxInfo.itemized_deductions.mortgage_interest && document.getElementById('taxMortgageInterest')) document.getElementById('taxMortgageInterest').value = taxInfo.itemized_deductions.mortgage_interest;
+                        if (taxInfo.itemized_deductions.charitable_contributions && document.getElementById('taxCharitable')) document.getElementById('taxCharitable').value = taxInfo.itemized_deductions.charitable_contributions;
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading tax information:', error);
+    }
+}
+
+// Initialize tax form event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Filing status change
+    const filingStatusSelect = document.getElementById('taxFilingStatus');
+    if (filingStatusSelect) {
+        filingStatusSelect.addEventListener('change', toggleSpouseSection);
+    }
+    
+    // Deduction type toggle
+    const standardDeduction = document.getElementById('standardDeduction');
+    const itemizedDeduction = document.getElementById('itemizedDeduction');
+    const itemizedSection = document.getElementById('itemizedDeductionsSection');
+    
+    if (standardDeduction && itemizedSection) {
+        standardDeduction.addEventListener('change', function() {
+            if (this.checked) {
+                itemizedSection.style.display = 'none';
+            }
+        });
+    }
+    
+    if (itemizedDeduction && itemizedSection) {
+        itemizedDeduction.addEventListener('change', function() {
+            if (this.checked) {
+                itemizedSection.style.display = 'block';
+            }
+        });
+    }
+    
+    // Tax year change
+    const taxYearSelect = document.getElementById('taxYear');
+    if (taxYearSelect) {
+        taxYearSelect.addEventListener('change', loadTaxInformation);
+    }
+});
+
 // Load customer documents for admin/preparation view
-async function loadCustomerDocuments(customerId) {
     const documentsList = document.getElementById('customerDocumentsList');
     if (!documentsList) return;
     
