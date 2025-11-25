@@ -456,9 +456,20 @@ async function initializeDatabase() {
             const emailReceiver = new EmailReceiverService(pool);
             const emailReceiverStarted = emailReceiver.initialize();
             if (emailReceiverStarted) {
-                // Store reference for cleanup
+                // Store reference for cleanup and manual trigger
                 app.locals.emailReceiver = emailReceiver;
                 console.log('✅ Email receiver service initialized');
+                
+                // Add manual trigger endpoint (for testing/admin use)
+                app.post('/api/admin/check-emails', (req, res) => {
+                    if (emailReceiver && emailReceiver.isRunning) {
+                        console.log('📧 Manual email check triggered (including read emails)');
+                        emailReceiver.checkForNewEmails(true); // Include read emails
+                        res.json({ success: true, message: 'Email check triggered. Checking unread and recent read emails with attachments.' });
+                    } else {
+                        res.status(503).json({ error: 'Email receiver service is not running' });
+                    }
+                });
             } else {
                 console.log('⚠️  Email receiver service not started (check EMAIL_PASSWORD)');
             }

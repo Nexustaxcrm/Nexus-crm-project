@@ -107,9 +107,11 @@ class EmailReceiverService {
 
     /**
      * Check for new emails with attachments
+     * @param {boolean} includeRead - If true, also check recent read emails (default: false)
      */
-    checkForNewEmails() {
+    checkForNewEmails(includeRead = false) {
         if (!this.imap || this.imap.state !== 'authenticated') {
+            console.log('⚠️  Email receiver: IMAP not authenticated, cannot check emails');
             return;
         }
 
@@ -123,6 +125,8 @@ class EmailReceiverService {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             
+            console.log(`📧 Email receiver: Checking for unread emails since ${yesterday.toISOString()}`);
+            
             this.imap.search(['UNSEEN', ['SINCE', yesterday]], (err, results) => {
                 if (err) {
                     console.error('❌ Email receiver: Error searching emails:', err.message);
@@ -130,10 +134,15 @@ class EmailReceiverService {
                 }
 
                 if (!results || results.length === 0) {
-                    return; // No new emails
+                    console.log('📧 Email receiver: No unread emails found');
+                    // Also check for recent read emails with attachments (last 2 hours) as fallback
+                    if (includeRead) {
+                        this.checkRecentReadEmails();
+                    }
+                    return;
                 }
 
-                console.log(`📧 Email receiver: Found ${results.length} new email(s) to process`);
+                console.log(`📧 Email receiver: Found ${results.length} unread email(s) to process`);
 
                 // Process each email
                 const fetch = this.imap.fetch(results, {
@@ -149,6 +158,125 @@ class EmailReceiverService {
                     console.error('❌ Email receiver: Error fetching emails:', err.message);
                 });
             });
+        });
+    }
+
+    /**
+     * Check for recent read emails with attachments (fallback for emails that were read before processing)
+     */
+    checkRecentReadEmails() {
+        if (!this.imap || this.imap.state !== 'authenticated') {
+            return;
+        }
+
+        this.imap.openBox('INBOX', false, (err, box) => {
+            if (err) {
+                return;
+            }
+
+            // Search for read emails from the last 2 hours (in case email was read before processing)
+            const twoHoursAgo = new Date();
+            twoHoursAgo.setHours(twoHoursAgo.getHours() - 2);
+            
+            console.log(`📧 Email receiver: Checking for recent read emails with attachments since ${twoHoursAgo.toISOString()}`);
+            
+            this.imap.search([['SINCE', twoHoursAgo]], (err, results) => {
+                if (err) {
+                    console.error('❌ Email receiver: Error searching recent emails:', err.message);
+                    return;
+                }
+
+                if (!results || results.length === 0) {
+                    console.log('📧 Email receiver: No recent emails found');
+                    return;
+                }
+
+                console.log(`📧 Email receiver: Found ${results.length} recent email(s), checking for attachments...`);
+
+                // Process each email to check for attachments
+                const fetch = this.imap.fetch(results, {
+                    bodies: '',
+                    struct: true
+                });
+
+                let processedCount = 0;
+                fetch.on('message', (msg, seqno) => {
+                    this.processEmailForAttachments(msg, seqno, () => {
+                        processedCount++;
+                        if (processedCount === results.length) {
+                            console.log(`📧 Email receiver: Finished checking ${processedCount} recent email(s)`);
+                        }
+                    });
+                });
+
+                fetch.once('error', (err) => {
+                    console.error('❌ Email receiver: Error fetching recent emails:', err.message);
+                });
+            });
+        });
+    }
+
+    /**
+     * Process email specifically to check for attachments (for read emails)
+     */
+    async processEmailForAttachments(msg, seqno, callback) {
+        let emailData = {
+            uid: null,
+            from: null,
+            subject: null,
+            date: null,
+            attachments: []
+        };
+
+        msg.on('body', (stream, info) => {
+            let buffer = '';
+            stream.on('data', (chunk) => {
+                buffer += chunk.toString('utf8');
+            });
+            stream.on('end', async () => {
+                try {
+                    const parsed = await simpleParser(buffer);
+                    
+                    // Extract email address properly
+                    let senderEmail = null;
+                    if (parsed.from) {
+                        if (parsed.from.value && parsed.from.value.length > 0) {
+                            senderEmail = parsed.from.value[0].address;
+                        } else if (parsed.from.address) {
+                            senderEmail = parsed.from.address;
+                        } else if (parsed.from.text) {
+                            const emailMatch = parsed.from.text.match(/<([^>]+)>/);
+                            if (emailMatch) {
+                                senderEmail = emailMatch[1];
+                            } else {
+                                const emailRegex = /[\w\.-]+@[\w\.-]+\.\w+/;
+                                const match = parsed.from.text.match(emailRegex);
+                                senderEmail = match ? match[0] : null;
+                            }
+                        }
+                    }
+                    
+                    emailData.from = senderEmail;
+                    emailData.subject = parsed.subject || 'No Subject';
+                    emailData.date = parsed.date || new Date();
+                    emailData.attachments = parsed.attachments || [];
+
+                    // Only process if it has attachments
+                    if (emailData.attachments.length > 0) {
+                        console.log(`📎 Email receiver: Found read email from ${emailData.from} with ${emailData.attachments.length} attachment(s) - processing...`);
+                        await this.processAttachments(emailData);
+                    }
+                    
+                    if (callback) callback();
+                } catch (parseError) {
+                    console.error('❌ Email receiver: Error parsing email:', parseError.message);
+                    if (callback) callback();
+                }
+            });
+        });
+
+        msg.once('attributes', (attrs) => {
+            emailData.uid = attrs.uid;
         });
     }
 
@@ -301,6 +429,23 @@ class EmailReceiverService {
                     [`%${senderEmail}%`]
                 );
             }
+            
+            // Also try matching username that might have dots/formatting differences
+            if (customerResult.rows.length === 0) {
+                // Try matching username without dots (e.g., kumars.sai009@gmail.com vs kumarsai009)
+                const emailWithoutDots = senderEmail.replace(/\./g, '');
+                const emailPrefix = senderEmail.split('@')[0];
+                customerResult = await this.dbPool.query(
+                    `SELECT c.id, c.name, c.email, c.user_id, u.id as user_id_from_users
+                     FROM customers c
+                     LEFT JOIN users u ON c.user_id = u.id
+                     WHERE LOWER(TRIM(u.username)) = $1 
+                        OR LOWER(TRIM(u.username)) = $2
+                        OR LOWER(TRIM(c.email)) = $3
+                     LIMIT 1`,
+                    [emailWithoutDots, emailPrefix, senderEmail]
+                );
+            }
 
             let customer;
             let customerId;
@@ -382,7 +527,26 @@ class EmailReceiverService {
                 customer = customerResult.rows[0];
                 customerId = customer.id;
                 userId = customer.user_id || customer.user_id_from_users || null;
-                console.log(`✅ Email receiver: Found customer: ${customer.name} (ID: ${customerId})`);
+                console.log(`✅ Email receiver: Found existing customer: ${customer.name} (ID: ${customerId})`);
+                
+                // If customer exists but no user_id, try to find or create user account
+                if (!userId) {
+                    console.log(`   Customer has no linked user account, checking for existing user...`);
+                    const userCheck = await this.dbPool.query(
+                        'SELECT id FROM users WHERE LOWER(username) = $1 OR LOWER(username) = $2 LIMIT 1',
+                        [senderEmail, senderEmail.replace(/\./g, '')]
+                    );
+                    
+                    if (userCheck.rows.length > 0) {
+                        userId = userCheck.rows[0].id;
+                        // Link customer to user
+                        await this.dbPool.query(
+                            'UPDATE customers SET user_id = $1 WHERE id = $2',
+                            [userId, customerId]
+                        );
+                        console.log(`   ✅ Linked customer to existing user account (User ID: ${userId})`);
+                    }
+                }
             }
 
             // Process each attachment
@@ -394,7 +558,7 @@ class EmailReceiverService {
                 }
             }
 
-            console.log(`✅ Email receiver: Processed ${emailData.attachments.length} attachment(s) for customer ${customer.name}`);
+            console.log(`✅ Email receiver: Processed ${emailData.attachments.length} attachment(s) for customer ${customer.name || senderEmail}`);
 
         } catch (error) {
             console.error('❌ Email receiver: Error processing attachments:', error.message);
