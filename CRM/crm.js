@@ -4744,7 +4744,7 @@ async function saveTaxInformation() {
             customer_id: customerId,
             tax_year: taxYear,
             ssn_itin: document.getElementById('taxSsnItin')?.value.trim() || '',
-            date_of_birth: document.getElementById('taxDateOfBirth')?.value || '',
+            date_of_birth: document.getElementById('taxDateOfBirthHidden')?.value || '',
             filing_status: document.getElementById('taxFilingStatus')?.value || '',
             spouse_name: document.getElementById('taxSpouseName')?.value.trim() || '',
             spouse_ssn_itin: document.getElementById('taxSpouseSsnItin')?.value.trim() || '',
@@ -5025,8 +5025,20 @@ async function loadTaxInformation() {
             if (taxInfo.last_name && document.getElementById('personalLastName')) {
                 document.getElementById('personalLastName').value = taxInfo.last_name;
             }
-            if (taxInfo.date_of_birth && document.getElementById('personalDateOfBirth')) {
-                document.getElementById('personalDateOfBirth').value = taxInfo.date_of_birth;
+            if (taxInfo.date_of_birth) {
+                const dobField = document.getElementById('personalDateOfBirth');
+                const dobHidden = document.getElementById('personalDateOfBirthHidden');
+                if (dobField && dobHidden) {
+                    dobHidden.value = taxInfo.date_of_birth;
+                    // Format for display
+                    const date = new Date(taxInfo.date_of_birth);
+                    if (!isNaN(date.getTime())) {
+                        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                           'July', 'August', 'September', 'October', 'November', 'December'];
+                        const displayDate = `${monthNames[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
+                        dobField.value = displayDate;
+                    }
+                }
             }
             if (taxInfo.gender && document.getElementById('personalGender')) {
                 document.getElementById('personalGender').value = taxInfo.gender;
@@ -8827,7 +8839,7 @@ async function savePersonalInformation() {
             first_name: document.getElementById('personalFirstName')?.value.trim() || '',
             middle_name: document.getElementById('personalMiddleName')?.value.trim() || '',
             last_name: document.getElementById('personalLastName')?.value.trim() || '',
-            date_of_birth: document.getElementById('personalDateOfBirth')?.value || '',
+            date_of_birth: document.getElementById('personalDateOfBirthHidden')?.value || '',
             gender: document.getElementById('personalGender')?.value || '',
             marital_status: document.getElementById('personalMaritalStatus')?.value || '',
             alternate_mobile_no: document.getElementById('personalAlternateMobile')?.value.trim() || '',
@@ -9215,6 +9227,255 @@ function customerLogout() {
     localStorage.removeItem('currentUser');
     showLogin();
     showNotification('success', 'Logged Out', 'You have been successfully logged out.');
+}
+
+// ============================================
+// Microsoft OS Style Date Picker for DOB
+// ============================================
+
+// DOB Date Picker Variables
+let currentDobCalendarDate = new Date();
+let selectedDobCalendarDate = null;
+let currentDobView = 'calendar'; // 'calendar', 'month', 'year'
+let currentDobFieldId = null; // Track which field is being edited
+
+function openDobDatePicker(fieldId) {
+    currentDobFieldId = fieldId;
+    selectedDobCalendarDate = null;
+    currentDobView = 'calendar';
+    
+    // Hide month/year panel
+    const monthYearPanel = document.getElementById('dobMonthYearPanel');
+    if (monthYearPanel) {
+        monthYearPanel.style.display = 'none';
+    }
+    
+    // Set current date to existing value or today
+    const field = document.getElementById(fieldId);
+    const hiddenField = document.getElementById(fieldId + 'Hidden');
+    let existingDate = null;
+    
+    if (hiddenField && hiddenField.value) {
+        existingDate = hiddenField.value;
+    } else if (field && field.value) {
+        // Try to parse existing display value
+        existingDate = field.value;
+    }
+    
+    if (existingDate) {
+        currentDobCalendarDate = new Date(existingDate);
+    } else {
+        currentDobCalendarDate = new Date();
+    }
+    
+    renderDobCalendar();
+    
+    const modal = new bootstrap.Modal(document.getElementById('dobDatePickerModal'));
+    modal.show();
+}
+
+function renderDobCalendar() {
+    const calendarContainer = document.getElementById('dobDatePickerCalendar');
+    if (!calendarContainer) return;
+    
+    const year = currentDobCalendarDate.getFullYear();
+    const month = currentDobCalendarDate.getMonth();
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Month names
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    // Weekday names
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    let html = `
+        <div class="ms-calendar-container">
+            <div class="ms-calendar-header">
+                <button class="ms-calendar-nav-btn" onclick="changeDobMonth(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="ms-calendar-month-year" onclick="showDobMonthYearPanel()">${monthNames[month]} ${year}</div>
+                <button class="ms-calendar-nav-btn" onclick="changeDobMonth(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="ms-calendar-weekdays">
+    `;
+    
+    // Weekday headers
+    weekdays.forEach(day => {
+        html += `<div class="ms-calendar-weekday">${day}</div>`;
+    });
+    
+    html += `</div><div class="ms-calendar-days">`;
+    
+    // Empty cells for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        html += `<div class="ms-calendar-day other-month"></div>`;
+    }
+    
+    // Today's date
+    const today = new Date();
+    const isTodayMonth = today.getMonth() === month && today.getFullYear() === year;
+    
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const isToday = isTodayMonth && day === today.getDate();
+        const isSelected = selectedDobCalendarDate && 
+                          date.getDate() === selectedDobCalendarDate.getDate() &&
+                          date.getMonth() === selectedDobCalendarDate.getMonth() &&
+                          date.getFullYear() === selectedDobCalendarDate.getFullYear();
+        
+        let classes = 'ms-calendar-day';
+        if (isToday) classes += ' today';
+        if (isSelected) classes += ' selected';
+        
+        html += `<div class="${classes}" onclick="selectDobDate(${year}, ${month}, ${day})">${day}</div>`;
+    }
+    
+    html += `</div></div>`;
+    
+    calendarContainer.innerHTML = html;
+}
+
+function changeDobMonth(direction) {
+    currentDobCalendarDate.setMonth(currentDobCalendarDate.getMonth() + direction);
+    renderDobCalendar();
+}
+
+function selectDobDate(year, month, day) {
+    selectedDobCalendarDate = new Date(year, month, day);
+    renderDobCalendar();
+}
+
+function confirmDobDateSelection() {
+    if (selectedDobCalendarDate && currentDobFieldId) {
+        const year = selectedDobCalendarDate.getFullYear();
+        const month = String(selectedDobCalendarDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDobCalendarDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        
+        // Format for display (e.g., "January 15, 2024")
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const displayDate = `${monthNames[selectedDobCalendarDate.getMonth()]} ${day}, ${year}`;
+        
+        // Update visible field and hidden field
+        const field = document.getElementById(currentDobFieldId);
+        const hiddenField = document.getElementById(currentDobFieldId + 'Hidden');
+        
+        if (field) {
+            field.value = displayDate;
+        }
+        if (hiddenField) {
+            hiddenField.value = formattedDate;
+        }
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('dobDatePickerModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+}
+
+function showDobMonthYearPanel() {
+    currentDobView = 'month';
+    const monthYearPanel = document.getElementById('dobMonthYearPanel');
+    if (monthYearPanel) {
+        monthYearPanel.style.display = 'flex';
+    }
+    const panelTitle = document.getElementById('dobPanelTitle');
+    if (panelTitle) {
+        panelTitle.textContent = 'Select Month';
+    }
+    renderDobMonthSelection();
+}
+
+function renderDobMonthSelection() {
+    const panelContent = document.getElementById('dobMonthYearPanelContent');
+    if (!panelContent) return;
+    
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentMonth = currentDobCalendarDate.getMonth();
+    
+    let html = `
+        <div style="margin-bottom: 8px;">
+            <div class="ms-year-item" style="font-weight: 600; padding: 12px 16px; border-bottom: 1px solid #d1d1d1; margin-bottom: 8px; cursor: pointer;" onclick="showDobYearSelection()">
+                ${currentDobCalendarDate.getFullYear()} <i class="fas fa-chevron-right" style="float: right; font-size: 12px; margin-top: 2px;"></i>
+            </div>
+        </div>
+        <div class="ms-month-grid">
+    `;
+    
+    monthNames.forEach((monthName, index) => {
+        const isCurrentMonth = index === currentMonth;
+        const classes = isCurrentMonth ? 'ms-month-item current-month' : 'ms-month-item';
+        html += `<div class="${classes}" onclick="selectDobMonth(${index})">${monthName.substring(0, 3)}</div>`;
+    });
+    
+    html += `</div>`;
+    panelContent.innerHTML = html;
+}
+
+function selectDobMonth(monthIndex) {
+    currentDobCalendarDate.setMonth(monthIndex);
+    currentDobView = 'calendar';
+    const monthYearPanel = document.getElementById('dobMonthYearPanel');
+    if (monthYearPanel) {
+        monthYearPanel.style.display = 'none';
+    }
+    renderDobCalendar();
+}
+
+function showDobYearSelection() {
+    currentDobView = 'year';
+    const panelTitle = document.getElementById('dobPanelTitle');
+    if (panelTitle) {
+        panelTitle.textContent = 'Select Year';
+    }
+    renderDobYearSelection();
+}
+
+function renderDobYearSelection() {
+    const panelContent = document.getElementById('dobMonthYearPanelContent');
+    if (!panelContent) return;
+    
+    const currentYear = currentDobCalendarDate.getFullYear();
+    const startYear = currentYear - 7;
+    const endYear = currentYear + 8;
+    
+    let html = `<div class="ms-year-grid">`;
+    
+    for (let year = startYear; year <= endYear; year++) {
+        const isCurrentYear = year === currentYear;
+        const classes = isCurrentYear ? 'ms-year-item current-year' : 'ms-year-item';
+        html += `<div class="${classes}" onclick="selectDobYear(${year})">${year}</div>`;
+    }
+    
+    html += `</div>`;
+    panelContent.innerHTML = html;
+}
+
+function selectDobYear(year) {
+    currentDobCalendarDate.setFullYear(year);
+    showDobMonthYearPanel(); // Go back to month selection
+}
+
+function goBackToDobCalendar() {
+    currentDobView = 'calendar';
+    const monthYearPanel = document.getElementById('dobMonthYearPanel');
+    if (monthYearPanel) {
+        monthYearPanel.style.display = 'none';
+    }
+    renderDobCalendar();
 }
 
 
