@@ -75,6 +75,9 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             /* Cross-browser compatibility */
@@ -273,6 +276,16 @@
             /* Cross-browser compatibility */
             -webkit-box-align: center;
             -ms-flex-align: center;
+        }
+        
+        /* Navbar center group for customer dashboard navigation */
+        .navbar .nav-center-group {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            height: 100%;
         }
         
         /* Combine nav-menu and user-section into one group */
@@ -2647,23 +2660,21 @@
         }
         
         /* Customer Dashboard Form Styles */
-        /* Customer Dashboard Navigation */
-        .customer-dashboard-nav {
-            background: var(--card-bg);
-            border-bottom: 2px solid var(--border-color);
-            padding: 15px 0;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        /* Customer Dashboard Navigation - Integrated in Header */
+        .nav-center-group {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
         }
         
         .customer-nav-container {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            align-items: center;
         }
         
         .customer-nav-item {
@@ -2671,10 +2682,10 @@
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            padding: 15px 25px;
-            border-radius: 10px;
+            padding: 10px 20px;
+            border-radius: 8px;
             transition: all 0.3s ease;
-            min-width: 120px;
+            min-width: 100px;
             background: transparent;
         }
         
@@ -2693,8 +2704,8 @@
         }
         
         .customer-nav-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
+            font-size: 24px;
+            margin-bottom: 5px;
             color: var(--text-secondary);
             transition: all 0.3s ease;
         }
@@ -2709,7 +2720,7 @@
         }
         
         .customer-nav-label {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-color);
             transition: color 0.3s ease;
@@ -3846,6 +3857,35 @@
                     </div>
                 </div>
             </div>
+            <div class="nav-center-group">
+                <!-- Customer Dashboard Navigation Cards -->
+                <div class="customer-nav-container">
+                    <div class="customer-nav-item active" onclick="showCustomerSection('personal-info')">
+                        <div class="customer-nav-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="customer-nav-label">Personal Info</div>
+                    </div>
+                    <div class="customer-nav-item" onclick="showCustomerSection('tax-filings')">
+                        <div class="customer-nav-icon">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="customer-nav-label">Tax Filings</div>
+                    </div>
+                    <div class="customer-nav-item" onclick="showCustomerSection('documents')">
+                        <div class="customer-nav-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <div class="customer-nav-label">Documents</div>
+                    </div>
+                    <div class="customer-nav-item" onclick="showCustomerSection('bank-info')">
+                        <div class="customer-nav-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="customer-nav-label">Bank Info</div>
+                    </div>
+                </div>
+            </div>
             <div class="nav-right-group">
                 <ul class="nav-menu">
                     <li><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" class="nav-link active"><i class="fas fa-user"></i> <span>My Information</span></a></li>
@@ -3864,36 +3904,6 @@
                 </div>
             </div>
         </nav>
-
-        <!-- Customer Dashboard Navigation -->
-        <div class="customer-dashboard-nav">
-            <div class="customer-nav-container">
-                <div class="customer-nav-item active" onclick="showCustomerSection('personal-info')">
-                    <div class="customer-nav-icon">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="customer-nav-label">Personal Info</div>
-                </div>
-                <div class="customer-nav-item" onclick="showCustomerSection('tax-filings')">
-                    <div class="customer-nav-icon">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                    <div class="customer-nav-label">Tax Filings</div>
-                </div>
-                <div class="customer-nav-item" onclick="showCustomerSection('documents')">
-                    <div class="customer-nav-icon">
-                        <i class="fas fa-folder-open"></i>
-                    </div>
-                    <div class="customer-nav-label">Documents</div>
-                </div>
-                <div class="customer-nav-item" onclick="showCustomerSection('bank-info')">
-                    <div class="customer-nav-icon">
-                        <i class="fas fa-university"></i>
-                    </div>
-                    <div class="customer-nav-label">Bank Info</div>
-                </div>
-            </div>
-        </div>
 
         <!-- Main Content -->
         <div class="main-content">
