@@ -4570,109 +4570,116 @@
                                 </button>
                             </div>
                         </div>
-                        
-                        <!-- Tax Filing Information Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-file-invoice"></i> Tax Filing Information
-                            </h4>
-                            
-                            <!-- Filing Years Selection -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Filing Years <span class="text-danger">*</span></label>
-                                    <select id="personalFilingYears" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="">Select Filing Year</option>
-                                        <option value="2024">2024</option>
-                                        <option value="2023">2023</option>
-                                        <option value="2022">2022</option>
-                                        <option value="2021">2021</option>
-                                        <option value="2020">2020</option>
-                                        <option value="2019">2019</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <!-- Tax Year Selection -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Tax Year</label>
-                                    <select id="taxYear" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="2024">2024</option>
-                                        <option value="2023">2023</option>
-                                        <option value="2022">2022</option>
-                                        <option value="2021">2021</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Personal Tax Information -->
-                            <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
-                                <h5 class="mb-3" style="color: var(--text-color);">
-                                    <i class="fas fa-user-circle"></i> Personal Information
-                                </h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">SSN/ITIN <span class="text-danger">*</span></label>
-                                        <input type="text" id="taxSsnItin" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <small class="text-muted">Social Security Number or ITIN</small>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Date of Birth <span class="text-danger">*</span></label>
-                                        <input type="date" id="taxDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Filing Status <span class="text-danger">*</span></label>
-                                        <select id="taxFilingStatus" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                            <option value="">Select Filing Status</option>
-                                            <option value="single">Single</option>
-                                            <option value="married_jointly">Married Filing Jointly</option>
-                                            <option value="married_separately">Married Filing Separately</option>
-                                            <option value="head_of_household">Head of Household</option>
-                                            <option value="qualifying_widow">Qualifying Widow(er)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Spouse Information (shown when married filing jointly/separately) -->
-                            <div class="mb-4" id="spouseInfoSection" style="display: none; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                                <h5 class="mb-3" style="color: var(--text-color);">
-                                    <i class="fas fa-user-friends"></i> Spouse Information
-                                </h5>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Spouse Name</label>
-                                        <input type="text" id="taxSpouseName" class="form-control" placeholder="Spouse Full Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Spouse SSN/ITIN</label>
-                                        <input type="text" id="taxSpouseSsnItin" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label" style="color: var(--text-color);">Spouse Date of Birth</label>
-                                        <input type="date" id="taxSpouseDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Dependents Information -->
-                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                    <i class="fas fa-child"></i> Dependents
-                                </h4>
-                                <div id="dependentsContainer">
-                                    <p class="text-muted">No dependents added yet.</p>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDependent()">
-                                    <i class="fas fa-plus"></i> Add Dependent
-                                </button>
-                            </div>
-                        </div>
                         </div>
 
                         <!-- Tax Filings Section -->
                         <div id="customer-section-tax-filings" class="customer-section" style="display: none;">
+                            <!-- Tax Filing Information Section -->
+                            <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                    <i class="fas fa-file-invoice"></i> Tax Filing Information
+                                </h4>
+                                
+                                <!-- Filing Years Selection -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Filing Years <span class="text-danger">*</span></label>
+                                        <select id="personalFilingYears" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="">Select Filing Year</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2022">2022</option>
+                                            <option value="2021">2021</option>
+                                            <option value="2020">2020</option>
+                                            <option value="2019">2019</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tax Year Selection -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">Tax Year</label>
+                                        <select id="taxYear" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <option value="2024">2024</option>
+                                            <option value="2023">2023</option>
+                                            <option value="2022">2022</option>
+                                            <option value="2021">2021</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Personal Tax Information -->
+                                <div class="mb-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                    <h5 class="mb-3" style="color: var(--text-color);">
+                                        <i class="fas fa-user-circle"></i> Personal Information
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">SSN/ITIN <span class="text-danger">*</span></label>
+                                            <input type="text" id="taxSsnItin" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                            <small class="text-muted">Social Security Number or ITIN</small>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Date of Birth <span class="text-danger">*</span></label>
+                                            <input type="date" id="taxDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Filing Status <span class="text-danger">*</span></label>
+                                            <select id="taxFilingStatus" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                <option value="">Select Filing Status</option>
+                                                <option value="single">Single</option>
+                                                <option value="married_jointly">Married Filing Jointly</option>
+                                                <option value="married_separately">Married Filing Separately</option>
+                                                <option value="head_of_household">Head of Household</option>
+                                                <option value="qualifying_widow">Qualifying Widow(er)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Spouse Information (shown when married filing jointly/separately) -->
+                                <div class="mb-4" id="spouseInfoSection" style="display: none; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                                    <h5 class="mb-3" style="color: var(--text-color);">
+                                        <i class="fas fa-user-friends"></i> Spouse Information
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Spouse Name</label>
+                                            <input type="text" id="taxSpouseName" class="form-control" placeholder="Spouse Full Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Spouse SSN/ITIN</label>
+                                            <input type="text" id="taxSpouseSsnItin" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color);">Spouse Date of Birth</label>
+                                            <input type="date" id="taxSpouseDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Dependents Information -->
+                                <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                                    <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                        <i class="fas fa-child"></i> Dependents
+                                    </h4>
+                                    <div id="dependentsContainer">
+                                        <p class="text-muted">No dependents added yet.</p>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDependent()">
+                                        <i class="fas fa-plus"></i> Add Dependent
+                                    </button>
+                                </div>
+                                
+                                <!-- Save Tax Information Button -->
+                                <div class="text-center mt-4">
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="saveTaxInformation()">
+                                        <i class="fas fa-save"></i> Save Tax Information
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <!-- Income Information -->
                             <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
                                 <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
@@ -4899,13 +4906,6 @@
                                     </small>
                     </div>
                 </div>
-                
-                            <!-- Save Tax Information Button -->
-                            <div class="text-center mt-4">
-                                <button type="button" class="btn btn-primary btn-lg" onclick="saveTaxInformation()">
-                                    <i class="fas fa-save"></i> Save Tax Information
-                                </button>
-                            </div>
                         </div>
 
                         <!-- Documents Section -->
