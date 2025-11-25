@@ -488,6 +488,39 @@ async function initializeDatabase() {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup
         }
+        
+        // Run migration to add personal information columns (including marital_status)
+        try {
+            const personalInfoColumns = [
+                { name: 'filing_years', type: 'VARCHAR(10)' },
+                { name: 'first_name', type: 'VARCHAR(100)' },
+                { name: 'middle_name', type: 'VARCHAR(100)' },
+                { name: 'last_name', type: 'VARCHAR(100)' },
+                { name: 'gender', type: 'VARCHAR(50)' },
+                { name: 'marital_status', type: 'VARCHAR(50)' },
+                { name: 'alternate_mobile_no', type: 'VARCHAR(20)' },
+                { name: 'country_of_citizenship', type: 'VARCHAR(100)' }
+            ];
+            
+            for (const column of personalInfoColumns) {
+                const columnCheck = await pool.query(`
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name='customer_tax_info' AND column_name=$1
+                `, [column.name]);
+                
+                if (columnCheck.rows.length === 0) {
+                    await pool.query(`
+                        ALTER TABLE customer_tax_info 
+                        ADD COLUMN ${column.name} ${column.type}
+                    `);
+                    console.log(`✅ ${column.name} column added to customer_tax_info table`);
+                }
+            }
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
 
         // Check if admin user exists, create if not (case-insensitive check)
         const adminCheck = await pool.query('SELECT id FROM users WHERE LOWER(username) = $1', ['admin']);

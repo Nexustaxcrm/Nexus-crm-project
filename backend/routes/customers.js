@@ -1924,7 +1924,15 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
             visa_type: taxData.visa_type || null,
             latest_visa_change: taxData.latest_visa_change || null,
             primary_port_of_entry: taxData.primary_port_of_entry || null,
-            total_months_stayed_us: taxData.total_months_stayed_us || null
+            total_months_stayed_us: taxData.total_months_stayed_us || null,
+            filing_years: taxData.filing_years || null,
+            first_name: taxData.first_name || null,
+            middle_name: taxData.middle_name || null,
+            last_name: taxData.last_name || null,
+            gender: taxData.gender || null,
+            marital_status: taxData.marital_status || null,
+            alternate_mobile_no: taxData.alternate_mobile_no || null,
+            country_of_citizenship: taxData.country_of_citizenship || null
         };
 
         // Use UPSERT (INSERT ... ON CONFLICT UPDATE)
@@ -1984,6 +1992,14 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
                 latest_visa_change = EXCLUDED.latest_visa_change,
                 primary_port_of_entry = EXCLUDED.primary_port_of_entry,
                 total_months_stayed_us = EXCLUDED.total_months_stayed_us,
+                filing_years = EXCLUDED.filing_years,
+                first_name = EXCLUDED.first_name,
+                middle_name = EXCLUDED.middle_name,
+                last_name = EXCLUDED.last_name,
+                gender = EXCLUDED.gender,
+                marital_status = EXCLUDED.marital_status,
+                alternate_mobile_no = EXCLUDED.alternate_mobile_no,
+                country_of_citizenship = EXCLUDED.country_of_citizenship,
                 updated_at = CURRENT_TIMESTAMP
             RETURNING *
         `, [
@@ -1999,7 +2015,8 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
             taxInfoData.tax_credits, taxInfoData.self_employment_income, taxInfoData.business_expenses,
             taxInfoData.foreign_accounts, taxInfoData.foreign_account_details, taxInfoData.home_office_deduction,
             taxInfoData.home_office_details, taxInfoData.filing_checklist, taxInfoData.ssn_itin_entries,
-            taxInfoData.visa_type, taxInfoData.latest_visa_change, taxInfoData.primary_port_of_entry, taxInfoData.total_months_stayed_us
+            taxInfoData.visa_type, taxInfoData.latest_visa_change, taxInfoData.primary_port_of_entry, taxInfoData.total_months_stayed_us,
+            taxInfoData.filing_years, taxInfoData.first_name, taxInfoData.middle_name, taxInfoData.last_name, taxInfoData.gender, taxInfoData.marital_status, taxInfoData.alternate_mobile_no, taxInfoData.country_of_citizenship
         ]);
 
         // Parse JSON fields for response

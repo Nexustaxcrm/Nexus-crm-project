@@ -5014,6 +5014,39 @@ async function loadTaxInformation() {
                     document.getElementById('identificationTotalMonthsUS').value = taxInfo.total_months_stayed_us || '';
                 }
             }
+            
+            // Load Personal Information fields from tax info
+            if (taxInfo.first_name && document.getElementById('personalFirstName')) {
+                document.getElementById('personalFirstName').value = taxInfo.first_name;
+            }
+            if (taxInfo.middle_name && document.getElementById('personalMiddleName')) {
+                document.getElementById('personalMiddleName').value = taxInfo.middle_name;
+            }
+            if (taxInfo.last_name && document.getElementById('personalLastName')) {
+                document.getElementById('personalLastName').value = taxInfo.last_name;
+            }
+            if (taxInfo.date_of_birth && document.getElementById('personalDateOfBirth')) {
+                document.getElementById('personalDateOfBirth').value = taxInfo.date_of_birth;
+            }
+            if (taxInfo.gender && document.getElementById('personalGender')) {
+                document.getElementById('personalGender').value = taxInfo.gender;
+            }
+            if (taxInfo.marital_status && document.getElementById('personalMaritalStatus')) {
+                document.getElementById('personalMaritalStatus').value = taxInfo.marital_status;
+            }
+            if (taxInfo.alternate_mobile_no && document.getElementById('personalAlternateMobile')) {
+                document.getElementById('personalAlternateMobile').value = taxInfo.alternate_mobile_no;
+            }
+            if (taxInfo.country_of_citizenship && document.getElementById('personalCountryOfCitizenship')) {
+                document.getElementById('personalCountryOfCitizenship').value = taxInfo.country_of_citizenship;
+                // Trigger change event to show/hide appropriate identification section
+                if (typeof handleCountryOfCitizenshipChange === 'function') {
+                    handleCountryOfCitizenshipChange();
+                }
+            }
+            if (taxInfo.filing_years && document.getElementById('personalFilingYears')) {
+                document.getElementById('personalFilingYears').value = taxInfo.filing_years;
+            }
         }
     } catch (error) {
         console.error('Error loading tax information:', error);
@@ -8796,18 +8829,24 @@ async function savePersonalInformation() {
             last_name: document.getElementById('personalLastName')?.value.trim() || '',
             date_of_birth: document.getElementById('personalDateOfBirth')?.value || '',
             gender: document.getElementById('personalGender')?.value || '',
-            alternate_mobile: document.getElementById('personalAlternateMobile')?.value.trim() || '',
+            marital_status: document.getElementById('personalMaritalStatus')?.value || '',
+            alternate_mobile_no: document.getElementById('personalAlternateMobile')?.value.trim() || '',
             country_of_citizenship: document.getElementById('personalCountryOfCitizenship')?.value || ''
         };
 
-        // Save to backend - you may want to create a new endpoint for this or add to existing customer update
-        const response = await fetch(API_BASE_URL + `/customers/${customerId}`, {
-            method: 'PUT',
+        // Save to backend via tax-info endpoint (personal info is stored in customer_tax_info table)
+        const taxYear = document.getElementById('taxYear')?.value || document.getElementById('taxYearSelector')?.value || '2024';
+        const response = await fetch(API_BASE_URL + `/customers/tax-info`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(personalData)
+            body: JSON.stringify({
+                customer_id: customerId,
+                tax_year: parseInt(taxYear),
+                ...personalData
+            })
         });
 
         if (response.ok) {
