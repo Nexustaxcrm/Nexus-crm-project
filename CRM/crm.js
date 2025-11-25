@@ -8678,10 +8678,28 @@ function showCustomerSection(sectionName) {
             card.style.display = 'block';
             card.style.visibility = 'visible';
             card.style.opacity = '1';
+            card.style.position = 'relative';
+            card.style.zIndex = '1';
+        });
+        
+        // Force visibility of all form elements
+        const formElements = targetSection.querySelectorAll('input, select, button, label');
+        formElements.forEach(element => {
+            element.style.display = '';
+            element.style.visibility = 'visible';
+            element.style.opacity = '1';
         });
         
         console.log(`📦 Section has ${childCards.length} card(s) inside`);
         console.log(`📦 Section innerHTML length: ${targetSection.innerHTML.length}`);
+        console.log(`📦 Section computed style display:`, window.getComputedStyle(targetSection).display);
+        console.log(`📦 Section computed style visibility:`, window.getComputedStyle(targetSection).visibility);
+        console.log(`📦 Section offsetHeight:`, targetSection.offsetHeight);
+        console.log(`📦 Section offsetWidth:`, targetSection.offsetWidth);
+        console.log(`📦 Section parent:`, targetSection.parentElement);
+        console.log(`📦 Section parent display:`, targetSection.parentElement ? window.getComputedStyle(targetSection.parentElement).display : 'N/A');
+        console.log(`📦 First card computed style display:`, childCards.length > 0 ? window.getComputedStyle(childCards[0]).display : 'N/A');
+        console.log(`📦 First card offsetHeight:`, childCards.length > 0 ? childCards[0].offsetHeight : 'N/A');
         
         // If it's bank-info, also populate the dropdown and load bank info
         if (sectionName === 'bank-info') {
