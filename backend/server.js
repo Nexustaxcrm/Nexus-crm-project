@@ -289,6 +289,15 @@ async function createCustomerTaxInfoTableMigration(pool) {
                     -- Filing Checklist
                     filing_checklist JSONB,
                     
+                    -- SSN/ITIN Entries (for Identification Details - US)
+                    ssn_itin_entries JSONB,
+                    
+                    -- Visa Information (for Identification Details - Non-US)
+                    visa_type VARCHAR(50),
+                    latest_visa_change VARCHAR(50),
+                    primary_port_of_entry DATE,
+                    total_months_stayed_us DECIMAL(10, 2),
+                    
                     -- Metadata
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -421,6 +430,59 @@ async function initializeDatabase() {
                 const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
                 await pool.query(migrationSQL);
                 console.log('✅ Bank tax payer and name columns migration completed');
+            }
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to add ssn_itin_entries column
+        try {
+            const columnCheck = await pool.query(`
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name='customer_tax_info' AND column_name='ssn_itin_entries'
+            `);
+            
+            if (columnCheck.rows.length === 0) {
+                await pool.query(`
+                    ALTER TABLE customer_tax_info 
+                    ADD COLUMN ssn_itin_entries JSONB
+                `);
+                console.log('✅ ssn_itin_entries column added to customer_tax_info table');
+            } else {
+                console.log('✅ ssn_itin_entries column already exists');
+            }
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to add visa information columns
+        try {
+            const visaColumns = ['visa_type', 'latest_visa_change', 'primary_port_of_entry', 'total_months_stayed_us'];
+            for (const columnName of visaColumns) {
+                const columnCheck = await pool.query(`
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name='customer_tax_info' AND column_name=$1
+                `, [columnName]);
+                
+                if (columnCheck.rows.length === 0) {
+                    let alterQuery = '';
+                    if (columnName === 'visa_type' || columnName === 'latest_visa_change') {
+                        alterQuery = `ALTER TABLE customer_tax_info ADD COLUMN ${columnName} VARCHAR(50)`;
+                    } else if (columnName === 'primary_port_of_entry') {
+                        alterQuery = `ALTER TABLE customer_tax_info ADD COLUMN ${columnName} DATE`;
+                    } else if (columnName === 'total_months_stayed_us') {
+                        alterQuery = `ALTER TABLE customer_tax_info ADD COLUMN ${columnName} DECIMAL(10, 2)`;
+                    }
+                    
+                    if (alterQuery) {
+                        await pool.query(alterQuery);
+                        console.log(`✅ ${columnName} column added to customer_tax_info table`);
+                    }
+                }
             }
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);

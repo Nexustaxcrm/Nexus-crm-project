@@ -3946,38 +3946,35 @@
                         <div id="customer-section-personal-info" class="customer-section">
                             <!-- My Information -->
                             <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                                <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                    <i class="fas fa-user"></i> My Information
-                                </h4>
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-user"></i> My Information
+                            </h4>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">
-                                        Name
-                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="editField('name')" style="color: var(--text-color); text-decoration: none; font-size: 12px;">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </label>
-                                    <div id="customerDisplayName" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
-                                        <span id="customerNameDisplay">-</span>
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="personalFirstName" class="form-control" placeholder="First Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                     </div>
-                                    <div id="customerEditName" style="display: none;">
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <input type="text" id="editFirstName" class="form-control form-control-sm mb-2" placeholder="First Name">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Middle Name</label>
+                                    <input type="text" id="personalMiddleName" class="form-control" placeholder="Middle Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                     </div>
-                                            <div class="col-6">
-                                                <input type="text" id="editLastName" class="form-control form-control-sm mb-2" placeholder="Last Name">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="personalLastName" class="form-control" placeholder="Last Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                 </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" id="personalDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                 </div>
-                                        <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-sm btn-success" onclick="saveField('name')">
-                                                <i class="fas fa-check"></i> Save
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('name')">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                </div>
-                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Gender <span class="text-danger">*</span></label>
+                                    <select id="personalGender" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                        <option value="prefer_not_to_say">Prefer not to say</option>
+                                    </select>
                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" style="color: var(--text-color); font-weight: 600;">
@@ -3988,7 +3985,7 @@
                                     </label>
                                     <div id="customerDisplayPhone" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 38px; display: flex; align-items: center;">
                                         <span id="customerPhoneDisplay">-</span>
-                    </div>
+                </div>
                                     <div id="customerEditPhone" style="display: none;">
                                         <input type="tel" id="editPhone" class="form-control form-control-sm mb-2" placeholder="Phone Number">
                                         <div class="d-flex gap-2">
@@ -3998,8 +3995,8 @@
                                             <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('phone')">
                                                 <i class="fas fa-times"></i> Cancel
                                             </button>
-                                        </div>
-                                    </div>
+                </div>
+                    </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label" style="color: var(--text-color); font-weight: 600;">
@@ -4024,25 +4021,285 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">
-                                        Address
-                                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="editField('address')" style="color: var(--text-color); text-decoration: none; font-size: 12px;">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </label>
-                                    <div id="customerDisplayAddress" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); min-height: 60px; display: flex; align-items: center;">
-                                        <span id="customerAddressDisplay">-</span>
-                                    </div>
-                                    <div id="customerEditAddress" style="display: none;">
-                                        <input type="text" id="editAddress1" class="form-control form-control-sm mb-2" placeholder="Address Line 1">
-                                        <input type="text" id="editAddress2" class="form-control form-control-sm mb-2" placeholder="Address Line 2 (optional)">
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <input type="text" id="editCity" class="form-control form-control-sm mb-2" placeholder="City">
-                                            </div>
-                                            <div class="col-3">
-                                                <select id="editState" class="form-control form-control-sm mb-2">
-                                                    <option value="">State</option>
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Alternate Mobile No.</label>
+                                    <input type="tel" id="personalAlternateMobile" class="form-control" placeholder="Alternate Mobile Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Country of Citizenship <span class="text-danger">*</span></label>
+                                    <select id="personalCountryOfCitizenship" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        <option value="">Select Country</option>
+                                        <option value="US">United States</option>
+                                        <option value="IN">India</option>
+                                        <option value="AF">Afghanistan</option>
+                                        <option value="AL">Albania</option>
+                                        <option value="DZ">Algeria</option>
+                                        <option value="AS">American Samoa</option>
+                                        <option value="AD">Andorra</option>
+                                        <option value="AO">Angola</option>
+                                        <option value="AI">Anguilla</option>
+                                        <option value="AQ">Antarctica</option>
+                                        <option value="AG">Antigua and Barbuda</option>
+                                        <option value="AR">Argentina</option>
+                                        <option value="AM">Armenia</option>
+                                        <option value="AW">Aruba</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="AT">Austria</option>
+                                        <option value="AZ">Azerbaijan</option>
+                                        <option value="BS">Bahamas</option>
+                                        <option value="BH">Bahrain</option>
+                                        <option value="BD">Bangladesh</option>
+                                        <option value="BB">Barbados</option>
+                                        <option value="BY">Belarus</option>
+                                        <option value="BE">Belgium</option>
+                                        <option value="BZ">Belize</option>
+                                        <option value="BJ">Benin</option>
+                                        <option value="BM">Bermuda</option>
+                                        <option value="BT">Bhutan</option>
+                                        <option value="BO">Bolivia</option>
+                                        <option value="BA">Bosnia and Herzegovina</option>
+                                        <option value="BW">Botswana</option>
+                                        <option value="BV">Bouvet Island</option>
+                                        <option value="BR">Brazil</option>
+                                        <option value="IO">British Indian Ocean Territory</option>
+                                        <option value="BN">Brunei Darussalam</option>
+                                        <option value="BG">Bulgaria</option>
+                                        <option value="BF">Burkina Faso</option>
+                                        <option value="BI">Burundi</option>
+                                        <option value="KH">Cambodia</option>
+                                        <option value="CM">Cameroon</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="CV">Cape Verde</option>
+                                        <option value="KY">Cayman Islands</option>
+                                        <option value="CF">Central African Republic</option>
+                                        <option value="TD">Chad</option>
+                                        <option value="CL">Chile</option>
+                                        <option value="CN">China</option>
+                                        <option value="CX">Christmas Island</option>
+                                        <option value="CC">Cocos (Keeling) Islands</option>
+                                        <option value="CO">Colombia</option>
+                                        <option value="KM">Comoros</option>
+                                        <option value="CG">Congo</option>
+                                        <option value="CD">Congo, the Democratic Republic of the</option>
+                                        <option value="CK">Cook Islands</option>
+                                        <option value="CR">Costa Rica</option>
+                                        <option value="CI">Côte d'Ivoire</option>
+                                        <option value="HR">Croatia</option>
+                                        <option value="CU">Cuba</option>
+                                        <option value="CY">Cyprus</option>
+                                        <option value="CZ">Czech Republic</option>
+                                        <option value="DK">Denmark</option>
+                                        <option value="DJ">Djibouti</option>
+                                        <option value="DM">Dominica</option>
+                                        <option value="DO">Dominican Republic</option>
+                                        <option value="EC">Ecuador</option>
+                                        <option value="EG">Egypt</option>
+                                        <option value="SV">El Salvador</option>
+                                        <option value="GQ">Equatorial Guinea</option>
+                                        <option value="ER">Eritrea</option>
+                                        <option value="EE">Estonia</option>
+                                        <option value="ET">Ethiopia</option>
+                                        <option value="FK">Falkland Islands (Malvinas)</option>
+                                        <option value="FO">Faroe Islands</option>
+                                        <option value="FJ">Fiji</option>
+                                        <option value="FI">Finland</option>
+                                        <option value="FR">France</option>
+                                        <option value="GF">French Guiana</option>
+                                        <option value="PF">French Polynesia</option>
+                                        <option value="TF">French Southern Territories</option>
+                                        <option value="GA">Gabon</option>
+                                        <option value="GM">Gambia</option>
+                                        <option value="GE">Georgia</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="GH">Ghana</option>
+                                        <option value="GI">Gibraltar</option>
+                                        <option value="GR">Greece</option>
+                                        <option value="GL">Greenland</option>
+                                        <option value="GD">Grenada</option>
+                                        <option value="GP">Guadeloupe</option>
+                                        <option value="GU">Guam</option>
+                                        <option value="GT">Guatemala</option>
+                                        <option value="GN">Guinea</option>
+                                        <option value="GW">Guinea-Bissau</option>
+                                        <option value="GY">Guyana</option>
+                                        <option value="HT">Haiti</option>
+                                        <option value="HM">Heard Island and McDonald Islands</option>
+                                        <option value="VA">Holy See (Vatican City State)</option>
+                                        <option value="HN">Honduras</option>
+                                        <option value="HK">Hong Kong</option>
+                                        <option value="HU">Hungary</option>
+                                        <option value="IS">Iceland</option>
+                                        <option value="ID">Indonesia</option>
+                                        <option value="IR">Iran, Islamic Republic of</option>
+                                        <option value="IQ">Iraq</option>
+                                        <option value="IE">Ireland</option>
+                                        <option value="IL">Israel</option>
+                                        <option value="IT">Italy</option>
+                                        <option value="JM">Jamaica</option>
+                                        <option value="JP">Japan</option>
+                                        <option value="JO">Jordan</option>
+                                        <option value="KZ">Kazakhstan</option>
+                                        <option value="KE">Kenya</option>
+                                        <option value="KI">Kiribati</option>
+                                        <option value="KP">Korea, Democratic People's Republic of</option>
+                                        <option value="KR">Korea, Republic of</option>
+                                        <option value="KW">Kuwait</option>
+                                        <option value="KG">Kyrgyzstan</option>
+                                        <option value="LA">Lao People's Democratic Republic</option>
+                                        <option value="LV">Latvia</option>
+                                        <option value="LB">Lebanon</option>
+                                        <option value="LS">Lesotho</option>
+                                        <option value="LR">Liberia</option>
+                                        <option value="LY">Libyan Arab Jamahiriya</option>
+                                        <option value="LI">Liechtenstein</option>
+                                        <option value="LT">Lithuania</option>
+                                        <option value="LU">Luxembourg</option>
+                                        <option value="MO">Macao</option>
+                                        <option value="MK">Macedonia, the Former Yugoslav Republic of</option>
+                                        <option value="MG">Madagascar</option>
+                                        <option value="MW">Malawi</option>
+                                        <option value="MY">Malaysia</option>
+                                        <option value="MV">Maldives</option>
+                                        <option value="ML">Mali</option>
+                                        <option value="MT">Malta</option>
+                                        <option value="MH">Marshall Islands</option>
+                                        <option value="MQ">Martinique</option>
+                                        <option value="MR">Mauritania</option>
+                                        <option value="MU">Mauritius</option>
+                                        <option value="YT">Mayotte</option>
+                                        <option value="MX">Mexico</option>
+                                        <option value="FM">Micronesia, Federated States of</option>
+                                        <option value="MD">Moldova, Republic of</option>
+                                        <option value="MC">Monaco</option>
+                                        <option value="MN">Mongolia</option>
+                                        <option value="ME">Montenegro</option>
+                                        <option value="MS">Montserrat</option>
+                                        <option value="MA">Morocco</option>
+                                        <option value="MZ">Mozambique</option>
+                                        <option value="MM">Myanmar</option>
+                                        <option value="NA">Namibia</option>
+                                        <option value="NR">Nauru</option>
+                                        <option value="NP">Nepal</option>
+                                        <option value="NL">Netherlands</option>
+                                        <option value="AN">Netherlands Antilles</option>
+                                        <option value="NC">New Caledonia</option>
+                                        <option value="NZ">New Zealand</option>
+                                        <option value="NI">Nicaragua</option>
+                                        <option value="NE">Niger</option>
+                                        <option value="NG">Nigeria</option>
+                                        <option value="NU">Niue</option>
+                                        <option value="NF">Norfolk Island</option>
+                                        <option value="MP">Northern Mariana Islands</option>
+                                        <option value="NO">Norway</option>
+                                        <option value="OM">Oman</option>
+                                        <option value="PK">Pakistan</option>
+                                        <option value="PW">Palau</option>
+                                        <option value="PS">Palestinian Territory, Occupied</option>
+                                        <option value="PA">Panama</option>
+                                        <option value="PG">Papua New Guinea</option>
+                                        <option value="PY">Paraguay</option>
+                                        <option value="PE">Peru</option>
+                                        <option value="PH">Philippines</option>
+                                        <option value="PN">Pitcairn</option>
+                                        <option value="PL">Poland</option>
+                                        <option value="PT">Portugal</option>
+                                        <option value="PR">Puerto Rico</option>
+                                        <option value="QA">Qatar</option>
+                                        <option value="RE">Réunion</option>
+                                        <option value="RO">Romania</option>
+                                        <option value="RU">Russian Federation</option>
+                                        <option value="RW">Rwanda</option>
+                                        <option value="SH">Saint Helena</option>
+                                        <option value="KN">Saint Kitts and Nevis</option>
+                                        <option value="LC">Saint Lucia</option>
+                                        <option value="PM">Saint Pierre and Miquelon</option>
+                                        <option value="VC">Saint Vincent and the Grenadines</option>
+                                        <option value="WS">Samoa</option>
+                                        <option value="SM">San Marino</option>
+                                        <option value="ST">Sao Tome and Principe</option>
+                                        <option value="SA">Saudi Arabia</option>
+                                        <option value="SN">Senegal</option>
+                                        <option value="RS">Serbia</option>
+                                        <option value="SC">Seychelles</option>
+                                        <option value="SL">Sierra Leone</option>
+                                        <option value="SG">Singapore</option>
+                                        <option value="SK">Slovakia</option>
+                                        <option value="SI">Slovenia</option>
+                                        <option value="SB">Solomon Islands</option>
+                                        <option value="SO">Somalia</option>
+                                        <option value="ZA">South Africa</option>
+                                        <option value="GS">South Georgia and the South Sandwich Islands</option>
+                                        <option value="ES">Spain</option>
+                                        <option value="LK">Sri Lanka</option>
+                                        <option value="SD">Sudan</option>
+                                        <option value="SR">Suriname</option>
+                                        <option value="SJ">Svalbard and Jan Mayen</option>
+                                        <option value="SZ">Swaziland</option>
+                                        <option value="SE">Sweden</option>
+                                        <option value="CH">Switzerland</option>
+                                        <option value="SY">Syrian Arab Republic</option>
+                                        <option value="TW">Taiwan, Province of China</option>
+                                        <option value="TJ">Tajikistan</option>
+                                        <option value="TZ">Tanzania, United Republic of</option>
+                                        <option value="TH">Thailand</option>
+                                        <option value="TL">Timor-Leste</option>
+                                        <option value="TG">Togo</option>
+                                        <option value="TK">Tokelau</option>
+                                        <option value="TO">Tonga</option>
+                                        <option value="TT">Trinidad and Tobago</option>
+                                        <option value="TN">Tunisia</option>
+                                        <option value="TR">Turkey</option>
+                                        <option value="TM">Turkmenistan</option>
+                                        <option value="TC">Turks and Caicos Islands</option>
+                                        <option value="TV">Tuvalu</option>
+                                        <option value="UG">Uganda</option>
+                                        <option value="UA">Ukraine</option>
+                                        <option value="AE">United Arab Emirates</option>
+                                        <option value="GB">United Kingdom</option>
+                                        <option value="UM">United States Minor Outlying Islands</option>
+                                        <option value="UY">Uruguay</option>
+                                        <option value="UZ">Uzbekistan</option>
+                                        <option value="VU">Vanuatu</option>
+                                        <option value="VE">Venezuela</option>
+                                        <option value="VN">Viet Nam</option>
+                                        <option value="VG">Virgin Islands, British</option>
+                                        <option value="VI">Virgin Islands, U.S.</option>
+                                        <option value="WF">Wallis and Futuna</option>
+                                        <option value="EH">Western Sahara</option>
+                                        <option value="YE">Yemen</option>
+                                        <option value="ZM">Zambia</option>
+                                        <option value="ZW">Zimbabwe</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="savePersonalInformation()">
+                                    <i class="fas fa-save"></i> Save My Information
+                                </button>
+                            </div>
+                        </div>
+                
+                        <!-- Address Info Section -->
+                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-map-marker-alt"></i> Address Info
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Address 1 <span class="text-danger">*</span></label>
+                                    <input type="text" id="addressInfoAddress1" class="form-control" placeholder="Address Line 1" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Address 2</label>
+                                    <input type="text" id="addressInfoAddress2" class="form-control" placeholder="Address Line 2 (optional)" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">City <span class="text-danger">*</span></label>
+                                    <input type="text" id="addressInfoCity" class="form-control" placeholder="City" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">State <span class="text-danger">*</span></label>
+                                    <select id="addressInfoState" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                            <option value="">Select State</option>
                             <option value="AL">AL</option>
                             <option value="AK">AK</option>
                             <option value="AZ">AZ</option>
@@ -4095,171 +4352,6 @@
                             <option value="WY">WY</option>
                         </select>
                     </div>
-                                            <div class="col-3">
-                                                <input type="text" id="editZipCode" class="form-control form-control-sm mb-2" placeholder="Zip">
-                                            </div>
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-sm btn-success" onclick="saveField('address')">
-                                                <i class="fas fa-check"></i> Save
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit('address')">
-                                                <i class="fas fa-times"></i> Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                    </div>
-                </div>
-                
-                        <!-- Additional Information Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-info-circle"></i> Additional Information
-                            </h4>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Filing Years <span class="text-danger">*</span></label>
-                                    <select id="personalFilingYears" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="">Select Filing Year</option>
-                                        <option value="2024">2024</option>
-                                        <option value="2023">2023</option>
-                                        <option value="2022">2022</option>
-                                        <option value="2021">2021</option>
-                                        <option value="2020">2020</option>
-                                        <option value="2019">2019</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">First Name <span class="text-danger">*</span></label>
-                                    <input type="text" id="personalFirstName" class="form-control" placeholder="First Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Middle Name</label>
-                                    <input type="text" id="personalMiddleName" class="form-control" placeholder="Middle Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Last Name <span class="text-danger">*</span></label>
-                                    <input type="text" id="personalLastName" class="form-control" placeholder="Last Name" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Date of Birth <span class="text-danger">*</span></label>
-                                    <input type="date" id="personalDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Gender <span class="text-danger">*</span></label>
-                                    <select id="personalGender" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="">Select Gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
-                                        <option value="prefer_not_to_say">Prefer not to say</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Alternate Mobile No.</label>
-                                    <input type="tel" id="personalAlternateMobile" class="form-control" placeholder="Alternate Mobile Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Country of Citizenship <span class="text-danger">*</span></label>
-                                    <select id="personalCountryOfCitizenship" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="">Select Country</option>
-                                        <option value="US">United States</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="MX">Mexico</option>
-                                        <option value="GB">United Kingdom</option>
-                                        <option value="IN">India</option>
-                                        <option value="CN">China</option>
-                                        <option value="JP">Japan</option>
-                                        <option value="DE">Germany</option>
-                                        <option value="FR">France</option>
-                                        <option value="AU">Australia</option>
-                                        <option value="BR">Brazil</option>
-                                        <option value="OTHER">Other</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="text-center mt-4">
-                                <button type="button" class="btn btn-primary btn-lg" onclick="savePersonalInformation()">
-                                    <i class="fas fa-save"></i> Save Additional Information
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Address Info Section -->
-                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                <i class="fas fa-map-marker-alt"></i> Address Info
-                            </h4>
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Address 1 <span class="text-danger">*</span></label>
-                                    <input type="text" id="addressInfoAddress1" class="form-control" placeholder="Address Line 1" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-12 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Address 2</label>
-                                    <input type="text" id="addressInfoAddress2" class="form-control" placeholder="Address Line 2 (optional)" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">City <span class="text-danger">*</span></label>
-                                    <input type="text" id="addressInfoCity" class="form-control" placeholder="City" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">State <span class="text-danger">*</span></label>
-                                    <select id="addressInfoState" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="">Select State</option>
-                                        <option value="AL">AL</option>
-                                        <option value="AK">AK</option>
-                                        <option value="AZ">AZ</option>
-                                        <option value="AR">AR</option>
-                                        <option value="CA">CA</option>
-                                        <option value="CO">CO</option>
-                                        <option value="CT">CT</option>
-                                        <option value="DE">DE</option>
-                                        <option value="FL">FL</option>
-                                        <option value="GA">GA</option>
-                                        <option value="HI">HI</option>
-                                        <option value="ID">ID</option>
-                                        <option value="IL">IL</option>
-                                        <option value="IN">IN</option>
-                                        <option value="IA">IA</option>
-                                        <option value="KS">KS</option>
-                                        <option value="KY">KY</option>
-                                        <option value="LA">LA</option>
-                                        <option value="ME">ME</option>
-                                        <option value="MD">MD</option>
-                                        <option value="MA">MA</option>
-                                        <option value="MI">MI</option>
-                                        <option value="MN">MN</option>
-                                        <option value="MS">MS</option>
-                                        <option value="MO">MO</option>
-                                        <option value="MT">MT</option>
-                                        <option value="NE">NE</option>
-                                        <option value="NV">NV</option>
-                                        <option value="NH">NH</option>
-                                        <option value="NJ">NJ</option>
-                                        <option value="NM">NM</option>
-                                        <option value="NY">NY</option>
-                                        <option value="NC">NC</option>
-                                        <option value="ND">ND</option>
-                                        <option value="OH">OH</option>
-                                        <option value="OK">OK</option>
-                                        <option value="OR">OR</option>
-                                        <option value="PA">PA</option>
-                                        <option value="RI">RI</option>
-                                        <option value="SC">SC</option>
-                                        <option value="SD">SD</option>
-                                        <option value="TN">TN</option>
-                                        <option value="TX">TX</option>
-                                        <option value="UT">UT</option>
-                                        <option value="VT">VT</option>
-                                        <option value="VA">VA</option>
-                                        <option value="WA">WA</option>
-                                        <option value="WV">WV</option>
-                                        <option value="WI">WI</option>
-                                        <option value="WY">WY</option>
-                                    </select>
-                                </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label" style="color: var(--text-color); font-weight: 600;">Zip Code <span class="text-danger">*</span></label>
                                     <input type="text" id="addressInfoZipCode" class="form-control" placeholder="Zip Code" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
@@ -4273,20 +4365,211 @@
                                 <button type="button" class="btn btn-primary btn-lg" onclick="saveAddressInformation()">
                                     <i class="fas fa-save"></i> Save Address Information
                                 </button>
-                            </div>
-                        </div>
-                        
+                    </div>
+                </div>
+                
                         <!-- Identification Details Section -->
                         <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
                             <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
                                 <i class="fas fa-id-card"></i> Identification Details
                             </h4>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Citizenship <span class="text-danger">*</span></label>
-                                    <select id="identificationCitizenship" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="">Select Country</option>
-                                        <option value="AF">Afghanistan</option>
+                            
+                            <!-- SSN/ITIN Section (shown when US is selected in Country of Citizenship) -->
+                            <div id="identificationSsnSection" style="display: none;">
+                                <div class="mb-3">
+                                    <h5 class="mb-3" style="color: var(--text-color); font-size: 16px;">
+                                        <i class="fas fa-shield-alt"></i> SSN / ITIN Information
+                                    </h5>
+                                    <div id="identificationSsnContainer">
+                                        <!-- Dynamic entries will be added here -->
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addIdentificationSsnEntry()">
+                                        <i class="fas fa-plus"></i> Add Another Person
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Visa Information Section (shown when non-US country is selected) -->
+                            <div id="identificationVisaSection" style="display: none;">
+                                <div class="mb-3">
+                                    <h5 class="mb-3" style="color: var(--text-color); font-size: 16px;">
+                                        <i class="fas fa-passport"></i> US Visa Information
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Visa Type <span class="text-danger">*</span></label>
+                                            <select id="identificationVisaType" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                <option value="">Select Visa Type</option>
+                                                <option value="B-1">B-1 (Business Visitor)</option>
+                                                <option value="B-2">B-2 (Tourist/Visitor)</option>
+                                                <option value="F-1">F-1 (Student)</option>
+                                                <option value="F-2">F-2 (F-1 Dependent)</option>
+                                                <option value="H-1B">H-1B (Specialty Occupation)</option>
+                                                <option value="H-2A">H-2A (Temporary Agricultural Worker)</option>
+                                                <option value="H-2B">H-2B (Temporary Non-Agricultural Worker)</option>
+                                                <option value="H-3">H-3 (Trainee)</option>
+                                                <option value="H-4">H-4 (H-1B/H-2A/H-2B/H-3 Dependent)</option>
+                                                <option value="J-1">J-1 (Exchange Visitor)</option>
+                                                <option value="J-2">J-2 (J-1 Dependent)</option>
+                                                <option value="L-1A">L-1A (Intracompany Transferee - Executive/Manager)</option>
+                                                <option value="L-1B">L-1B (Intracompany Transferee - Specialized Knowledge)</option>
+                                                <option value="L-2">L-2 (L-1 Dependent)</option>
+                                                <option value="O-1">O-1 (Extraordinary Ability)</option>
+                                                <option value="O-2">O-2 (O-1 Support Staff)</option>
+                                                <option value="O-3">O-3 (O-1/O-2 Dependent)</option>
+                                                <option value="P-1">P-1 (Athlete/Entertainer)</option>
+                                                <option value="P-2">P-2 (Artist/Entertainer - Reciprocal Exchange)</option>
+                                                <option value="P-3">P-3 (Artist/Entertainer - Culturally Unique)</option>
+                                                <option value="P-4">P-4 (P-1/P-2/P-3 Dependent)</option>
+                                                <option value="Q-1">Q-1 (International Cultural Exchange)</option>
+                                                <option value="R-1">R-1 (Religious Worker)</option>
+                                                <option value="R-2">R-2 (R-1 Dependent)</option>
+                                                <option value="TN">TN (NAFTA Professional)</option>
+                                                <option value="TD">TD (TN Dependent)</option>
+                                                <option value="E-1">E-1 (Treaty Trader)</option>
+                                                <option value="E-2">E-2 (Treaty Investor)</option>
+                                                <option value="E-3">E-3 (Australian Professional)</option>
+                                                <option value="E-4">E-4 (E-1/E-2/E-3 Dependent)</option>
+                                                <option value="K-1">K-1 (Fiancé(e))</option>
+                                                <option value="K-2">K-2 (K-1 Dependent)</option>
+                                                <option value="K-3">K-3 (Spouse of US Citizen)</option>
+                                                <option value="K-4">K-4 (K-3 Dependent)</option>
+                                                <option value="U-1">U-1 (Victim of Criminal Activity)</option>
+                                                <option value="U-2">U-2 (U-1 Dependent)</option>
+                                                <option value="V-1">V-1 (Spouse of Lawful Permanent Resident)</option>
+                                                <option value="V-2">V-2 (V-1 Dependent)</option>
+                                                <option value="V-3">V-3 (Child of Lawful Permanent Resident)</option>
+                                                <option value="A-1">A-1 (Diplomat)</option>
+                                                <option value="A-2">A-2 (Foreign Government Official)</option>
+                                                <option value="A-3">A-3 (A-1/A-2 Dependent/Employee)</option>
+                                                <option value="G-1">G-1 (International Organization Representative)</option>
+                                                <option value="G-2">G-2 (G-1 Dependent)</option>
+                                                <option value="G-3">G-3 (G-1/G-2 Dependent)</option>
+                                                <option value="G-4">G-4 (International Organization Employee)</option>
+                                                <option value="G-5">G-5 (G-4 Dependent)</option>
+                                                <option value="NATO-1">NATO-1 (NATO Official)</option>
+                                                <option value="NATO-2">NATO-2 (NATO-1 Dependent)</option>
+                                                <option value="NATO-3">NATO-3 (NATO-1/NATO-2 Dependent)</option>
+                                                <option value="NATO-4">NATO-4 (NATO Official Employee)</option>
+                                                <option value="NATO-5">NATO-5 (NATO-4 Dependent)</option>
+                                                <option value="NATO-6">NATO-6 (NATO Civilian)</option>
+                                                <option value="NATO-7">NATO-7 (NATO-6 Dependent)</option>
+                                                <option value="C-1">C-1 (Transit)</option>
+                                                <option value="C-2">C-2 (Transit to UN)</option>
+                                                <option value="C-3">C-3 (Transit - Foreign Government Official)</option>
+                                                <option value="D">D (Crewmember)</option>
+                                                <option value="M-1">M-1 (Vocational Student)</option>
+                                                <option value="M-2">M-2 (M-1 Dependent)</option>
+                                                <option value="M-3">M-3 (Border Commuter Student)</option>
+                                                <option value="T-1">T-1 (Human Trafficking Victim)</option>
+                                                <option value="T-2">T-2 (T-1 Dependent - Spouse)</option>
+                                                <option value="T-3">T-3 (T-1 Dependent - Child)</option>
+                                                <option value="T-4">T-4 (T-1 Dependent - Parent)</option>
+                                                <option value="T-5">T-5 (T-1 Dependent - Sibling)</option>
+                                                <option value="I">I (Foreign Media Representative)</option>
+                                                <option value="S-5">S-5 (Informant - Criminal Organization)</option>
+                                                <option value="S-6">S-6 (Informant - Terrorism)</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Latest Visa Change <span class="text-danger">*</span></label>
+                                            <select id="identificationLatestVisaChange" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                                <option value="">Select Visa Type</option>
+                                                <option value="B-1">B-1 (Business Visitor)</option>
+                                                <option value="B-2">B-2 (Tourist/Visitor)</option>
+                                                <option value="F-1">F-1 (Student)</option>
+                                                <option value="F-2">F-2 (F-1 Dependent)</option>
+                                                <option value="H-1B">H-1B (Specialty Occupation)</option>
+                                                <option value="H-2A">H-2A (Temporary Agricultural Worker)</option>
+                                                <option value="H-2B">H-2B (Temporary Non-Agricultural Worker)</option>
+                                                <option value="H-3">H-3 (Trainee)</option>
+                                                <option value="H-4">H-4 (H-1B/H-2A/H-2B/H-3 Dependent)</option>
+                                                <option value="J-1">J-1 (Exchange Visitor)</option>
+                                                <option value="J-2">J-2 (J-1 Dependent)</option>
+                                                <option value="L-1A">L-1A (Intracompany Transferee - Executive/Manager)</option>
+                                                <option value="L-1B">L-1B (Intracompany Transferee - Specialized Knowledge)</option>
+                                                <option value="L-2">L-2 (L-1 Dependent)</option>
+                                                <option value="O-1">O-1 (Extraordinary Ability)</option>
+                                                <option value="O-2">O-2 (O-1 Support Staff)</option>
+                                                <option value="O-3">O-3 (O-1/O-2 Dependent)</option>
+                                                <option value="P-1">P-1 (Athlete/Entertainer)</option>
+                                                <option value="P-2">P-2 (Artist/Entertainer - Reciprocal Exchange)</option>
+                                                <option value="P-3">P-3 (Artist/Entertainer - Culturally Unique)</option>
+                                                <option value="P-4">P-4 (P-1/P-2/P-3 Dependent)</option>
+                                                <option value="Q-1">Q-1 (International Cultural Exchange)</option>
+                                                <option value="R-1">R-1 (Religious Worker)</option>
+                                                <option value="R-2">R-2 (R-1 Dependent)</option>
+                                                <option value="TN">TN (NAFTA Professional)</option>
+                                                <option value="TD">TD (TN Dependent)</option>
+                                                <option value="E-1">E-1 (Treaty Trader)</option>
+                                                <option value="E-2">E-2 (Treaty Investor)</option>
+                                                <option value="E-3">E-3 (Australian Professional)</option>
+                                                <option value="E-4">E-4 (E-1/E-2/E-3 Dependent)</option>
+                                                <option value="K-1">K-1 (Fiancé(e))</option>
+                                                <option value="K-2">K-2 (K-1 Dependent)</option>
+                                                <option value="K-3">K-3 (Spouse of US Citizen)</option>
+                                                <option value="K-4">K-4 (K-3 Dependent)</option>
+                                                <option value="U-1">U-1 (Victim of Criminal Activity)</option>
+                                                <option value="U-2">U-2 (U-1 Dependent)</option>
+                                                <option value="V-1">V-1 (Spouse of Lawful Permanent Resident)</option>
+                                                <option value="V-2">V-2 (V-1 Dependent)</option>
+                                                <option value="V-3">V-3 (Child of Lawful Permanent Resident)</option>
+                                                <option value="A-1">A-1 (Diplomat)</option>
+                                                <option value="A-2">A-2 (Foreign Government Official)</option>
+                                                <option value="A-3">A-3 (A-1/A-2 Dependent/Employee)</option>
+                                                <option value="G-1">G-1 (International Organization Representative)</option>
+                                                <option value="G-2">G-2 (G-1 Dependent)</option>
+                                                <option value="G-3">G-3 (G-1/G-2 Dependent)</option>
+                                                <option value="G-4">G-4 (International Organization Employee)</option>
+                                                <option value="G-5">G-5 (G-4 Dependent)</option>
+                                                <option value="NATO-1">NATO-1 (NATO Official)</option>
+                                                <option value="NATO-2">NATO-2 (NATO-1 Dependent)</option>
+                                                <option value="NATO-3">NATO-3 (NATO-1/NATO-2 Dependent)</option>
+                                                <option value="NATO-4">NATO-4 (NATO Official Employee)</option>
+                                                <option value="NATO-5">NATO-5 (NATO-4 Dependent)</option>
+                                                <option value="NATO-6">NATO-6 (NATO Civilian)</option>
+                                                <option value="NATO-7">NATO-7 (NATO-6 Dependent)</option>
+                                                <option value="C-1">C-1 (Transit)</option>
+                                                <option value="C-2">C-2 (Transit to UN)</option>
+                                                <option value="C-3">C-3 (Transit - Foreign Government Official)</option>
+                                                <option value="D">D (Crewmember)</option>
+                                                <option value="M-1">M-1 (Vocational Student)</option>
+                                                <option value="M-2">M-2 (M-1 Dependent)</option>
+                                                <option value="M-3">M-3 (Border Commuter Student)</option>
+                                                <option value="T-1">T-1 (Human Trafficking Victim)</option>
+                                                <option value="T-2">T-2 (T-1 Dependent - Spouse)</option>
+                                                <option value="T-3">T-3 (T-1 Dependent - Child)</option>
+                                                <option value="T-4">T-4 (T-1 Dependent - Parent)</option>
+                                                <option value="T-5">T-5 (T-1 Dependent - Sibling)</option>
+                                                <option value="I">I (Foreign Media Representative)</option>
+                                                <option value="S-5">S-5 (Informant - Criminal Organization)</option>
+                                                <option value="S-6">S-6 (Informant - Terrorism)</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Primary Port of Entry <span class="text-danger">*</span></label>
+                                            <input type="date" id="identificationPrimaryPortOfEntry" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Total Months Stayed in US <span class="text-danger">*</span></label>
+                                            <input type="number" id="identificationTotalMonthsUS" class="form-control" placeholder="Enter total months" min="0" step="0.1" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="identificationNoSelectionMessage" style="display: none; padding: 20px; text-align: center; color: var(--text-color);">
+                                <p class="text-muted">Please select a country in "Country of Citizenship" to add identification information.</p>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="saveIdentificationDetails()">
+                                    <i class="fas fa-save"></i> Save Identification Details
+                                </button>
+                            </div>
+                        </div>
                                         <option value="AL">Albania</option>
                                         <option value="DZ">Algeria</option>
                                         <option value="AS">American Samoa</option>
@@ -4542,6 +4825,22 @@
                                 <i class="fas fa-file-invoice"></i> Tax Filing Information
                             </h4>
                             
+                            <!-- Filing Years Selection -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="color: var(--text-color); font-weight: 600;">Filing Years <span class="text-danger">*</span></label>
+                                    <select id="personalFilingYears" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                                        <option value="">Select Filing Year</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2023">2023</option>
+                                        <option value="2022">2022</option>
+                                        <option value="2021">2021</option>
+                                        <option value="2020">2020</option>
+                                        <option value="2019">2019</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
                             <!-- Tax Year Selection -->
                             <div class="row mb-4">
                                 <div class="col-md-6">
@@ -4654,10 +4953,10 @@
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="addW2Form()">
                                         <i class="fas fa-plus"></i> Add Another W-2
                                     </button>
-                                </div>
-
+                </div>
+                
                                 <!-- 1099 Income -->
-                                <div class="mb-3">
+                <div class="mb-3">
                                     <label class="form-label" style="color: var(--text-color); font-weight: 600;">1099 Forms</label>
                                     <div id="income1099Container">
                                         <div class="income-1099-entry mb-3 p-3 border rounded" style="background: var(--card-bg); border-color: var(--border-color);">
@@ -4836,19 +5135,19 @@
                                 <div class="mb-3">
                                     <label class="form-label" style="color: var(--text-color); font-weight: 600;">Current Status</label>
                                     <select id="customerRefundStatus" class="form-control" disabled="" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                        <option value="in_discussions">In Discussions</option>
-                                        <option value="received_w2">Received W2</option>
-                                        <option value="preparing_quote">Preparing Quote</option>
-                                        <option value="quote_sent">Quote Sent to Customer</option>
-                                        <option value="customer_approved">Customer Approved for Filing Taxes</option>
-                                        <option value="taxes_filed">Taxes Filed</option>
-                                    </select>
+                            <option value="in_discussions">In Discussions</option>
+                            <option value="received_w2">Received W2</option>
+                            <option value="preparing_quote">Preparing Quote</option>
+                            <option value="quote_sent">Quote Sent to Customer</option>
+                            <option value="customer_approved">Customer Approved for Filing Taxes</option>
+                            <option value="taxes_filed">Taxes Filed</option>
+                        </select>
                                     <small class="text-muted d-block mt-2">
                                         <i class="fas fa-info-circle"></i> This status is managed by your tax advisor
                                     </small>
-                                </div>
-                            </div>
-                            
+                    </div>
+                </div>
+                
                             <!-- Save Tax Information Button -->
                             <div class="text-center mt-4">
                                 <button type="button" class="btn btn-primary btn-lg" onclick="saveTaxInformation()">
@@ -4916,11 +5215,11 @@
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label" style="color: var(--text-color); font-weight: 600;">Account Number <span class="text-danger">*</span></label>
                                         <input type="text" id="taxBankAccountNumber" class="form-control" placeholder="Account Number" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
+                                </div>
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label" style="color: var(--text-color); font-weight: 600;">Routing Number <span class="text-danger">*</span></label>
                                         <input type="text" id="taxBankRoutingNumber" class="form-control" placeholder="Routing Number" maxlength="9" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
-                                    </div>
+                        </div>
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label" style="color: var(--text-color); font-weight: 600;">Account Type <span class="text-danger">*</span></label>
                                         <select id="taxBankAccountType" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
@@ -6719,7 +7018,7 @@
                 if (city) address += ', ' + city;
                 if (state) address += ', ' + state;
                 if (zipCode) address += ' ' + zipCode;
-                
+            
                 // Prepare update data
                 const updateData = {
                     name: name,
@@ -6728,7 +7027,7 @@
                     notes: address || customer.notes || '',
                     updated_at: customer.updated_at
                 };
-                
+            
                 // Update customer via API
                 const updateResponse = await fetch(API_BASE_URL + '/customers/' + customerId, {
                     method: 'PUT',

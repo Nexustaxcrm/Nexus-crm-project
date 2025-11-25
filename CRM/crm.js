@@ -1031,6 +1031,12 @@ async function loadCustomerDashboard() {
             await loadTaxInformation();
         }
         
+        // Check Country of Citizenship and show/hide appropriate section
+        const countrySelect = document.getElementById('personalCountryOfCitizenship');
+        if (countrySelect) {
+            handleCountryOfCitizenshipChange();
+        }
+        
         console.log('✅ Customer dashboard loaded successfully');
     } catch (error) {
         console.error('❌ Error loading customer dashboard:', error);
@@ -4967,6 +4973,47 @@ async function loadTaxInformation() {
                     }
                 }
             }
+            
+            // Load SSN/ITIN entries for Identification Details (US)
+            if (taxInfo.ssn_itin_entries && Array.isArray(taxInfo.ssn_itin_entries) && taxInfo.ssn_itin_entries.length > 0) {
+                const container = document.getElementById('identificationSsnContainer');
+                if (container) {
+                    container.innerHTML = '';
+                    taxInfo.ssn_itin_entries.forEach(entry => {
+                        addIdentificationSsnEntry();
+                        const lastEntry = container.lastElementChild;
+                        if (lastEntry) {
+                            const nameSelect = lastEntry.querySelector('.identification-name-select');
+                            const ssnInput = lastEntry.querySelector('.identification-ssn-input');
+                            if (nameSelect && entry.name) {
+                                // Wait a bit for dropdown to be populated, then set value
+                                setTimeout(() => {
+                                    nameSelect.value = entry.name;
+                                    if (ssnInput && entry.ssn_itin) {
+                                        ssnInput.value = entry.ssn_itin;
+                                    }
+                                }, 300);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Load Visa information for non-US countries
+            if (taxInfo.visa_type || taxInfo.latest_visa_change || taxInfo.primary_port_of_entry || taxInfo.total_months_stayed_us) {
+                if (document.getElementById('identificationVisaType')) {
+                    document.getElementById('identificationVisaType').value = taxInfo.visa_type || '';
+                }
+                if (document.getElementById('identificationLatestVisaChange')) {
+                    document.getElementById('identificationLatestVisaChange').value = taxInfo.latest_visa_change || '';
+                }
+                if (document.getElementById('identificationPrimaryPortOfEntry')) {
+                    document.getElementById('identificationPrimaryPortOfEntry').value = taxInfo.primary_port_of_entry || '';
+                }
+                if (document.getElementById('identificationTotalMonthsUS')) {
+                    document.getElementById('identificationTotalMonthsUS').value = taxInfo.total_months_stayed_us || '';
+                }
+            }
         }
     } catch (error) {
         console.error('Error loading tax information:', error);
@@ -8668,6 +8715,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use MutationObserver to detect when dependents are added/removed
         const observer = new MutationObserver(function(mutations) {
             updateTaxPayerDropdownWithDependents();
+            // Also update SSN/ITIN name dropdowns
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (currentUser && currentUser.role === 'customer') {
+                fetch(API_BASE_URL + '/customers/me', {
+                    headers: { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` }
+                })
+                .then(res => res.json())
+                .then(customer => {
+                    updateAllIdentificationNameDropdowns(customer);
+                })
+                .catch(err => console.error('Error fetching customer:', err));
+            }
         });
         
         observer.observe(dependentsContainer, {
@@ -8679,8 +8738,26 @@ document.addEventListener('DOMContentLoaded', function() {
         dependentsContainer.addEventListener('input', function(e) {
             if (e.target.classList.contains('dependent-name')) {
                 updateTaxPayerDropdownWithDependents();
+                // Update SSN/ITIN name dropdowns
+                const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+                if (currentUser && currentUser.role === 'customer') {
+                    fetch(API_BASE_URL + '/customers/me', {
+                        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` }
+                    })
+                    .then(res => res.json())
+                    .then(customer => {
+                        updateAllIdentificationNameDropdowns(customer);
+                    })
+                    .catch(err => console.error('Error fetching customer:', err));
+                }
             }
         });
+    }
+    
+    // Add event listener for Country of Citizenship change
+    const countrySelect = document.getElementById('personalCountryOfCitizenship');
+    if (countrySelect) {
+        countrySelect.addEventListener('change', handleCountryOfCitizenshipChange);
     }
 });
 
@@ -8807,6 +8884,195 @@ async function saveAddressInformation() {
 /**
  * Save Identification Details
  */
+/**
+ * Handle Country of Citizenship change - show/hide SSN/ITIN or Visa section
+ */
+function handleCountryOfCitizenshipChange() {
+    const countrySelect = document.getElementById('personalCountryOfCitizenship');
+    const ssnSection = document.getElementById('identificationSsnSection');
+    const visaSection = document.getElementById('identificationVisaSection');
+    const noSelectionMessage = document.getElementById('identificationNoSelectionMessage');
+    
+    if (!countrySelect) return;
+    
+    const selectedCountry = countrySelect.value;
+    
+    // Hide all sections first
+    if (ssnSection) ssnSection.style.display = 'none';
+    if (visaSection) visaSection.style.display = 'none';
+    if (noSelectionMessage) noSelectionMessage.style.display = 'none';
+    
+    if (selectedCountry === 'US') {
+        // Show SSN/ITIN section for US
+        if (ssnSection) {
+            ssnSection.style.display = 'block';
+            
+            // If no entries exist, add the first one
+            const container = document.getElementById('identificationSsnContainer');
+            if (container && container.children.length === 0) {
+                addIdentificationSsnEntry();
+            }
+        }
+    } else if (selectedCountry && selectedCountry !== '') {
+        // Show Visa section for non-US countries
+        if (visaSection) {
+            visaSection.style.display = 'block';
+        }
+    } else {
+        // No country selected
+        if (noSelectionMessage) {
+            noSelectionMessage.style.display = 'block';
+        }
+    }
+}
+
+/**
+ * Populate Name dropdown for SSN/ITIN entries
+ */
+function populateIdentificationNameDropdown(selectElement, customer) {
+    if (!selectElement) return;
+    
+    // Clear existing options except the first one
+    selectElement.innerHTML = '<option value="">Select Name</option>';
+    
+    // Add main customer
+    const customerName = customer?.name || 'Main Customer';
+    const mainOption = document.createElement('option');
+    mainOption.value = 'main';
+    mainOption.textContent = customerName;
+    selectElement.appendChild(mainOption);
+    
+    // Add dependents if they exist
+    const dependentsContainer = document.getElementById('dependentsContainer');
+    if (dependentsContainer) {
+        const dependentEntries = dependentsContainer.querySelectorAll('.dependent-entry');
+        dependentEntries.forEach((entry, index) => {
+            const nameInput = entry.querySelector('.dependent-name');
+            if (nameInput && nameInput.value.trim()) {
+                const dependentOption = document.createElement('option');
+                dependentOption.value = `dependent_${index}`;
+                dependentOption.textContent = nameInput.value.trim();
+                selectElement.appendChild(dependentOption);
+            }
+        });
+    }
+}
+
+/**
+ * Add a new SSN/ITIN entry
+ */
+function addIdentificationSsnEntry() {
+    const container = document.getElementById('identificationSsnContainer');
+    if (!container) return;
+    
+    // Get current customer data
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    let customer = null;
+    
+    // Try to get customer from session or fetch it
+    if (currentUser && currentUser.role === 'customer') {
+        // We'll populate the dropdown after fetching customer data
+        fetch(API_BASE_URL + '/customers/me', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` }
+        })
+        .then(res => res.json())
+        .then(cust => {
+            customer = cust;
+            updateAllIdentificationNameDropdowns(customer);
+        })
+        .catch(err => console.error('Error fetching customer:', err));
+    }
+    
+    const entryIndex = container.children.length;
+    const entryDiv = document.createElement('div');
+    entryDiv.className = 'identification-ssn-entry mb-3 p-3';
+    entryDiv.style.border = '1px solid var(--border-color)';
+    entryDiv.style.borderRadius = '8px';
+    entryDiv.style.background = 'var(--card-bg)';
+    entryDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-5 mb-2">
+                <label class="form-label" style="color: var(--text-color); font-weight: 600;">Name <span class="text-danger">*</span></label>
+                <select class="form-control identification-name-select" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+                    <option value="">Select Name</option>
+                </select>
+            </div>
+            <div class="col-md-5 mb-2">
+                <label class="form-label" style="color: var(--text-color); font-weight: 600;">SSN / ITIN <span class="text-danger">*</span></label>
+                <input type="text" class="form-control identification-ssn-input" placeholder="XXX-XX-XXXX" maxlength="11" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
+            </div>
+            <div class="col-md-2 mb-2 d-flex align-items-end">
+                <button type="button" class="btn btn-sm btn-danger w-100" onclick="removeIdentificationSsnEntry(this)">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(entryDiv);
+    
+    // Populate the dropdown for this new entry
+    const nameSelect = entryDiv.querySelector('.identification-name-select');
+    if (customer) {
+        populateIdentificationNameDropdown(nameSelect, customer);
+    } else {
+        // Wait a bit and try again
+        setTimeout(() => {
+            fetch(API_BASE_URL + '/customers/me', {
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('authToken')}` }
+            })
+            .then(res => res.json())
+            .then(cust => {
+                populateIdentificationNameDropdown(nameSelect, cust);
+            })
+            .catch(err => console.error('Error fetching customer:', err));
+        }, 500);
+    }
+    
+    // Add input formatting for SSN/ITIN
+    const ssnInput = entryDiv.querySelector('.identification-ssn-input');
+    ssnInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 3) {
+            value = value.substring(0, 3) + '-' + value.substring(3);
+        }
+        if (value.length > 6) {
+            value = value.substring(0, 6) + '-' + value.substring(6, 10);
+        }
+        e.target.value = value;
+    });
+}
+
+/**
+ * Remove an SSN/ITIN entry
+ */
+function removeIdentificationSsnEntry(button) {
+    const container = document.getElementById('identificationSsnContainer');
+    if (!container) return;
+    
+    button.closest('.identification-ssn-entry').remove();
+    
+    if (container.children.length === 0) {
+        container.innerHTML = '<p class="text-muted">No SSN/ITIN entries added yet.</p>';
+    }
+}
+
+/**
+ * Update all Name dropdowns in SSN/ITIN entries
+ */
+function updateAllIdentificationNameDropdowns(customer) {
+    const container = document.getElementById('identificationSsnContainer');
+    if (!container) return;
+    
+    const nameSelects = container.querySelectorAll('.identification-name-select');
+    nameSelects.forEach(select => {
+        populateIdentificationNameDropdown(select, customer);
+    });
+}
+
+/**
+ * Save Identification Details (SSN/ITIN or Visa information)
+ */
 async function saveIdentificationDetails() {
     try {
         const token = sessionStorage.getItem('authToken');
@@ -8831,23 +9097,66 @@ async function saveIdentificationDetails() {
 
         const customer = await meResponse.json();
         const customerId = customer.id;
+        const countrySelect = document.getElementById('personalCountryOfCitizenship');
+        const selectedCountry = countrySelect?.value || '';
 
-        const identificationData = {
-            citizenship: document.getElementById('identificationCitizenship')?.value || ''
-        };
+        const identificationData = {};
 
-        // Save to backend
-        const response = await fetch(API_BASE_URL + `/customers/${customerId}`, {
-            method: 'PUT',
+        if (selectedCountry === 'US') {
+            // Collect SSN/ITIN entries for US
+            const container = document.getElementById('identificationSsnContainer');
+            const ssnEntries = [];
+            
+            if (container) {
+                const entries = container.querySelectorAll('.identification-ssn-entry');
+                entries.forEach(entry => {
+                    const nameSelect = entry.querySelector('.identification-name-select');
+                    const ssnInput = entry.querySelector('.identification-ssn-input');
+                    
+                    if (nameSelect && ssnInput && nameSelect.value && ssnInput.value.trim()) {
+                        ssnEntries.push({
+                            name: nameSelect.value,
+                            nameDisplay: nameSelect.options[nameSelect.selectedIndex]?.text || '',
+                            ssn_itin: ssnInput.value.trim()
+                        });
+                    }
+                });
+            }
+            
+            identificationData.ssn_itin_entries = ssnEntries;
+        } else if (selectedCountry && selectedCountry !== '') {
+            // Collect Visa information for non-US countries
+            const visaType = document.getElementById('identificationVisaType')?.value || '';
+            const latestVisaChange = document.getElementById('identificationLatestVisaChange')?.value || '';
+            const primaryPortOfEntry = document.getElementById('identificationPrimaryPortOfEntry')?.value || '';
+            const totalMonthsUS = document.getElementById('identificationTotalMonthsUS')?.value || '';
+            
+            identificationData.visa_type = visaType;
+            identificationData.latest_visa_change = latestVisaChange;
+            identificationData.primary_port_of_entry = primaryPortOfEntry;
+            identificationData.total_months_stayed_us = totalMonthsUS ? parseFloat(totalMonthsUS) : null;
+        }
+
+        // Save to backend via tax-info endpoint (since it's related to tax filing)
+        const taxYear = document.getElementById('taxYearSelector')?.value || new Date().getFullYear();
+        const response = await fetch(API_BASE_URL + `/customers/tax-info`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(identificationData)
+            body: JSON.stringify({
+                customer_id: customerId,
+                tax_year: parseInt(taxYear),
+                ...identificationData
+            })
         });
 
         if (response.ok) {
-            showNotification('success', 'Identification Details Saved', 'Your identification details have been saved successfully!');
+            const message = selectedCountry === 'US' 
+                ? 'Your SSN/ITIN information has been saved successfully!'
+                : 'Your visa information has been saved successfully!';
+            showNotification('success', 'Identification Details Saved', message);
         } else {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to save identification details');

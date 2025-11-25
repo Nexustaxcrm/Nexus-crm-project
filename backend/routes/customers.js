@@ -1919,7 +1919,12 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
             foreign_account_details: taxData.foreign_account_details || null,
             home_office_deduction: taxData.home_office_deduction || false,
             home_office_details: taxData.home_office_details || null,
-            filing_checklist: taxData.filing_checklist ? JSON.stringify(taxData.filing_checklist) : null
+            filing_checklist: taxData.filing_checklist ? JSON.stringify(taxData.filing_checklist) : null,
+            ssn_itin_entries: taxData.ssn_itin_entries ? JSON.stringify(taxData.ssn_itin_entries) : null,
+            visa_type: taxData.visa_type || null,
+            latest_visa_change: taxData.latest_visa_change || null,
+            primary_port_of_entry: taxData.primary_port_of_entry || null,
+            total_months_stayed_us: taxData.total_months_stayed_us || null
         };
 
         // Use UPSERT (INSERT ... ON CONFLICT UPDATE)
@@ -1935,9 +1940,9 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
                 itemized_deductions, tax_credits, self_employment_income,
                 business_expenses, foreign_accounts, foreign_account_details,
                 home_office_deduction, home_office_details, filing_checklist,
-                updated_at
+                ssn_itin_entries, visa_type, latest_visa_change, primary_port_of_entry, total_months_stayed_us, updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, CURRENT_TIMESTAMP
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, CURRENT_TIMESTAMP
             )
             ON CONFLICT (customer_id, tax_year) 
             DO UPDATE SET
@@ -1974,6 +1979,11 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
                 home_office_deduction = EXCLUDED.home_office_deduction,
                 home_office_details = EXCLUDED.home_office_details,
                 filing_checklist = EXCLUDED.filing_checklist,
+                ssn_itin_entries = EXCLUDED.ssn_itin_entries,
+                visa_type = EXCLUDED.visa_type,
+                latest_visa_change = EXCLUDED.latest_visa_change,
+                primary_port_of_entry = EXCLUDED.primary_port_of_entry,
+                total_months_stayed_us = EXCLUDED.total_months_stayed_us,
                 updated_at = CURRENT_TIMESTAMP
             RETURNING *
         `, [
@@ -1988,7 +1998,8 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
             taxInfoData.income_1099, taxInfoData.dependents, taxInfoData.itemized_deductions,
             taxInfoData.tax_credits, taxInfoData.self_employment_income, taxInfoData.business_expenses,
             taxInfoData.foreign_accounts, taxInfoData.foreign_account_details, taxInfoData.home_office_deduction,
-            taxInfoData.home_office_details, taxInfoData.filing_checklist
+            taxInfoData.home_office_details, taxInfoData.filing_checklist, taxInfoData.ssn_itin_entries,
+            taxInfoData.visa_type, taxInfoData.latest_visa_change, taxInfoData.primary_port_of_entry, taxInfoData.total_months_stayed_us
         ]);
 
         // Parse JSON fields for response
@@ -2001,6 +2012,7 @@ router.post('/tax-info', authenticateToken, async (req, res) => {
         if (taxInfo.self_employment_income) taxInfo.self_employment_income = JSON.parse(taxInfo.self_employment_income);
         if (taxInfo.business_expenses) taxInfo.business_expenses = JSON.parse(taxInfo.business_expenses);
         if (taxInfo.filing_checklist) taxInfo.filing_checklist = JSON.parse(taxInfo.filing_checklist);
+        if (taxInfo.ssn_itin_entries) taxInfo.ssn_itin_entries = JSON.parse(taxInfo.ssn_itin_entries);
 
         console.log(`✅ Tax information saved for customer ID: ${customer_id}, tax year: ${tax_year}`);
         res.json({ success: true, message: 'Tax information saved successfully', tax_info: taxInfo });
@@ -2053,6 +2065,7 @@ router.get('/tax-info/:customerId', authenticateToken, async (req, res) => {
         if (taxInfo.self_employment_income) taxInfo.self_employment_income = JSON.parse(taxInfo.self_employment_income);
         if (taxInfo.business_expenses) taxInfo.business_expenses = JSON.parse(taxInfo.business_expenses);
         if (taxInfo.filing_checklist) taxInfo.filing_checklist = JSON.parse(taxInfo.filing_checklist);
+        if (taxInfo.ssn_itin_entries) taxInfo.ssn_itin_entries = JSON.parse(taxInfo.ssn_itin_entries);
 
         res.json(taxInfo);
     } catch (error) {
