@@ -4478,8 +4478,13 @@
                         <div id="customer-section-personal-info" class="customer-section">
                             <!-- My Information -->
                             <div class="card mb-4" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; padding: 35px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
-                            <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px;">
-                                <i class="fas fa-user-shield" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> My Information
+                            <h4 class="mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; letter-spacing: -0.5px; border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>
+                                    <i class="fas fa-user-shield" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> My Information
+                                </span>
+                                <button type="button" class="btn btn-sm" onclick="showReferFriendModal()" style="background: var(--primary-gradient); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9em; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
+                                    <i class="fas fa-user-plus" style="margin-right: 6px;"></i> Refer a Friend
+                                </button>
                             </h4>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -6401,6 +6406,56 @@
         </div>
     </div>
 
+    <!-- Referrals Modal -->
+    <div class="modal fade" id="referralsModal" tabindex="-1">
+        <div class="modal-dialog modal-80">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-friends"></i> Referrals</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="data-table assign-work-table">
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Referred Customers</h6>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary assign-toolbar-btn" onclick="exportReferrals()">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" style="table-layout: auto; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 15%; min-width: 150px;">Name</th>
+                                            <th style="width: 12%; min-width: 120px;">Phone</th>
+                                            <th style="width: 18%; min-width: 180px;">Email</th>
+                                            <th style="width: 15%; min-width: 150px;">Referred By</th>
+                                            <th style="width: 15%; min-width: 150px;">Date Referred</th>
+                                            <th style="width: 10%; min-width: 100px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="referralsTable">
+                                        <tr>
+                                            <td colspan="6" class="text-center">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="referralsPagination" class="d-flex justify-content-between align-items-center mt-3 mb-3 px-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm Delete Modal -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
         <div class="modal-dialog">
@@ -6459,6 +6514,44 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="saveNewLead()">Save Customer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Refer a Friend Modal -->
+    <div class="modal fade" id="referFriendModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: var(--card-gradient); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.1);">
+                <div class="modal-header" style="border-bottom: 3px solid; border-image: var(--primary-gradient) 1; padding: 20px 30px;">
+                    <h5 class="modal-title" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700;">
+                        <i class="fas fa-user-plus" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 10px;"></i> Refer a Friend
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 30px;">
+                    <form id="referFriendForm">
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="referFriendName" required style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; padding: 10px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Phone</label>
+                            <input type="tel" class="form-control" id="referFriendPhone" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; padding: 10px;">
+                            <small class="text-muted" style="color: var(--text-muted);">Enter phone number or email (at least one is required)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">Email Address</label>
+                            <input type="email" class="form-control" id="referFriendEmail" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; padding: 10px;">
+                            <small class="text-muted" style="color: var(--text-muted);">Enter email address or phone (at least one is required)</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color); padding: 20px 30px;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 10px 20px;">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitReferral()" style="background: var(--primary-gradient); border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600;">
+                        <i class="fas fa-paper-plane" style="margin-right: 6px;"></i> Submit
+                    </button>
                 </div>
             </div>
         </div>

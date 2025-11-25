@@ -324,6 +324,46 @@ async function createCustomerTaxInfoTableMigration(pool) {
     }
 }
 
+// Migration function to create referrals table
+async function createReferralsTableMigration(pool) {
+    try {
+        const tableCheck = await pool.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='referrals'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('🔄 Creating referrals table...');
+            await pool.query(`
+                CREATE TABLE referrals (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL,
+                    phone VARCHAR(50),
+                    email VARCHAR(255),
+                    referred_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                    referred_by_name VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            
+            // Create indexes
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_referrals_referred_by ON referrals(referred_by)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_referrals_created_at ON referrals(created_at DESC)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_referrals_email ON referrals(email) WHERE email IS NOT NULL');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_referrals_phone ON referrals(phone) WHERE phone IS NOT NULL');
+            
+            console.log('✅ Referrals table created');
+        } else {
+            console.log('✅ Referrals table already exists');
+        }
+    } catch (error) {
+        console.error('❌ Error creating referrals table:', error.message);
+        throw error;
+    }
+}
+
 // Initialize database schema and create admin user if needed
 async function initializeDatabase() {
     try {
@@ -421,6 +461,14 @@ async function initializeDatabase() {
         // Run migration to create customer_tax_info table
         try {
             await createCustomerTaxInfoTableMigration(pool);
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to create referrals table
+        try {
+            await createReferralsTableMigration(pool);
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup
@@ -623,12 +671,14 @@ const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const userRoutes = require('./routes/users');
 const contactRoutes = require('./routes/contact');
+const referralRoutes = require('./routes/referrals');
 
 // Initialize routes with app (so they can access the pool)
 if (authRoutes.init) authRoutes.init(app);
 if (customerRoutes.init) customerRoutes.init(app);
 if (userRoutes.init) userRoutes.init(app);
 if (contactRoutes.init) contactRoutes.init(app);
+if (referralRoutes.init) referralRoutes.init(app);
 
 // Use API routes (must come before static file serving)
 // Add logging middleware to track API requests
@@ -641,6 +691,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/referrals', referralRoutes);
 
 // Log registered routes for debugging
 console.log('✅ API routes registered:');

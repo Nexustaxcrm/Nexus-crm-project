@@ -1190,6 +1190,21 @@ async function loadAdminDashboard() {
         
         const stats = await response.json();
         
+        // Fetch referral statistics
+        let referralStats = { totalReferrals: 0 };
+        try {
+            const referralResponse = await fetch(API_BASE_URL + '/referrals/stats', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (referralResponse.ok) {
+                referralStats = await referralResponse.json();
+            }
+        } catch (error) {
+            console.warn('Failed to fetch referral stats:', error);
+        }
+        
         // Use API statistics for all counts
         const statsHtml = `
             <div class="col-md-3">
@@ -1262,6 +1277,15 @@ async function loadAdminDashboard() {
                     </div>
                     <div class="stats-number">${stats.archivedCount || 0}</div>
                     <div class="stats-label">Archived</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" onclick="showReferralsView()">
+                    <div class="stats-icon" style="background: #9b59b6;">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="stats-number">${referralStats.totalReferrals || 0}</div>
+                    <div class="stats-label">Referrals</div>
                 </div>
             </div>
         `;
@@ -2336,6 +2360,247 @@ async function saveNewLead() {
     } catch (error) {
         console.error('Error creating customer:', error);
         showNotification('error', 'Error', 'Failed to add customer. Please try again.');
+    }
+}
+
+// Refer a Friend Functions
+function showReferFriendModal() {
+    const modal = new bootstrap.Modal(document.getElementById('referFriendModal'));
+    modal.show();
+}
+
+// Show Referrals View (Admin Dashboard)
+async function showReferralsView() {
+    const modal = new bootstrap.Modal(document.getElementById('referralsModal'));
+    modal.show();
+    await loadReferrals();
+}
+
+// Load and display referrals
+async function loadReferrals() {
+    const tbody = document.getElementById('referralsTable');
+    const pager = document.getElementById('referralsPagination');
+    
+    if (!tbody) return;
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Authentication required</td></tr>';
+            return;
+        }
+        
+        const response = await fetch(API_BASE_URL + '/referrals', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch referrals');
+        }
+        
+        const referrals = await response.json();
+        
+        if (referrals.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No referrals found</td></tr>';
+            if (pager) pager.innerHTML = '';
+            return;
+        }
+        
+        // Pagination
+        const pageSize = 50;
+        const totalPages = Math.ceil(referrals.length / pageSize);
+        const currentPage = window.referralsCurrentPage || 1;
+        const start = (currentPage - 1) * pageSize;
+        const end = Math.min(start + pageSize, referrals.length);
+        const pageReferrals = referrals.slice(start, end);
+        
+        // Render table
+        let html = '';
+        for (const referral of pageReferrals) {
+            const referredDate = new Date(referral.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            html += `
+                <tr>
+                    <td><strong>${referral.name || 'N/A'}</strong></td>
+                    <td>${referral.phone ? `<a href="tel:${referral.phone}" class="text-decoration-none">${referral.phone}</a>` : '-'}</td>
+                    <td>${referral.email ? `<a href="mailto:${referral.email}" class="text-decoration-none">${referral.email}</a>` : '-'}</td>
+                    <td>${referral.referred_by_name || referral.referred_by_username || 'Unknown'}</td>
+                    <td><small class="text-muted">${referredDate}</small></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="createCustomerFromReferral(${referral.id}, '${referral.name.replace(/'/g, "\\'")}', '${referral.phone || ''}', '${referral.email || ''}')" title="Create Customer">
+                            <i class="fas fa-user-plus"></i> Create Customer
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = html;
+        
+        // Render pagination
+        if (pager && totalPages > 1) {
+            let pagerHtml = `<div class="d-flex align-items-center gap-2">
+                <span class="text-muted">Showing ${start + 1}-${end} of ${referrals.length}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">`;
+            
+            if (currentPage > 1) {
+                pagerHtml += `<button class="btn btn-sm btn-outline-primary" onclick="window.referralsCurrentPage = ${currentPage - 1}; loadReferrals();">Previous</button>`;
+            }
+            
+            pagerHtml += `<span class="text-muted">Page ${currentPage} of ${totalPages}</span>`;
+            
+            if (currentPage < totalPages) {
+                pagerHtml += `<button class="btn btn-sm btn-outline-primary" onclick="window.referralsCurrentPage = ${currentPage + 1}; loadReferrals();">Next</button>`;
+            }
+            
+            pagerHtml += '</div>';
+            pager.innerHTML = pagerHtml;
+        } else if (pager) {
+            pager.innerHTML = `<div class="d-flex align-items-center gap-2">
+                <span class="text-muted">Showing ${referrals.length} referral${referrals.length !== 1 ? 's' : ''}</span>
+            </div>`;
+        }
+        
+    } catch (error) {
+        console.error('Error loading referrals:', error);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading referrals. Please try again.</td></tr>';
+        if (pager) pager.innerHTML = '';
+    }
+}
+
+// Create customer from referral
+async function createCustomerFromReferral(referralId, name, phone, email) {
+    if (!confirm(`Create a new customer from this referral?\n\nName: ${name}\nPhone: ${phone || 'N/A'}\nEmail: ${email || 'N/A'}`)) {
+        return;
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to create customers');
+            return;
+        }
+        
+        const customerData = {
+            name: name,
+            email: email || null,
+            phone: phone || null,
+            status: 'pending',
+            assigned_to: null,
+            notes: `Created from referral ID: ${referralId}`
+        };
+        
+        const response = await fetch(API_BASE_URL + '/customers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(customerData)
+        });
+        
+        if (response.ok) {
+            const newCustomer = await response.json();
+            showNotification('success', 'Customer Created', 'New customer has been created from referral!');
+            // Reload referrals to update the list
+            await loadReferrals();
+            // Optionally reload dashboard
+            if (typeof loadDashboard === 'function') {
+                loadDashboard();
+            }
+        } else {
+            const error = await response.json();
+            showNotification('error', 'Error', error.error || 'Failed to create customer');
+        }
+    } catch (error) {
+        console.error('Error creating customer from referral:', error);
+        showNotification('error', 'Error', 'Failed to create customer. Please try again.');
+    }
+}
+
+// Export referrals
+function exportReferrals() {
+    // This would export referrals to CSV/Excel
+    showNotification('info', 'Export', 'Export functionality coming soon!');
+}
+
+async function submitReferral() {
+    const name = document.getElementById('referFriendName').value.trim();
+    const phone = document.getElementById('referFriendPhone').value.trim();
+    const email = document.getElementById('referFriendEmail').value.trim();
+    
+    // Validate that at least name is provided
+    if (!name) {
+        showNotification('error', 'Validation Error', 'Name is required.');
+        return;
+    }
+    
+    // Validate that at least phone or email is provided
+    if (!phone && !email) {
+        showNotification('error', 'Validation Error', 'Please provide either a phone number or email address.');
+        return;
+    }
+    
+    // Validate email format if provided
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showNotification('error', 'Validation Error', 'Please enter a valid email address.');
+            return;
+        }
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to submit a referral.');
+            return;
+        }
+        
+        // Get current user info for referrer (backend will use token to get user ID)
+        const currentUserData = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        
+        // Create referral data (backend will extract user ID from token)
+        const referralData = {
+            name: name,
+            phone: phone || null,
+            email: email || null,
+            referred_by_name: currentUserData.name || currentUserData.username || 'Unknown'
+        };
+        
+        const response = await fetch(API_BASE_URL + '/referrals', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(referralData)
+        });
+        
+        if (response.ok) {
+            const referral = await response.json();
+            
+            // Hide modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('referFriendModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('referFriendForm').reset();
+            
+            showNotification('success', 'Referral Submitted', 'Thank you for referring a friend! We will contact them soon.');
+        } else {
+            const error = await response.json();
+            showNotification('error', 'Error', error.error || 'Failed to submit referral. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error submitting referral:', error);
+        showNotification('error', 'Error', 'Failed to submit referral. Please try again.');
     }
 }
 
