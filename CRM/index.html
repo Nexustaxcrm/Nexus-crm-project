@@ -4586,6 +4586,19 @@
                                 </button>
                             </div>
                         </div>
+                        
+                        <!-- Dependents Information -->
+                        <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
+                            <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
+                                <i class="fas fa-child"></i> Dependents
+                            </h4>
+                            <div id="dependentsContainer">
+                                <p class="text-muted">No dependents added yet.</p>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDependent()">
+                                <i class="fas fa-plus"></i> Add Dependent
+                            </button>
+                        </div>
                         </div>
 
                         <!-- Tax Filings Section -->
@@ -4679,19 +4692,6 @@
                                             <input type="date" id="taxSpouseDateOfBirth" class="form-control" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color);">
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Dependents Information -->
-                                <div class="card mb-4" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px var(--shadow);">
-                                    <h4 class="mb-4" style="color: var(--text-color); border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
-                                        <i class="fas fa-child"></i> Dependents
-                                    </h4>
-                                    <div id="dependentsContainer">
-                                        <p class="text-muted">No dependents added yet.</p>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDependent()">
-                                        <i class="fas fa-plus"></i> Add Dependent
-                                    </button>
                                 </div>
                                 
                                 <!-- Save Tax Information Button -->

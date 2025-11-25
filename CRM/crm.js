@@ -9441,8 +9441,22 @@ function showDobYearSelection() {
     if (panelTitle) {
         panelTitle.textContent = 'Select Year';
     }
-    // Reset to page containing current year
-    currentDobYearPage = 0;
+    // Calculate which page contains the current year
+    const currentYear = currentDobCalendarDate.getFullYear();
+    const today = new Date();
+    const currentYearToday = today.getFullYear();
+    const startYear = currentYearToday - 100;
+    const yearsPerPage = 15;
+    
+    // Find which page contains the current year
+    for (let page = 0; page < 10; page++) {
+        const pageStartYear = startYear + (page * yearsPerPage);
+        const pageEndYear = Math.min(startYear + ((page + 1) * yearsPerPage) - 1, currentYearToday + 10);
+        if (currentYear >= pageStartYear && currentYear <= pageEndYear) {
+            currentDobYearPage = page;
+            break;
+        }
+    }
     renderDobYearSelection();
 }
 
@@ -9463,25 +9477,15 @@ function renderDobYearSelection() {
     const totalYears = endYear - startYear + 1;
     const totalPages = Math.ceil(totalYears / yearsPerPage);
     
-    // Find which page contains the current year
-    let currentPage = 0;
-    for (let page = 0; page < totalPages; page++) {
-        const pageStartYear = startYear + (page * yearsPerPage);
-        const pageEndYear = Math.min(startYear + ((page + 1) * yearsPerPage) - 1, endYear);
-        if (currentYear >= pageStartYear && currentYear <= pageEndYear) {
-            currentPage = page;
-            break;
-        }
-    }
+    // Calculate the page range to show based on currentDobYearPage
+    const pageStartYear = startYear + (currentDobYearPage * yearsPerPage);
+    const pageEndYear = Math.min(startYear + ((currentDobYearPage + 1) * yearsPerPage) - 1, endYear);
     
-    const pageStartYear = startYear + (currentPage * yearsPerPage);
-    const pageEndYear = Math.min(startYear + ((currentPage + 1) * yearsPerPage) - 1, endYear);
+    let html = `<div class="ms-year-grid" style="max-height: 300px; overflow-y: auto;">`;
     
-    let html = `<div class="ms-year-grid">`;
-    
-    // Add navigation buttons if needed
-    if (currentPage > 0) {
-        html += `<div class="ms-year-item" style="grid-column: 1 / -1; font-weight: 600; padding: 8px; text-align: center; cursor: pointer; background: #f3f3f3; border-radius: 2px; margin-bottom: 4px;" onclick="navigateDobYearPage(${currentPage - 1})">
+    // Add navigation button for previous page if not on first page
+    if (currentDobYearPage > 0) {
+        html += `<div class="ms-year-item" style="grid-column: 1 / -1; font-weight: 600; padding: 8px; text-align: center; cursor: pointer; background: #f3f3f3; border-radius: 2px; margin-bottom: 4px;" onclick="navigateDobYearPage(${currentDobYearPage - 1})">
             <i class="fas fa-chevron-up"></i> Previous Years
         </div>`;
     }
@@ -9492,15 +9496,16 @@ function renderDobYearSelection() {
         html += `<div class="${classes}" onclick="selectDobYear(${year})">${year}</div>`;
     }
     
-    // Add navigation button for next page if needed
-    if (currentPage < totalPages - 1) {
-        html += `<div class="ms-year-item" style="grid-column: 1 / -1; font-weight: 600; padding: 8px; text-align: center; cursor: pointer; background: #f3f3f3; border-radius: 2px; margin-top: 4px;" onclick="navigateDobYearPage(${currentPage + 1})">
-            <i class="fas fa-chevron-down"></i> More Years
-        </div>`;
-    }
-    
     html += `</div>`;
     panelContent.innerHTML = html;
+    
+    // Scroll to current year if it's in the visible range
+    setTimeout(() => {
+        const currentYearElement = panelContent.querySelector(`.ms-year-item.current-year`);
+        if (currentYearElement) {
+            currentYearElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
 }
 
 // Store current year page for navigation
