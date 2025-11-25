@@ -397,10 +397,16 @@ function setupEventListeners() {
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('username').value.trim();
-    const activeMethodBtn = document.querySelector('.login-method-btn.active');
-    const loginMethod = activeMethodBtn ? activeMethodBtn.getAttribute('data-method') : 'password';
+    const loginForm = document.getElementById('loginForm');
+    // Get login method from form data attribute (set when method button is clicked)
+    const loginMethod = loginForm ? loginForm.getAttribute('data-login-method') || 'password' : 'password';
     const password = document.getElementById('password').value;
     const otp = document.getElementById('otp').value.trim();
+    
+    console.log('🔐 Login method:', loginMethod);
+    console.log('🔐 Username:', username);
+    console.log('🔐 Has password:', !!password);
+    console.log('🔐 Has OTP:', !!otp);
     
     // Validate inputs
     if (!username) {
@@ -543,8 +549,12 @@ async function handleLogin(e) {
             // If customer role, ensure customer dashboard is shown
             if (data.user.role === 'customer') {
                 console.log('🎯 Customer login detected, routing to customer dashboard');
-                // Hide admin dashboard
+                // Hide login page and admin dashboard
+                const loginPage = document.getElementById('loginPage');
                 const dashboardPage = document.getElementById('dashboardPage');
+                if (loginPage) {
+                    loginPage.style.display = 'none';
+                }
                 if (dashboardPage) {
                     dashboardPage.style.display = 'none';
                 }
@@ -552,7 +562,13 @@ async function handleLogin(e) {
                 const customerDashboard = document.getElementById('customerDashboardPage');
                 if (customerDashboard) {
                     customerDashboard.style.display = 'block';
+                    // Load customer data
+                    if (typeof loadCustomerDashboard === 'function') {
+                        loadCustomerDashboard();
+                    }
                 }
+                showNotification('success', 'Login Successful', 'Welcome to your dashboard!');
+                return; // Don't call showDashboard() for customers
             }
             
             showDashboard();

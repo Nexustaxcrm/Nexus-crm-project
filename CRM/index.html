@@ -3624,10 +3624,21 @@
             const otpField = document.getElementById('otpField');
             const passwordInput = document.getElementById('password');
             const otpInput = document.getElementById('otp');
+            const loginForm = document.getElementById('loginForm');
+            
+            // Store selected login method in a hidden input or data attribute
+            if (loginForm) {
+                loginForm.setAttribute('data-login-method', 'password'); // Default
+            }
             
             loginMethodBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const method = this.getAttribute('data-method');
+                    
+                    // Store the selected method in the form
+                    if (loginForm) {
+                        loginForm.setAttribute('data-login-method', method);
+                    }
                     
                     // Hide both login method buttons
                     if (loginMethodSelection) {
