@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 // Get shared pool from app.locals (set in server.js)
@@ -14,8 +15,30 @@ router.init = function(app) {
     verifyToken = authRoutes.verifyToken;
 };
 
+// JWT authentication middleware
+const authenticateToken = (req, res, next) => {
+    // Use verifyToken from auth routes if available, otherwise use inline version
+    if (verifyToken) {
+        return verifyToken(req, res, next);
+    }
+    
+    // Fallback authentication (should not happen if init is called properly)
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: 'Access token required' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+};
+
 // Get all referrals (admin only)
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -44,7 +67,7 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // Get referral statistics (admin only)
-router.get('/stats', verifyToken, async (req, res) => {
+router.get('/stats', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
@@ -71,7 +94,7 @@ router.get('/stats', verifyToken, async (req, res) => {
 });
 
 // Create a new referral (authenticated users)
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
