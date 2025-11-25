@@ -4960,6 +4960,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Load customer documents for admin/preparation view
+async function loadCustomerDocuments(customerId) {
     const documentsList = document.getElementById('customerDocumentsList');
     if (!documentsList) return;
     
