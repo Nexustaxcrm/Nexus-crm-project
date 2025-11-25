@@ -1888,19 +1888,19 @@ kbd {
   gap: 6px;
   color: #ffffff;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13.2px;
   transition: transform 0.3s ease;
 }
 .top-bar-contact-item img {
-  width: 14px;
-  height: 14px;
+  width: 15.4px;
+  height: 15.4px;
   flex-shrink: 0;
   filter: brightness(0) invert(1);
   transition: transform 0.3s ease;
 }
 .top-bar-contact-item svg {
-  width: 14px;
-  height: 14px;
+  width: 15.4px;
+  height: 15.4px;
   flex-shrink: 0;
   fill: currentColor;
   transition: transform 0.3s ease;
@@ -1959,7 +1959,15 @@ kbd {
     justify-content: flex-start;
   }
   .top-bar-contact-item {
-    font-size: 11px;
+    font-size: 12.1px;
+  }
+  .top-bar-contact-item img {
+    width: 13.2px;
+    height: 13.2px;
+  }
+  .top-bar-contact-item svg {
+    width: 13.2px;
+    height: 13.2px;
   }
   .top-bar-btn {
     padding: 4px 14px;
