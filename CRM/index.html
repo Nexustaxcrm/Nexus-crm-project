@@ -2742,6 +2742,40 @@
             font-style: italic;
             margin-top: 10px;
         }
+        
+        .login-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .login-footer-links {
+            margin-bottom: 10px;
+        }
+        
+        .login-footer-link {
+            color: #545454;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.2s ease;
+        }
+        
+        .login-footer-link:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        
+        .login-footer-separator {
+            color: #999;
+            margin: 0 8px;
+            font-size: 12px;
+        }
+        
+        .login-footer-copyright {
+            color: #707070;
+            font-size: 11px;
+        }
 
         .form-control {
             padding: 12px 15px;
@@ -3357,7 +3391,6 @@
                 </div>
             </div>
             <div class="login-welcome">
-                <h3>Welcome to Nexus Tax Filing</h3>
                 <p>We are your trusted tax experts, dedicated to making tax filing simple and stress-free for you.</p>
                 <p>Access your personalized dashboard to manage your tax documents, track your refund status, and stay connected with our team.</p>
                 <p class="welcome-subtitle">Secure, professional, and designed with your needs in mind.</p>
@@ -3373,6 +3406,16 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
+            <div class="login-footer">
+                <div class="login-footer-links">
+                    <a href="#" class="login-footer-link">Privacy Policy</a>
+                    <span class="login-footer-separator">|</span>
+                    <a href="#" class="login-footer-link">Terms of Service</a>
+                </div>
+                <div class="login-footer-copyright">
+                    <span>&copy; 2025 Nexus Tax Filing. All rights reserved.</span>
+                </div>
+            </div>
         </div>
     </div>
 
