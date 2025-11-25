@@ -1933,11 +1933,13 @@ kbd {
   background-color: #1a1a2e;
 }
 .top-bar-btn.signup-btn {
-  background-color: #2dce89;
-  color: #ffffff;
+  background-color: var(--primary-color);
+  color: #030917;
+  font-weight: 600;
 }
 .top-bar-btn.signup-btn:hover {
-  background-color: #25b877;
+  background-color: #063232;
+  color: #ffffff;
 }
 @media (max-width: 768px) {
   .ak-top-bar {
