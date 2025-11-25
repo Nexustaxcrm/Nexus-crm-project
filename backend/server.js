@@ -1,3 +1,6 @@
+// Suppress AWS SDK v2 deprecation warnings (not an error, just a maintenance mode notice)
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
+
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
