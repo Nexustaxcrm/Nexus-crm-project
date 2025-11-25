@@ -3526,10 +3526,10 @@
                     <label class="form-label">User Name / Email</label>
                     <input type="text" id="username" class="form-control" placeholder="Enter user name or email" required="">
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" id="loginMethodSelection">
                     <label class="form-label">Login Method</label>
                     <div class="login-method-buttons">
-                        <button type="button" class="btn btn-outline-primary login-method-btn active" data-method="password">
+                        <button type="button" class="btn btn-outline-primary login-method-btn" data-method="password">
                             Login via Password
                         </button>
                         <button type="button" class="btn btn-outline-primary login-method-btn" data-method="otp">
@@ -3537,7 +3537,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="mb-3" id="passwordField">
+                <div class="mb-3" id="passwordField" style="display: none;">
                     <label class="form-label">Password</label>
                     <input type="password" id="password" class="form-control" placeholder="Enter password">
                 </div>
@@ -3603,6 +3603,7 @@
         // Login Method Selection Handler
         document.addEventListener('DOMContentLoaded', function() {
             const loginMethodBtns = document.querySelectorAll('.login-method-btn');
+            const loginMethodSelection = document.getElementById('loginMethodSelection');
             const passwordField = document.getElementById('passwordField');
             const otpField = document.getElementById('otpField');
             const passwordInput = document.getElementById('password');
@@ -3610,20 +3611,22 @@
             
             loginMethodBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // Remove active class from all buttons
-                    loginMethodBtns.forEach(b => b.classList.remove('active'));
-                    // Add active class to clicked button
-                    this.classList.add('active');
-                    
                     const method = this.getAttribute('data-method');
                     
+                    // Hide both login method buttons
+                    if (loginMethodSelection) {
+                        loginMethodSelection.style.display = 'none';
+                    }
+                    
                     if (method === 'password') {
+                        // Show password field, hide OTP field
                         passwordField.style.display = 'block';
                         otpField.style.display = 'none';
                         passwordInput.setAttribute('required', '');
                         otpInput.removeAttribute('required');
                         otpInput.value = '';
                     } else if (method === 'otp') {
+                        // Show OTP field, hide password field
                         passwordField.style.display = 'none';
                         otpField.style.display = 'block';
                         passwordInput.removeAttribute('required');
