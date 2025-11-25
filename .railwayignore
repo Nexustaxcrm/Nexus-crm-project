@@ -1,0 +1,90 @@
+# Railway Build Optimization - Exclude unnecessary files from deployment
+
+# Node modules (will be installed fresh)
+node_modules/
+backend/node_modules/
+CRM/node_modules/
+
+# Environment files (handled by Railway variables)
+.env
+.env.local
+.env.production
+.env.development
+backend/.env
+backend/.env.local
+
+# Large video files (not needed for backend deployment)
+Website/assets/video/*.mp4
+Website/assets/video/*.mov
+Website/assets/video/*.avi
+
+# Documentation files (not needed in production)
+*.md
+!README.md
+backend/*.md
+CRM/*.md
+
+# SASS source files (compiled CSS is already there)
+Website/assets/sass/
+*.scss
+*.sass
+
+# PHP files (not used in Node.js backend)
+Website/assets/php/
+
+# Duplicate/unused folders
+CRM/index_files/
+CRM/Nexus Tax Filing - Customer Relationship Management_files/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+tmp/
+temp/
+*.tmp
+
+# Build outputs
+dist/
+build/
+*.map
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Git files
+.git/
+.gitignore
+
+# Railway specific
+.railway/
+
+# Uploaded files (will be in S3 or recreated)
+backend/uploads/
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
