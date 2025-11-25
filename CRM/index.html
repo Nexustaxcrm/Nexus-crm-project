@@ -278,16 +278,6 @@
             -ms-flex-align: center;
         }
         
-        /* Navbar center group for customer dashboard navigation */
-        .navbar .nav-center-group {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 20px;
-            height: 100%;
-        }
-        
         /* Combine nav-menu and user-section into one group */
         .navbar .nav-right-group {
             display: flex;
@@ -2661,24 +2651,14 @@
         
         /* Customer Dashboard Form Styles */
         /* Customer Dashboard Navigation - Integrated in Header */
-        .nav-center-group {
-            flex: 1;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 0 20px;
-            height: 100%;
-            overflow: hidden;
-        }
-        
         .customer-nav-container {
             display: flex;
             justify-content: flex-end;
-            gap: 12px;
+            gap: clamp(6px, 0.8vw, 12px);
             align-items: center;
             height: 100%;
             flex-wrap: nowrap;
-            max-width: 100%;
+            margin-right: clamp(10px, 1.5vw, 20px);
         }
         
         .customer-nav-item {
@@ -2687,11 +2667,12 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            padding: 8px 16px;
+            padding: clamp(6px, 0.8vh, 8px) clamp(10px, 1.2vw, 16px);
             border-radius: 8px;
             transition: all 0.3s ease;
-            min-width: 90px;
-            max-width: 110px;
+            width: clamp(70px, 8vw, 100px);
+            min-width: clamp(70px, 8vw, 100px);
+            max-width: clamp(70px, 8vw, 100px);
             height: calc(100% - 10px);
             max-height: 60px;
             background: transparent;
@@ -2712,8 +2693,8 @@
         }
         
         .customer-nav-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
+            font-size: clamp(16px, 2vw, 20px);
+            margin-bottom: clamp(2px, 0.3vh, 4px);
             color: #545454;
             transition: all 0.3s ease;
             line-height: 1;
@@ -2728,17 +2709,61 @@
         }
         
         .customer-nav-label {
-            font-size: 11px;
+            font-size: clamp(9px, 1.1vw, 11px);
             font-weight: 600;
             color: #545454;
             transition: color 0.3s ease;
             text-align: center;
             line-height: 1.2;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
         }
         
         .customer-nav-item.active .customer-nav-label {
             color: #fff;
+        }
+        
+        /* Responsive adjustments for customer nav */
+        @media (max-width: 1200px) {
+            .customer-nav-item {
+                width: clamp(65px, 7vw, 90px);
+                min-width: clamp(65px, 7vw, 90px);
+                max-width: clamp(65px, 7vw, 90px);
+                padding: clamp(5px, 0.6vh, 7px) clamp(8px, 1vw, 12px);
+            }
+            
+            .customer-nav-icon {
+                font-size: clamp(14px, 1.8vw, 18px);
+            }
+            
+            .customer-nav-label {
+                font-size: clamp(8px, 1vw, 10px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .customer-nav-container {
+                gap: clamp(4px, 0.6vw, 8px);
+                margin-right: clamp(5px, 1vw, 10px);
+            }
+            
+            .customer-nav-item {
+                width: clamp(60px, 6vw, 80px);
+                min-width: clamp(60px, 6vw, 80px);
+                max-width: clamp(60px, 6vw, 80px);
+                padding: clamp(4px, 0.5vh, 6px) clamp(6px, 0.8vw, 10px);
+            }
+            
+            .customer-nav-icon {
+                font-size: clamp(12px, 1.6vw, 16px);
+                margin-bottom: 2px;
+            }
+            
+            .customer-nav-label {
+                font-size: clamp(7px, 0.9vw, 9px);
+            }
         }
         
         .customer-section {
@@ -3868,7 +3893,7 @@
                     </div>
                 </div>
             </div>
-            <div class="nav-center-group">
+            <div class="nav-right-group">
                 <!-- Customer Dashboard Navigation Cards -->
                 <div class="customer-nav-container">
                     <div class="customer-nav-item active" onclick="showCustomerSection('personal-info')">
@@ -3896,8 +3921,6 @@
                         <div class="customer-nav-label">Bank Info</div>
                     </div>
                 </div>
-            </div>
-            <div class="nav-right-group">
                 <div class="user-section">
                     <div class="dropdown">
                         <div class="user-avatar dropdown-toggle" id="customerUserAvatar" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">C</div>
