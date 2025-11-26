@@ -4751,19 +4751,24 @@ kbd {
 .feature-content {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 50px;
 }
 
 .feature-card {
   max-width: 360px;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100%;
 }
 .feature-card .feature-icon {
   margin-bottom: 28px;
   display: inline-block;
   width: 80px;
   height: 80px;
+  flex-shrink: 0;
 }
 .feature-card .feature-icon svg {
   width: 100%;
@@ -4773,14 +4778,26 @@ kbd {
 .feature-card:hover .feature-icon svg {
   transform: scale(1.1);
 }
+.feature-card .feature-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 .feature-card .feature-body .feature-title {
   margin-bottom: 15px;
   font-size: 24px;
-  line-height: 135%;
+  line-height: 1.35;
+  min-height: 65px;
+  display: flex;
+  align-items: flex-start;
+  font-weight: 600;
 }
 .feature-card .feature-desp {
-  margin-bottom: 50px;
+  margin-bottom: 20px;
   font-size: 16px;
+  flex: 1;
+  line-height: 1.6;
 }
 .feature-card.style-2 {
   padding: 35px;
@@ -4861,6 +4878,7 @@ kbd {
   .feature-content {
     flex-wrap: wrap;
     gap: 50px;
+    align-items: flex-start;
   }
 }
 @media screen and (max-width: 767px) {
