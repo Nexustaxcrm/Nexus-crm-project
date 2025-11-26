@@ -14,9 +14,12 @@ backend/.env
 backend/.env.local
 
 # Large video files (not needed for backend deployment)
-Website/assets/video/*.mp4
-Website/assets/video/*.mov
-Website/assets/video/*.avi
+Website/assets/video/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
 
 # Documentation files (not needed in production)
 *.md
@@ -35,6 +38,9 @@ Website/assets/php/
 # Duplicate/unused folders
 CRM/index_files/
 CRM/Nexus Tax Filing - Customer Relationship Management_files/
+
+# Large image files (optimize if needed)
+# Website/assets/img/ (keep this - needed for serving static files)
 
 # IDE and OS files
 .vscode/
