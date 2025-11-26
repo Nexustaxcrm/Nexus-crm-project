@@ -1484,6 +1484,14 @@ function loadEmployeeDashboard() {
 
 function loadAssignedWorkTable() {
     const assignedCustomers = customers.filter(c => c.assignedTo === currentUser.username);
+    
+    // Sort customers alphabetically by name
+    assignedCustomers.sort((a, b) => {
+        const nameA = (a.name || `${a.firstName || ''} ${a.lastName || ''}`).trim().toLowerCase();
+        const nameB = (b.name || `${b.firstName || ''} ${b.lastName || ''}`).trim().toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+    
     const tbody = document.getElementById('assignedWorkTable');
     
     tbody.innerHTML = assignedCustomers.map(customer => `
@@ -3861,6 +3869,13 @@ async function renderAssignWorkPage() {
         
         // Filter out archived customers (should already be filtered by API, but double-check)
         filteredSlice = filteredSlice.filter(c => !c.archived && c.status !== 'archived');
+        
+        // Sort customers alphabetically by name
+        filteredSlice.sort((a, b) => {
+            const nameA = (a.name || `${a.firstName || ''} ${a.lastName || ''}`).trim().toLowerCase();
+            const nameB = (b.name || `${b.firstName || ''} ${b.lastName || ''}`).trim().toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
         
         // Use pagination info from API - CRITICAL: Use totalRecords from API, not filteredSlice.length
         // filteredSlice.length is only the current page's data (e.g., 100), not the total
