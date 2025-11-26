@@ -1953,29 +1953,31 @@ kbd {
   color: #ffffff;
 }
 .top-bar-btn.pay-now-btn {
-  background: linear-gradient(135deg, #2DCE89 0%, #1ea869 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #f9d67c 0%, #f5c85a 100%);
+  color: #030917;
   font-weight: 600;
   padding: 6px 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(45, 206, 137, 0.3);
+  box-shadow: 0 2px 8px rgba(249, 214, 124, 0.4);
   border: none;
 }
 .top-bar-btn.pay-now-btn svg {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+  stroke: #030917;
 }
 .top-bar-btn.pay-now-btn:hover {
-  background: linear-gradient(135deg, #1ea869 0%, #2DCE89 100%);
-  box-shadow: 0 4px 12px rgba(45, 206, 137, 0.5);
+  background: linear-gradient(135deg, #f5c85a 0%, #f9d67c 100%);
+  box-shadow: 0 4px 12px rgba(249, 214, 124, 0.6);
   transform: translateY(-1px);
+  color: #030917;
 }
 .top-bar-btn.pay-now-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(45, 206, 137, 0.4);
+  box-shadow: 0 2px 6px rgba(249, 214, 124, 0.5);
 }
 @media (max-width: 768px) {
   .ak-top-bar {
@@ -4474,6 +4476,30 @@ kbd {
   font-weight: 900;
   font-size: 130px;
   text-transform: uppercase;
+}
+
+.moving-section-wrap.cs-bold .moving-section h2 {
+  font-size: 80px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@media (max-width: 1200px) {
+  .moving-section-wrap.cs-bold .moving-section h2 {
+    font-size: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .moving-section-wrap.cs-bold .moving-section h2 {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .moving-section-wrap.cs-bold .moving-section h2 {
+    font-size: 28px;
+  }
 }
 
 .animation-speed-10 {
