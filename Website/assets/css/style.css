@@ -6528,33 +6528,7 @@ kbd {
 }
 
 .whatsapp-float span {
-  display: none;
-}
-
-/* Show text on larger screens */
-@media screen and (min-width: 768px) {
-  .whatsapp-float {
-    width: auto;
-    height: auto;
-    min-width: 60px;
-    padding: 12px 20px;
-    border-radius: 30px;
-    flex-direction: row;
-    gap: 10px;
-  }
-  
-  .whatsapp-float span {
-    display: inline-block;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 14px;
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-  }
-  
-  .whatsapp-float svg {
-    width: 24px;
-    height: 24px;
-  }
+  display: none !important;
 }
 
 /* Mobile adjustments */
@@ -6569,5 +6543,20 @@ kbd {
   .whatsapp-float svg {
     width: 28px;
     height: 28px;
+  }
+}
+
+/* Keep button circular on all screen sizes */
+@media screen and (min-width: 768px) {
+  .whatsapp-float {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  
+  .whatsapp-float svg {
+    width: 32px;
+    height: 32px;
   }
 }
