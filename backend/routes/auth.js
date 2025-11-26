@@ -75,6 +75,15 @@ const verifyToken = (req, res, next) => {
 // Export verifyToken for use in other routes
 router.verifyToken = verifyToken;
 
+// Health check endpoint (for Railway deployment healthchecks)
+router.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'ok', 
+        message: 'Service is healthy',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Note: Removed validateLogin middleware as we now handle validation directly in the login endpoint
 // to support both password and OTP login methods
 
