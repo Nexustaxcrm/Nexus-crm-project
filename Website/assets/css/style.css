@@ -40,7 +40,7 @@
 /*--------------------------------------------------------------
 1. Basic Color Variable
 ----------------------------------------------------------------*/
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Inter:wght@400;500;600;700;800&display=swap");
 :root {
   --body-font-family: "DM Sans", sans-serif;
   --heading-font-family: "Lato", sans-serif;
@@ -2217,14 +2217,22 @@ kbd {
 .ak-nav .ak-nav_list li a {
   display: block;
   padding: 0 12px;
-  font-family: var(--body-font-family);
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   text-transform: capitalize;
-  transition: word-spacing 0.2s ease;
+  transition: all 0.3s ease;
   white-space: nowrap;
   text-decoration: none;
   color: inherit;
+  position: relative;
+  background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #0d5c5c 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: navbarGradientShift 4s ease infinite;
 }
 @media screen and (min-width: 992px) {
   .ak-nav .ak-nav_list li a {
@@ -2254,9 +2262,38 @@ kbd {
     padding: 0 25px;
   }
 }
-.ak-nav .ak-nav_list a:hover {
+.ak-nav .ak-nav_list > li > a:hover {
   color: var(--black-color);
   word-spacing: 2px;
+  background: linear-gradient(135deg, #0d5c5c 0%, #063232 50%, #0a4a4a 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: navbarGradientShift 3s ease infinite;
+  transform: translateY(-1px);
+}
+
+/* Color-changing gradient animation for navbar links */
+@keyframes navbarGradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Ensure dropdown menu items don't have gradient effect */
+.ak-nav .ak-nav_list > li.menu-item-has-children > ul > li > a {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  animation: none !important;
+  color: var(--body-color) !important;
+  font-family: var(--body-font-family) !important;
+  font-weight: 500 !important;
 }
 
 .ak-sticky_header {
@@ -2470,6 +2507,16 @@ kbd {
     padding: 0 12px;
     font-size: 17px;
     white-space: nowrap;
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #0d5c5c 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: navbarGradientShift 4s ease infinite;
+    transition: all 0.3s ease;
   }
   @media screen and (min-width: 1200px) {
     .ak-nav .ak-nav_list > li > a {
