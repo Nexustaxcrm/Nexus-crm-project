@@ -1956,7 +1956,8 @@ kbd {
   background: linear-gradient(135deg, #f9d67c 0%, #f5c85a 100%);
   color: #030917;
   font-weight: 600;
-  padding: 6px 18px;
+  padding: 4px 12px;
+  font-size: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1964,8 +1965,8 @@ kbd {
   border: none;
 }
 .top-bar-btn.pay-now-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   flex-shrink: 0;
   stroke: #030917;
 }
@@ -2012,13 +2013,13 @@ kbd {
     font-size: 11px;
   }
   .top-bar-btn.pay-now-btn {
-    padding: 5px 14px;
-    font-size: 11px;
+    padding: 3px 10px;
+    font-size: 10px;
   }
   .top-bar-btn.pay-now-btn svg {
-    width: 12px;
-    height: 12px;
-    margin-right: 4px;
+    width: 11px;
+    height: 11px;
+    margin-right: 3px;
   }
 }
 
@@ -4479,26 +4480,26 @@ kbd {
 }
 
 .moving-section-wrap.cs-bold .moving-section h2 {
-  font-size: 80px;
+  font-size: 40px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 @media (max-width: 1200px) {
   .moving-section-wrap.cs-bold .moving-section h2 {
-    font-size: 60px;
+    font-size: 30px;
   }
 }
 
 @media (max-width: 768px) {
   .moving-section-wrap.cs-bold .moving-section h2 {
-    font-size: 40px;
+    font-size: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .moving-section-wrap.cs-bold .moving-section h2 {
-    font-size: 28px;
+    font-size: 14px;
   }
 }
 
