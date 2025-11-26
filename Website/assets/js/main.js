@@ -296,25 +296,28 @@
       var $window = $(window);
       var lastScrollTop = 0;
       var $header = $(".ak-sticky_header");
-      var headerHeight = $header.outerHeight() + 30;
+      var scrollThreshold = 10; // Small threshold to start hide/show behavior
       var ticking = false;
 
       function updateHeader() {
         var windowTop = $window.scrollTop();
 
-        if (windowTop >= headerHeight) {
+        // Start hide/show behavior after small scroll threshold
+        if (windowTop >= scrollThreshold) {
           $header.addClass("ak-gescout_sticky");
-        } else {
-          $header.removeClass("ak-gescout_sticky");
-          $header.removeClass("ak-gescout_show");
-        }
-
-        if ($header.hasClass("ak-gescout_sticky")) {
+          
+          // Hide/show based on scroll direction
           if (windowTop < lastScrollTop) {
+            // Scrolling up - show navbar
             $header.addClass("ak-gescout_show");
-          } else {
+          } else if (windowTop > lastScrollTop && windowTop > scrollThreshold) {
+            // Scrolling down - hide navbar immediately
             $header.removeClass("ak-gescout_show");
           }
+        } else {
+          // At top of page - always show navbar
+          $header.removeClass("ak-gescout_sticky");
+          $header.removeClass("ak-gescout_show");
         }
 
         lastScrollTop = windowTop;
