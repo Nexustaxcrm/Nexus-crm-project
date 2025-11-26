@@ -297,8 +297,9 @@
       var lastScrollTop = 0;
       var $header = $(".ak-sticky_header");
       var headerHeight = $header.outerHeight() + 30;
+      var ticking = false;
 
-      $(window).on("scroll", function () {
+      function updateHeader() {
         var windowTop = $window.scrollTop();
 
         if (windowTop >= headerHeight) {
@@ -317,6 +318,14 @@
         }
 
         lastScrollTop = windowTop;
+        ticking = false;
+      }
+
+      $(window).on("scroll", function () {
+        if (!ticking) {
+          window.requestAnimationFrame(updateHeader);
+          ticking = true;
+        }
       });
     }
   }
