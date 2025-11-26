@@ -2282,6 +2282,7 @@ kbd {
   color: var(--body-color) !important;
   font-family: var(--body-font-family) !important;
   font-weight: 500 !important;
+  text-align: left !important;
 }
 
 .ak-sticky_header {
@@ -2605,6 +2606,7 @@ kbd {
     border-radius: 0 0 8px 8px;
     border-radius: 0;
     transition: all 0.1s ease;
+    text-align: left;
   }
   .ak-nav .ak-nav_list ul li:hover ul {
     top: 0px;
@@ -2629,6 +2631,7 @@ kbd {
     text-decoration: none;
     transition: all 0.2s ease;
     border-bottom: 1px solid rgba(228, 227, 225, 0.5);
+    text-align: left;
   }
   .ak-nav .ak-nav_list ul li:last-child > a {
     border-bottom: none;
