@@ -3747,7 +3747,7 @@ kbd {
   transition: all 500ms ease-in-out;
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-main-title {
-  font-size: 80px;
+  font-size: 64px;
   text-transform: capitalize;
   /* White glow when text is black (default) */
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.9),
@@ -3758,7 +3758,7 @@ kbd {
   transition: text-shadow 0.3s ease-in-out;
 }
 .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-main-title .hero-main-title-1 {
-  font-size: 70px;
+  font-size: 56px;
   /* White glow when text is black (default) */
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.9),
                0 0 20px rgba(255, 255, 255, 0.7),
@@ -4219,10 +4219,10 @@ kbd {
 }
 @media screen and (max-width: 575px) {
   section[class*=ak-slider-hero-] .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-main-title {
-    font-size: 48px;
+    font-size: 38px;
   }
   section[class*=ak-slider-hero-] .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-main-title .hero-main-title-1 {
-    font-size: 45px;
+    font-size: 36px;
   }
   section[class*=ak-slider-hero-] .swiper-slide .ak-hero.ak-style1 .hero-slider-info .main-desp {
     font-size: 16px;
