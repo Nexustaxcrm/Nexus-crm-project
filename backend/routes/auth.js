@@ -126,16 +126,104 @@ router.post('/send-otp', async (req, res) => {
             );
         }
         
+        let user;
+        let userEmail;
+        let actualUsername;
+        let isNewUser = false;
+        
+        // If user not found, check if input is an email and create new user/customer
         if (userResult.rows.length === 0) {
-            return res.status(404).json({ error: 'User not found. Please check your username or email address.' });
-        }
-        
-        const user = userResult.rows[0];
-        const userEmail = user.customer_email;
-        const actualUsername = user.username.toLowerCase();
-        
-        if (!userEmail) {
-            return res.status(400).json({ error: 'No email address found for this user. Please contact support.' });
+            // Check if input looks like an email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(usernameLower)) {
+                return res.status(404).json({ error: 'User not found. Please check your username or email address.' });
+            }
+            
+            // Input is an email - create new user and customer
+            console.log(`📧 New user requesting OTP with email: ${usernameLower}`);
+            console.log(`   Creating new user and customer account automatically...`);
+            
+            try {
+                // Generate a temporary password (user will use OTP to login, password not needed initially)
+                const bcrypt = require('bcryptjs');
+                const tempPassword = Math.random().toString(36).slice(-12); // Random 12 char password
+                const hashedPassword = await bcrypt.hash(tempPassword, 10);
+                
+                // Extract name from email (use email prefix as name)
+                const emailName = usernameLower.split('@')[0].replace(/[._]/g, ' ');
+                const customerName = emailName || 'Customer';
+                
+                // Create user account first
+                const newUserResult = await dbPool.query(
+                    `INSERT INTO users (username, password, role, temp_password) 
+                     VALUES ($1, $2, $3, $4) 
+                     RETURNING id, username, role`,
+                    [usernameLower, hashedPassword, 'customer', true]
+                );
+                
+                const newUser = newUserResult.rows[0];
+                const userId = newUser.id;
+                console.log(`✅ Created user account for ${usernameLower} (User ID: ${userId})`);
+                
+                // Create customer account
+                const newCustomerResult = await dbPool.query(
+                    `INSERT INTO customers (name, email, status, user_id) 
+                     VALUES ($1, $2, $3, $4) 
+                     RETURNING id, name, email`,
+                    [customerName, usernameLower, 'pending', userId]
+                );
+                
+                const newCustomer = newCustomerResult.rows[0];
+                console.log(`✅ Created customer account for ${usernameLower} (Customer ID: ${newCustomer.id})`);
+                
+                // Set user data for OTP sending
+                user = {
+                    id: userId,
+                    username: newUser.username,
+                    customer_email: usernameLower
+                };
+                userEmail = usernameLower;
+                actualUsername = newUser.username.toLowerCase();
+                isNewUser = true;
+                
+            } catch (createError) {
+                console.error('❌ Error creating new user/customer:', createError);
+                // Check if it's a duplicate key error (user already exists but wasn't found in query)
+                if (createError.code === '23505') { // PostgreSQL unique violation
+                    // User might have been created between queries, try to find again
+                    const retryResult = await dbPool.query(
+                        `SELECT u.id, u.username, c.email as customer_email 
+                         FROM users u 
+                         LEFT JOIN customers c ON u.id = c.user_id 
+                         WHERE LOWER(u.username) = $1 
+                         LIMIT 1`,
+                        [usernameLower]
+                    );
+                    if (retryResult.rows.length > 0) {
+                        user = retryResult.rows[0];
+                        userEmail = user.customer_email || usernameLower;
+                        actualUsername = user.username.toLowerCase();
+                    } else {
+                        return res.status(500).json({ error: 'Failed to create account. Please try again or contact support.' });
+                    }
+                } else {
+                    return res.status(500).json({ error: 'Failed to create account. Please try again or contact support.' });
+                }
+            }
+        } else {
+            user = userResult.rows[0];
+            userEmail = user.customer_email;
+            actualUsername = user.username.toLowerCase();
+            
+            if (!userEmail) {
+                // If user exists but no email, use username if it's an email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(actualUsername)) {
+                    userEmail = actualUsername;
+                } else {
+                    return res.status(400).json({ error: 'No email address found for this user. Please contact support.' });
+                }
+            }
         }
         
         // Generate OTP
@@ -166,19 +254,24 @@ router.post('/send-otp', async (req, res) => {
         const transporter = createEmailTransporter();
         if (transporter) {
             try {
+                const welcomeMessage = isNewUser 
+                    ? '<p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">Welcome to Nexus Tax Filing! A new account has been created for you.</p>'
+                    : '';
+                
                 await transporter.sendMail({
                     from: process.env.EMAIL_USER || 'nexustaxfiling@gmail.com',
                     to: userEmail,
-                    subject: 'Your Login OTP - Nexus Tax Filing',
+                    subject: isNewUser ? 'Welcome to Nexus Tax Filing - Your Login OTP' : 'Your Login OTP - Nexus Tax Filing',
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                             <div style="background-color: #063232; color: #ffffff; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-                                <h1 style="margin: 0; font-size: 28px;">Your Login OTP</h1>
+                                <h1 style="margin: 0; font-size: 28px;">${isNewUser ? 'Welcome to Nexus Tax Filing' : 'Your Login OTP'}</h1>
                             </div>
                             <div style="background-color: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 5px 5px;">
                                 <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
                                     Hello,
                                 </p>
+                                ${welcomeMessage}
                                 <p style="font-size: 16px; line-height: 1.6; color: #333333; margin: 0 0 20px 0;">
                                     Your One-Time Password (OTP) for logging into Nexus Tax Filing CRM is:
                                 </p>
@@ -188,6 +281,7 @@ router.post('/send-otp', async (req, res) => {
                                 <p style="font-size: 14px; line-height: 1.6; color: #666666; margin: 20px 0 0 0;">
                                     This OTP is valid for 10 minutes. Please do not share this code with anyone.
                                 </p>
+                                ${isNewUser ? '<p style="font-size: 14px; line-height: 1.6; color: #333333; margin: 20px 0 0 0; font-weight: 600;">After logging in, please complete your profile by submitting your personal information.</p>' : ''}
                                 <p style="font-size: 14px; line-height: 1.6; color: #666666; margin: 10px 0 0 0;">
                                     If you did not request this OTP, please ignore this email.
                                 </p>
@@ -195,7 +289,7 @@ router.post('/send-otp', async (req, res) => {
                         </div>
                     `
                 });
-                console.log(`✅ OTP sent to ${userEmail} for user: ${usernameLower}`);
+                console.log(`✅ OTP sent to ${userEmail} for user: ${usernameLower}${isNewUser ? ' (NEW USER CREATED)' : ''}`);
             } catch (emailError) {
                 console.error('❌ Error sending OTP email:', emailError);
                 otpStore.delete(usernameLower);
@@ -207,7 +301,10 @@ router.post('/send-otp', async (req, res) => {
         }
         
         res.json({ 
-            message: 'OTP sent successfully to your email address',
+            message: isNewUser 
+                ? 'Account created successfully! OTP sent to your email address. Please check your email to complete login.'
+                : 'OTP sent successfully to your email address',
+            isNewUser: isNewUser,
             // In development, return OTP for testing (remove in production)
             ...(process.env.NODE_ENV !== 'production' && { otp })
         });

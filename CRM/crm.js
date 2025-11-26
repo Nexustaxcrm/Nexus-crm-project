@@ -9338,6 +9338,7 @@ async function saveAllPersonalInfo() {
             ...identificationData
         };
 
+        // Save tax info
         const response = await fetch(API_BASE_URL + `/customers/tax-info`, {
             method: 'POST',
             headers: {
@@ -9347,12 +9348,38 @@ async function saveAllPersonalInfo() {
             body: JSON.stringify(allData)
         });
 
-        if (response.ok) {
-            showNotification('success', 'All Information Saved', 'All your personal information has been saved successfully!');
-        } else {
+        if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to save personal information');
         }
+
+        // Also update the main customer record with name and phone if provided
+        const customerUpdateData = {
+            name: personalData.first_name && personalData.last_name 
+                ? `${personalData.first_name} ${personalData.middle_name ? personalData.middle_name + ' ' : ''}${personalData.last_name}`.trim()
+                : customer.name,
+            phone: personalData.alternate_mobile_no || customer.phone || null,
+            updated_at: customer.updated_at // For optimistic locking
+        };
+
+        // Only update if we have new data
+        if (customerUpdateData.name !== customer.name || customerUpdateData.phone !== customer.phone) {
+            const updateResponse = await fetch(API_BASE_URL + `/customers/${customerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(customerUpdateData)
+            });
+
+            if (!updateResponse.ok) {
+                console.warn('Failed to update customer record, but tax info was saved');
+                // Don't throw error - tax info was saved successfully
+            }
+        }
+
+        showNotification('success', 'All Information Saved', 'All your personal information has been saved successfully!');
     } catch (error) {
         console.error('Error saving all personal information:', error);
         showNotification('error', 'Save Failed', error.message || 'Failed to save personal information. Please try again.');
