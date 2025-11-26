@@ -1952,6 +1952,31 @@ kbd {
   background-color: #063232;
   color: #ffffff;
 }
+.top-bar-btn.pay-now-btn {
+  background: linear-gradient(135deg, #2DCE89 0%, #1ea869 100%);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 6px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(45, 206, 137, 0.3);
+  border: none;
+}
+.top-bar-btn.pay-now-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.top-bar-btn.pay-now-btn:hover {
+  background: linear-gradient(135deg, #1ea869 0%, #2DCE89 100%);
+  box-shadow: 0 4px 12px rgba(45, 206, 137, 0.5);
+  transform: translateY(-1px);
+}
+.top-bar-btn.pay-now-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(45, 206, 137, 0.4);
+}
 @media (max-width: 768px) {
   .ak-top-bar {
     padding: 6px 0;
@@ -1983,6 +2008,15 @@ kbd {
   .top-bar-btn {
     padding: 4px 14px;
     font-size: 11px;
+  }
+  .top-bar-btn.pay-now-btn {
+    padding: 5px 14px;
+    font-size: 11px;
+  }
+  .top-bar-btn.pay-now-btn svg {
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
   }
 }
 
