@@ -3105,6 +3105,21 @@
         button[onclick="showReferFriendModal()"] i,
         button[onclick="showReferFriendModal()"] span {
             color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            text-fill-color: #ffffff !important;
+        }
+        
+        /* Override parent h4 transparent text for the button */
+        h4 button[onclick="showReferFriendModal()"],
+        h4 button[onclick="showReferFriendModal()"] *,
+        h4 button[onclick="showReferFriendModal()"] i,
+        h4 button[onclick="showReferFriendModal()"] span {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            text-fill-color: #ffffff !important;
+            background: var(--primary-gradient) !important;
+            -webkit-background-clip: border-box !important;
+            background-clip: border-box !important;
         }
         
         #customerDashboardPage .form-label {
@@ -4490,8 +4505,8 @@
                                 <span>
                                     <i class="fas fa-user-shield" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-right: 12px; font-size: 1.3em;"></i> My Information
                                 </span>
-                                <button type="button" class="btn btn-sm" onclick="showReferFriendModal()" style="background: var(--primary-gradient) !important; color: #ffffff !important; border: none !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9em; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);">
-                                    <i class="fas fa-user-plus" style="margin-right: 6px; color: #ffffff !important;"></i> <span style="color: #ffffff !important; font-weight: 600;">Refer a Friend</span>
+                                <button type="button" class="btn btn-sm" onclick="showReferFriendModal()" style="background: var(--primary-gradient) !important; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; text-fill-color: #ffffff !important; border: none !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9em; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); -webkit-background-clip: border-box !important; background-clip: border-box !important;">
+                                    <i class="fas fa-user-plus" style="margin-right: 6px; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; text-fill-color: #ffffff !important;"></i> <span style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; text-fill-color: #ffffff !important; font-weight: 600;">Refer a Friend</span>
                                 </button>
                             </h4>
                             <div class="row">
