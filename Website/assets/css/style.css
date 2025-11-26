@@ -2220,19 +2220,18 @@ kbd {
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   font-size: 17px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   text-transform: capitalize;
   transition: all 0.3s ease;
   white-space: nowrap;
   text-decoration: none;
   color: inherit;
-  position: relative;
-  background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #0d5c5c 100%);
+  background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: navbarGradientShift 4s ease infinite;
+  animation: gradientShift 3s ease infinite;
 }
 @media screen and (min-width: 992px) {
   .ak-nav .ak-nav_list li a {
@@ -2263,25 +2262,14 @@ kbd {
   }
 }
 .ak-nav .ak-nav_list > li > a:hover {
-  color: var(--black-color);
   word-spacing: 2px;
-  background: linear-gradient(135deg, #0d5c5c 0%, #063232 50%, #0a4a4a 100%);
+  background: linear-gradient(90deg, #063232 0%, #f9d67c 25%, #063232 50%, #f9d67c 75%, #063232 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: navbarGradientShift 3s ease infinite;
+  animation: gradientShift 3s ease infinite;
   transform: translateY(-1px);
-}
-
-/* Color-changing gradient animation for navbar links */
-@keyframes navbarGradientShift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
 }
 
 /* Ensure dropdown menu items don't have gradient effect */
@@ -2509,25 +2497,24 @@ kbd {
     white-space: nowrap;
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     font-weight: 600;
-    letter-spacing: 0.3px;
-    background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #0d5c5c 100%);
+    letter-spacing: 0.2px;
+    background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
     background-size: 200% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: navbarGradientShift 4s ease infinite;
-    transition: all 0.3s ease;
+    animation: gradientShift 3s ease infinite;
   }
   @media screen and (min-width: 1200px) {
     .ak-nav .ak-nav_list > li > a {
-      padding: 0 15px;
+    padding: 0 15px;
       font-size: 18px;
     }
   }
   @media screen and (min-width: 1400px) {
     .ak-nav .ak-nav_list > li > a {
       padding: 0 20px;
-      font-size: 19px;
+    font-size: 19px;
     }
   }
   @media screen and (min-width: 1600px) {
