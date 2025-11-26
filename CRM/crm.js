@@ -936,6 +936,11 @@ async function loadCustomerDashboard() {
         
         const customer = await response.json();
         
+        // Check if this is a new customer (logged in with OTP, has temp_password)
+        // Get current user to check temp_password flag
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        const isNewOTPCustomer = currentUser.tempPassword || currentUser.temp_password;
+        
         // Update display section with customer information
         const nameDisplay = document.getElementById('customerNameDisplay');
         if (nameDisplay) {
@@ -974,36 +979,87 @@ async function loadCustomerDashboard() {
             addressDisplayEl.textContent = addressDisplay;
         }
         
-        // Populate customer form with data (for editing)
-        if (customer.name) {
-            const nameParts = customer.name.split(' ');
-            const firstNameEl = document.getElementById('customerFirstName');
-            const lastNameEl = document.getElementById('customerLastName');
-            if (firstNameEl) firstNameEl.value = nameParts[0] || '';
-            if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ') || '';
-        }
-        
-        const phoneEl = document.getElementById('customerPhone');
-        if (phoneEl) phoneEl.value = customer.phone || '';
-        
-        const emailEl = document.getElementById('customerEmail');
-        if (emailEl) emailEl.value = customer.email || '';
-        
-        // Parse address for form fields
-        if (customer.notes) {
-            const addressParts = parseAddress(customer.notes);
-            const address1El = document.getElementById('customerAddress1');
-            const cityEl = document.getElementById('customerCity');
-            const stateEl = document.getElementById('customerState');
-            const zipEl = document.getElementById('customerZipCode');
+        // For new OTP customers, only populate email, leave other fields blank
+        if (isNewOTPCustomer) {
+            // Only populate email field
+            const emailEl = document.getElementById('customerEmail');
+            if (emailEl) emailEl.value = customer.email || '';
             
-            if (address1El) address1El.value = addressParts.address1 || '';
-            if (cityEl) cityEl.value = addressParts.city || '';
-            if (stateEl) {
-                const stateCode = getStateCode(addressParts.state);
-                stateEl.value = stateCode || addressParts.state || '';
+            // Clear all other fields to ensure they're blank
+            const firstNameEl = document.getElementById('personalFirstName');
+            const middleNameEl = document.getElementById('personalMiddleName');
+            const lastNameEl = document.getElementById('personalLastName');
+            const phoneEl = document.getElementById('personalPhone') || document.getElementById('personalAlternateMobile');
+            
+            if (firstNameEl) firstNameEl.value = '';
+            if (middleNameEl) middleNameEl.value = '';
+            if (lastNameEl) lastNameEl.value = '';
+            if (phoneEl) phoneEl.value = '';
+            
+            // Clear address fields
+            const address1El = document.getElementById('addressInfoAddress1');
+            const address2El = document.getElementById('addressInfoAddress2');
+            const cityEl = document.getElementById('addressInfoCity');
+            const stateEl = document.getElementById('addressInfoState');
+            const zipEl = document.getElementById('addressInfoZipCode');
+            const aptEl = document.getElementById('addressInfoApartmentNumber');
+            
+            if (address1El) address1El.value = '';
+            if (address2El) address2El.value = '';
+            if (cityEl) cityEl.value = '';
+            if (stateEl) stateEl.value = '';
+            if (zipEl) zipEl.value = '';
+            if (aptEl) aptEl.value = '';
+            
+            // Clear date of birth
+            const dobInput = document.getElementById('personalDateOfBirth');
+            const dobHidden = document.getElementById('personalDateOfBirthHidden');
+            if (dobInput) dobInput.value = '';
+            if (dobHidden) dobHidden.value = '';
+            
+            // Clear dropdowns
+            const genderEl = document.getElementById('personalGender');
+            const maritalStatusEl = document.getElementById('personalMaritalStatus');
+            const countryEl = document.getElementById('personalCountryOfCitizenship');
+            
+            if (genderEl) genderEl.value = '';
+            if (maritalStatusEl) maritalStatusEl.value = '';
+            if (countryEl) countryEl.value = '';
+            
+            console.log('📝 New OTP customer detected - only email pre-filled, other fields blank');
+        } else {
+            // For existing customers, populate all fields as before
+            // Populate customer form with data (for editing)
+            if (customer.name) {
+                const nameParts = customer.name.split(' ');
+                const firstNameEl = document.getElementById('personalFirstName');
+                const lastNameEl = document.getElementById('customerLastName');
+                if (firstNameEl) firstNameEl.value = nameParts[0] || '';
+                if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ') || '';
             }
-            if (zipEl) zipEl.value = addressParts.zipCode || '';
+            
+            const phoneEl = document.getElementById('customerPhone');
+            if (phoneEl) phoneEl.value = customer.phone || '';
+            
+            const emailEl = document.getElementById('customerEmail');
+            if (emailEl) emailEl.value = customer.email || '';
+            
+            // Parse address for form fields
+            if (customer.notes) {
+                const addressParts = parseAddress(customer.notes);
+                const address1El = document.getElementById('customerAddress1');
+                const cityEl = document.getElementById('customerCity');
+                const stateEl = document.getElementById('customerState');
+                const zipEl = document.getElementById('customerZipCode');
+                
+                if (address1El) address1El.value = addressParts.address1 || '';
+                if (cityEl) cityEl.value = addressParts.city || '';
+                if (stateEl) {
+                    const stateCode = getStateCode(addressParts.state);
+                    stateEl.value = stateCode || addressParts.state || '';
+                }
+                if (zipEl) zipEl.value = addressParts.zipCode || '';
+            }
         }
         
         // Set refund status
@@ -5128,6 +5184,15 @@ async function loadTaxInformation() {
         const token = sessionStorage.getItem('authToken');
         if (!token) return;
 
+        // Check if this is a new OTP customer - skip loading tax info to keep fields blank
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        const isNewOTPCustomer = currentUser.tempPassword || currentUser.temp_password;
+        
+        if (isNewOTPCustomer) {
+            console.log('📝 Skipping tax info load for new OTP customer - keeping fields blank');
+            return; // Don't load tax info for new customers, keep fields blank
+        }
+
         // Get customer ID
         const meResponse = await fetch(API_BASE_URL + '/customers/me', {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -5547,38 +5612,80 @@ async function changePassword() {
             document.getElementById('passwordChangeForm').style.display = 'none';
             changeBtn.style.display = 'none';
             
-            // Wait 2 seconds, then redirect to login
-            setTimeout(() => {
-                // Clear session
-                sessionStorage.removeItem('authToken');
-                sessionStorage.removeItem('currentUser');
-                currentUser = null;
-                
-                // Hide modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('passwordChangeModal'));
-                if (modal) {
-                    modal.hide();
-                }
-                
-                // Show login page
-                const loginPage = document.getElementById('loginPage');
-                const customerDashboard = document.getElementById('customerDashboardPage');
-                if (loginPage) {
-                    loginPage.style.display = 'block';
-                }
-                if (customerDashboard) {
-                    customerDashboard.style.display = 'none';
-                }
-                
-                // Show success notification
-                showNotification('success', 'Password Changed', 'Your password has been changed successfully. Please log in again with your new password.');
-                
-                // Clear login form
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) {
-                    loginForm.reset();
-                }
-            }, 2000);
+            // Check if this is a temp password change (OTP login)
+            if (isTempPassword) {
+                // For OTP login users, automatically log them in and show dashboard
+                setTimeout(() => {
+                    // Hide modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('passwordChangeModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Hide login page and admin dashboard
+                    const loginPage = document.getElementById('loginPage');
+                    const dashboardPage = document.getElementById('dashboardPage');
+                    if (loginPage) {
+                        loginPage.style.display = 'none';
+                    }
+                    if (dashboardPage) {
+                        dashboardPage.style.display = 'none';
+                    }
+                    
+                    // Update currentUser to clear tempPassword flag (but keep it for this session to show blank fields)
+                    // We'll keep tempPassword in sessionStorage for this session so dashboard shows blank fields
+                    const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+                    // Keep tempPassword flag for this session to control dashboard behavior
+                    // It will be cleared when they submit their details
+                    
+                    // Show customer dashboard
+                    const customerDashboard = document.getElementById('customerDashboardPage');
+                    if (customerDashboard) {
+                        customerDashboard.style.display = 'block';
+                        
+                        // Load customer dashboard (will show email pre-filled, other fields blank)
+                        if (typeof loadCustomerDashboard === 'function') {
+                            loadCustomerDashboard();
+                        }
+                    }
+                    
+                    // Show success notification
+                    showNotification('success', 'Password Set', 'Your password has been set successfully! Please complete your profile information.');
+                }, 1000);
+            } else {
+                // For regular password change, redirect to login
+                setTimeout(() => {
+                    // Clear session
+                    sessionStorage.removeItem('authToken');
+                    sessionStorage.removeItem('currentUser');
+                    currentUser = null;
+                    
+                    // Hide modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('passwordChangeModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Show login page
+                    const loginPage = document.getElementById('loginPage');
+                    const customerDashboard = document.getElementById('customerDashboardPage');
+                    if (loginPage) {
+                        loginPage.style.display = 'block';
+                    }
+                    if (customerDashboard) {
+                        customerDashboard.style.display = 'none';
+                    }
+                    
+                    // Show success notification
+                    showNotification('success', 'Password Changed', 'Your password has been changed successfully. Please log in again with your new password.');
+                    
+                    // Clear login form
+                    const loginForm = document.getElementById('loginForm');
+                    if (loginForm) {
+                        loginForm.reset();
+                    }
+                }, 2000);
+            }
             
         } else {
             // Show error
@@ -9455,6 +9562,17 @@ async function saveAllPersonalInfo() {
             }
         }
 
+        // Clear tempPassword flag from sessionStorage after successful save
+        // This ensures that on next load, all fields will be populated normally
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        if (currentUser.tempPassword || currentUser.temp_password) {
+            currentUser.tempPassword = false;
+            currentUser.temp_password = false;
+            sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            window.currentUser = currentUser;
+            console.log('✅ Cleared tempPassword flag after successful save');
+        }
+        
         showNotification('success', 'All Information Saved', 'All your personal information has been saved successfully!');
     } catch (error) {
         console.error('Error saving all personal information:', error);
