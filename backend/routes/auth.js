@@ -536,12 +536,20 @@ router.post('/change-password', verifyToken, async (req, res) => {
             return res.status(500).json({ error: 'Database not initialized' });
         }
 
-        const { currentPassword, newPassword, confirmPassword } = req.body;
+        const { currentPassword, newPassword, confirmPassword, isTempPassword } = req.body;
         const userId = req.user.userId;
 
-        // Validate inputs
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            return res.status(400).json({ error: 'All password fields are required' });
+        // Validate inputs based on whether it's a temp password change
+        if (isTempPassword) {
+            // For temp password (OTP login), only new password and confirm password are required
+            if (!newPassword || !confirmPassword) {
+                return res.status(400).json({ error: 'New password and confirm password are required' });
+            }
+        } else {
+            // For regular password change, all fields are required
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                return res.status(400).json({ error: 'All password fields are required' });
+            }
         }
 
         if (newPassword !== confirmPassword) {
@@ -564,10 +572,20 @@ router.post('/change-password', verifyToken, async (req, res) => {
 
         const user = userResult.rows[0];
 
-        // Verify current password
-        const isValidPassword = await bcrypt.compare(currentPassword, user.password);
-        if (!isValidPassword) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
+        // Verify current password only if it's not a temp password change
+        if (!isTempPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({ error: 'Current password is required' });
+            }
+            const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+            if (!isValidPassword) {
+                return res.status(401).json({ error: 'Current password is incorrect' });
+            }
+        } else {
+            // For temp password, verify that user actually has temp_password flag set
+            if (!user.temp_password) {
+                return res.status(400).json({ error: 'This account does not require a password change' });
+            }
         }
 
         // Hash new password

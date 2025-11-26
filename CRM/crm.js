@@ -5399,17 +5399,72 @@ function showPasswordChangeModal() {
     document.getElementById('passwordChangeError').style.display = 'none';
     document.getElementById('passwordChangeSuccess').style.display = 'none';
     
-    // Focus on current password field
-    setTimeout(() => {
-        document.getElementById('currentPassword').focus();
-    }, 300);
+    // Check if user logged in with OTP (temp_password)
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+    const isTempPassword = currentUser.tempPassword || currentUser.temp_password;
+    
+    const tempPasswordFields = document.getElementById('tempPasswordFields');
+    const regularPasswordFields = document.getElementById('regularPasswordFields');
+    const infoAlert = document.getElementById('passwordChangeInfo');
+    
+    if (isTempPassword) {
+        // Show temp password fields (username, new password, confirm password)
+        tempPasswordFields.style.display = 'block';
+        regularPasswordFields.style.display = 'none';
+        
+        // Set username field
+        const usernameField = document.getElementById('usernameField');
+        if (usernameField && currentUser.username) {
+            usernameField.value = currentUser.username;
+        }
+        
+        // Update info message
+        if (infoAlert) {
+            infoAlert.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Set Your Password:</strong> Please create a password for your account.';
+        }
+        
+        // Focus on new password field
+        setTimeout(() => {
+            document.getElementById('newPassword').focus();
+        }, 300);
+    } else {
+        // Show regular password fields (current password, new password, confirm password)
+        tempPasswordFields.style.display = 'none';
+        regularPasswordFields.style.display = 'block';
+        
+        // Update info message
+        if (infoAlert) {
+            infoAlert.innerHTML = '<i class="fas fa-info-circle me-2"></i><strong>Password Change Required:</strong> You are using a temporary password. Please set a new password to continue.';
+        }
+        
+        // Focus on current password field
+        setTimeout(() => {
+            document.getElementById('currentPassword').focus();
+        }, 300);
+    }
 }
 
 // Change password function
 async function changePassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    // Check which form is visible (temp password or regular)
+    const tempPasswordFields = document.getElementById('tempPasswordFields');
+    const isTempPassword = tempPasswordFields && tempPasswordFields.style.display !== 'none';
+    
+    let currentPassword = '';
+    let newPassword = '';
+    let confirmPassword = '';
+    
+    if (isTempPassword) {
+        // For OTP login - no current password needed
+        newPassword = document.getElementById('newPassword').value;
+        confirmPassword = document.getElementById('confirmPassword').value;
+    } else {
+        // For regular password change
+        currentPassword = document.getElementById('currentPassword').value;
+        newPassword = document.getElementById('newPasswordRegular').value;
+        confirmPassword = document.getElementById('confirmPasswordRegular').value;
+    }
+    
     const errorDiv = document.getElementById('passwordChangeError');
     const successDiv = document.getElementById('passwordChangeSuccess');
     const changeBtn = document.getElementById('changePasswordBtn');
@@ -5419,10 +5474,20 @@ async function changePassword() {
     successDiv.style.display = 'none';
     
     // Validate inputs
-    if (!currentPassword || !newPassword || !confirmPassword) {
-        errorDiv.textContent = 'All fields are required';
-        errorDiv.style.display = 'block';
-        return;
+    if (isTempPassword) {
+        // For temp password, only new password and confirm password are required
+        if (!newPassword || !confirmPassword) {
+            errorDiv.textContent = 'New password and confirm password are required';
+            errorDiv.style.display = 'block';
+            return;
+        }
+    } else {
+        // For regular password change, all fields are required
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            errorDiv.textContent = 'All fields are required';
+            errorDiv.style.display = 'block';
+            return;
+        }
     }
     
     if (newPassword.length < 6) {
@@ -5447,17 +5512,28 @@ async function changePassword() {
             throw new Error('Authentication token not found. Please log in again.');
         }
         
+        const requestBody = {
+            newPassword: newPassword,
+            confirmPassword: confirmPassword
+        };
+        
+        // Only include currentPassword if it's not a temp password login
+        if (!isTempPassword && currentPassword) {
+            requestBody.currentPassword = currentPassword;
+        }
+        
+        // Add flag to indicate temp password change
+        if (isTempPassword) {
+            requestBody.isTempPassword = true;
+        }
+        
         const response = await fetch(API_BASE_URL + '/auth/change-password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                currentPassword: currentPassword,
-                newPassword: newPassword,
-                confirmPassword: confirmPassword
-            })
+            body: JSON.stringify(requestBody)
         });
         
         const data = await response.json();

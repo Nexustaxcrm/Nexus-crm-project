@@ -6904,23 +6904,42 @@
                     </h5>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info">
+                    <div class="alert alert-info" id="passwordChangeInfo">
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Password Change Required:</strong> You are using a temporary password. Please set a new password to continue.
                     </div>
                     <form id="passwordChangeForm">
-                        <div class="mb-3">
-                            <label class="form-label">Current Password (Temporary Password)</label>
-                            <input type="password" class="form-control" id="currentPassword" placeholder="Enter your temporary password" required>
+                        <!-- For OTP login (temp password) - show username, new password, confirm password -->
+                        <div id="tempPasswordFields" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" id="usernameField" placeholder="Enter your username" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" placeholder="Enter new password (min. 6 characters)" required minlength="6">
+                                <small class="form-text text-muted">Password must be at least 6 characters long</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password" required minlength="6">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password (min. 6 characters)" required minlength="6">
-                            <small class="form-text text-muted">Password must be at least 6 characters long</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Confirm New Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password" required minlength="6">
+                        <!-- For regular password change - show current password, new password, confirm password -->
+                        <div id="regularPasswordFields">
+                            <div class="mb-3">
+                                <label class="form-label">Current Password (Temporary Password)</label>
+                                <input type="password" class="form-control" id="currentPassword" placeholder="Enter your temporary password">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPasswordRegular" placeholder="Enter new password (min. 6 characters)" required minlength="6">
+                                <small class="form-text text-muted">Password must be at least 6 characters long</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmPasswordRegular" placeholder="Confirm new password" required minlength="6">
+                            </div>
                         </div>
                         <div id="passwordChangeError" class="alert alert-danger" style="display: none;"></div>
                         <div id="passwordChangeSuccess" class="alert alert-success" style="display: none;">
