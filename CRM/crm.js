@@ -9564,8 +9564,7 @@ async function saveAllPersonalInfo() {
 
         // Clear tempPassword flag from sessionStorage after successful save
         // This ensures that on next load, all fields will be populated normally
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
-        if (currentUser.tempPassword || currentUser.temp_password) {
+        if (currentUser && (currentUser.tempPassword || currentUser.temp_password)) {
             currentUser.tempPassword = false;
             currentUser.temp_password = false;
             sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
