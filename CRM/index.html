@@ -247,9 +247,10 @@
         }
 
         .login-logo-graphic {
-            width: clamp(200px, 40vw, 320px);
+            width: clamp(120px, 35vw, 320px);
             height: auto;
             position: relative;
+            max-width: 100%;
             flex-shrink: 0;
             background: transparent !important;
             background-color: transparent !important;
@@ -2731,12 +2732,14 @@
             background-attachment: fixed;
             height: 100vh;
             max-height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: clamp(10px, 2vw, 20px);
             overflow: hidden;
             position: relative;
+            box-sizing: border-box;
         }
         
         #loginPage::before {
@@ -2785,8 +2788,8 @@
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
-            padding: clamp(25px, 3vh, 35px) clamp(28px, 4.5vw, 42px);
-            border-radius: 24px;
+            padding: clamp(15px, 2.5vh, 35px) clamp(15px, 3.5vw, 42px);
+            border-radius: clamp(16px, 2vw, 24px);
             box-shadow: 
                 0 8px 32px rgba(3, 9, 23, 0.2),
                 0 4px 16px rgba(3, 9, 23, 0.15),
@@ -2794,14 +2797,19 @@
                 inset 0 -1px 0 rgba(255, 255, 255, 0.2),
                 0 0 0 1px rgba(255, 255, 255, 0.3);
             border: 2px solid rgba(255, 255, 255, 0.4);
-            max-width: clamp(450px, 80vw, 600px);
-            min-width: clamp(380px, 75vw, 500px);
+            max-width: clamp(320px, 90vw, 600px);
+            min-width: 0;
             width: 100%;
+            max-height: 95vh;
             margin: auto;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
             position: relative;
             z-index: 1;
             animation: loginSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Glass effect overlay */
@@ -3189,7 +3197,8 @@
 
         .login-header {
             text-align: center;
-            margin-bottom: clamp(12px, 1.5vh, 20px);
+            margin-bottom: clamp(8px, 1.2vh, 20px);
+            flex-shrink: 0;
         }
 
         .login-header h2 {
@@ -3199,8 +3208,9 @@
         
         .login-welcome {
             text-align: center;
-            margin-bottom: clamp(15px, 2vh, 22px);
-            padding: 0 clamp(8px, 1.5vw, 15px);
+            margin-bottom: clamp(10px, 1.5vh, 22px);
+            padding: 0 clamp(5px, 1.2vw, 15px);
+            flex-shrink: 0;
         }
         
         .login-welcome h3 {
@@ -3240,9 +3250,43 @@
             margin-top: clamp(6px, 0.8vh, 10px);
             font-weight: 300;
             background: linear-gradient(135deg, rgba(249, 214, 124, 0.2), rgba(6, 50, 50, 0.1));
-            padding: 8px 16px;
-            border-radius: 10px;
+            padding: clamp(6px, 0.8vh, 8px) clamp(12px, 1.5vw, 16px);
+            border-radius: clamp(8px, 1vw, 10px);
             border-left: 3px solid #f9d67c;
+        }
+        
+        #loginForm {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            width: 100%;
+        }
+        
+        #loginForm .mb-3 {
+            margin-bottom: clamp(12px, 1.8vh, 20px);
+            width: 100%;
+        }
+        
+        #loginForm .form-label {
+            font-size: clamp(13px, 1.8vw, 16px);
+            margin-bottom: clamp(6px, 0.8vh, 10px);
+            font-weight: 600;
+            color: #030917;
+        }
+        
+        #loginForm .form-control {
+            width: 100%;
+            padding: clamp(10px, 1.5vh, 14px) clamp(14px, 2vw, 18px);
+            font-size: clamp(13px, 1.8vw, 16px);
+            border-radius: clamp(10px, 1.2vw, 14px);
+            margin-bottom: 0;
+            box-sizing: border-box;
+        }
+        
+        #loginForm .form-text {
+            font-size: clamp(11px, 1.5vw, 13px);
+            margin-top: clamp(4px, 0.6vh, 8px);
         }
         
         .login-footer {
@@ -3250,7 +3294,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 12px 20px;
+            padding: clamp(8px, 1.2vh, 12px) clamp(10px, 2vw, 20px);
             text-align: center;
             background: rgba(253, 251, 247, 0.95);
             backdrop-filter: blur(20px) saturate(180%);
@@ -3258,6 +3302,7 @@
             border-top: 2px solid rgba(249, 214, 124, 0.3);
             z-index: 100;
             box-shadow: 0 -4px 25px rgba(3, 9, 23, 0.1);
+            font-size: clamp(10px, 1.5vw, 12px);
         }
         
         .login-footer-links {
@@ -3267,11 +3312,11 @@
         .login-footer-link {
             color: #64748b;
             text-decoration: none;
-            font-size: 12px;
+            font-size: clamp(10px, 1.4vw, 12px);
             font-weight: 500;
             transition: all 0.3s ease;
-            padding: 4px 8px;
-            border-radius: 6px;
+            padding: clamp(3px, 0.5vh, 4px) clamp(6px, 1vw, 8px);
+            border-radius: clamp(4px, 0.6vw, 6px);
         }
         
         .login-footer-link:hover {
@@ -3288,32 +3333,35 @@
         
         .login-footer-copyright {
             color: #94a3b8;
-            font-size: 11px;
-            margin-top: 4px;
+            font-size: clamp(9px, 1.3vw, 11px);
+            margin-top: clamp(2px, 0.4vh, 4px);
         }
         
         /* Login Method Buttons */
         .login-method-buttons {
             display: flex;
-            gap: 12px;
-            margin-top: 10px;
+            gap: clamp(8px, 1.2vw, 12px);
+            margin-top: clamp(8px, 1vh, 10px);
+            width: 100%;
         }
         
         .login-method-btn {
             flex: 1;
-            padding: 14px 24px;
+            padding: clamp(10px, 1.5vh, 14px) clamp(16px, 2.5vw, 24px);
             border: 2px solid rgba(249, 214, 124, 0.5);
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(249, 214, 124, 0.1));
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             color: #063232;
-            border-radius: 14px;
-            font-size: clamp(14px, 1.7vw, 16px);
+            border-radius: clamp(10px, 1.2vw, 14px);
+            font-size: clamp(12px, 1.6vw, 16px);
             font-weight: 600;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
         }
         
         .login-method-btn::before {
@@ -3408,120 +3456,200 @@
         /* Responsive adjustments for login form - No scrolling */
         @media (max-width: 1200px) {
             .login-container {
-                max-width: clamp(450px, 85vw, 600px);
-                min-width: clamp(380px, 80vw, 500px);
-                padding: clamp(28px, 3.5vh, 40px) clamp(28px, 4.5vw, 45px);
+                max-width: clamp(320px, 88vw, 600px);
+                padding: clamp(15px, 2.5vh, 35px) clamp(18px, 3.5vw, 42px);
             }
         }
         
         @media (max-width: 768px) {
             #loginPage {
-                padding: 15px;
+                padding: clamp(8px, 1.5vw, 15px);
             }
             
             .login-container {
-                max-width: 92vw;
-                min-width: 88vw;
-                padding: clamp(25px, 4vh, 35px) clamp(22px, 4vw, 35px);
-                max-height: 88vh;
+                max-width: clamp(300px, 94vw, 600px);
+                padding: clamp(12px, 3vh, 30px) clamp(15px, 3.5vw, 32px);
+                max-height: 96vh;
             }
             
             .login-logo-graphic {
-                width: clamp(180px, 35vw, 280px);
+                width: clamp(140px, 40vw, 260px);
+            }
+            
+            .login-header {
+                margin-bottom: clamp(8px, 1.2vh, 16px);
+            }
+            
+            .login-welcome {
+                margin-bottom: clamp(10px, 1.5vh, 20px);
+            }
+            
+            .login-welcome h3 {
+                font-size: clamp(16px, 3vw, 24px);
+                margin-bottom: clamp(6px, 0.8vh, 12px);
+            }
+            
+            .login-welcome p {
+                font-size: clamp(11px, 2vw, 14px);
+                margin-bottom: clamp(4px, 0.6vh, 8px);
+                line-height: 1.5;
             }
         }
         
         @media (max-height: 800px) {
             .login-container {
-                padding: clamp(25px, 3vh, 35px) clamp(25px, 4vw, 40px);
-                max-height: 85vh;
+                padding: clamp(12px, 2vh, 30px) clamp(15px, 3vw, 38px);
+                max-height: 96vh;
             }
             
             .login-header {
-                margin-bottom: clamp(10px, 1.2vh, 16px);
-            }
-            
-            .login-welcome {
-                margin-bottom: clamp(12px, 1.5vh, 18px);
-            }
-            
-            .login-welcome h3 {
-                font-size: clamp(18px, 2.2vw, 24px);
-                margin-bottom: 10px;
-            }
-            
-            .login-welcome p {
-                font-size: clamp(11px, 1.3vw, 13px);
-                margin-bottom: clamp(5px, 0.6vh, 8px);
+                margin-bottom: clamp(6px, 0.8vh, 12px);
             }
             
             .login-logo-graphic {
-                width: clamp(180px, 35vw, 280px);
+                width: clamp(120px, 25vw, 220px);
+            }
+            
+            .login-welcome {
+                margin-bottom: clamp(8px, 1vh, 16px);
+            }
+            
+            .login-welcome h3 {
+                font-size: clamp(14px, 2.5vw, 22px);
+                margin-bottom: clamp(4px, 0.6vh, 8px);
+            }
+            
+            .login-welcome p {
+                font-size: clamp(10px, 1.8vw, 13px);
+                margin-bottom: clamp(3px, 0.5vh, 6px);
+                line-height: 1.4;
+            }
+            
+            .login-welcome .welcome-subtitle {
+                padding: clamp(4px, 0.6vh, 8px) clamp(8px, 1.5vw, 16px);
+                font-size: clamp(9px, 1.6vw, 12px);
+                margin-top: clamp(3px, 0.5vh, 6px);
+            }
+            
+            .form-control {
+                padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.8vw, 18px);
+                margin-bottom: clamp(8px, 1.2vh, 14px);
+                font-size: clamp(12px, 1.8vw, 15px);
+            }
+            
+            .login-method-btn {
+                padding: clamp(8px, 1.2vh, 12px) clamp(14px, 2vw, 20px);
+                font-size: clamp(11px, 1.6vw, 14px);
             }
         }
         
         @media (max-height: 700px) {
             .login-container {
-                padding: clamp(20px, 2.5vh, 30px) clamp(22px, 3.5vw, 35px);
-                max-height: 90vh;
+                padding: clamp(10px, 1.8vh, 25px) clamp(12px, 2.5vw, 30px);
+                max-height: 98vh;
             }
             
             .login-header {
-                margin-bottom: clamp(8px, 1vh, 12px);
-            }
-            
-            .login-welcome {
-                margin-bottom: clamp(10px, 1.2vh, 14px);
-            }
-            
-            .login-welcome h3 {
-                font-size: clamp(16px, 2vw, 22px);
-                margin-bottom: 8px;
-            }
-            
-            .login-welcome p {
-                font-size: clamp(10px, 1.2vw, 12px);
-                line-height: 1.5;
-                margin-bottom: clamp(4px, 0.5vh, 6px);
-            }
-            
-            .login-welcome .welcome-subtitle {
-                padding: 6px 12px;
-                font-size: clamp(10px, 1.2vw, 12px);
-                margin-top: clamp(4px, 0.5vh, 6px);
+                margin-bottom: clamp(4px, 0.6vh, 8px);
             }
             
             .login-logo-graphic {
-                width: clamp(160px, 30vw, 240px);
-        }
-
-        .form-control {
-                padding: clamp(10px, 1.3vh, 12px) clamp(14px, 2vw, 18px);
-                margin-bottom: clamp(12px, 1.5vh, 16px);
-                font-size: clamp(13px, 1.5vw, 15px);
+                width: clamp(100px, 20vw, 200px);
+            }
+            
+            .login-welcome {
+                margin-bottom: clamp(6px, 0.8vh, 12px);
+            }
+            
+            .login-welcome h3 {
+                font-size: clamp(12px, 2.2vw, 20px);
+                margin-bottom: clamp(3px, 0.5vh, 6px);
+            }
+            
+            .login-welcome p {
+                font-size: clamp(9px, 1.6vw, 12px);
+                line-height: 1.4;
+                margin-bottom: clamp(2px, 0.4vh, 4px);
+            }
+            
+            .login-welcome .welcome-subtitle {
+                padding: clamp(3px, 0.5vh, 6px) clamp(6px, 1.2vw, 12px);
+                font-size: clamp(8px, 1.4vw, 11px);
+                margin-top: clamp(2px, 0.4vh, 4px);
+            }
+            
+            .form-control {
+                padding: clamp(7px, 1vh, 10px) clamp(10px, 1.6vw, 16px);
+                margin-bottom: clamp(6px, 1vh, 12px);
+                font-size: clamp(11px, 1.6vw, 14px);
             }
             
             .login-method-btn {
-                padding: clamp(10px, 1.2vh, 12px) clamp(18px, 2.5vw, 22px);
-                font-size: clamp(12px, 1.4vw, 14px);
+                padding: clamp(7px, 1vh, 10px) clamp(12px, 1.8vw, 18px);
+                font-size: clamp(10px, 1.4vw, 13px);
+            }
+            
+            #loginPage .btn-primary {
+                padding: clamp(12px, 1.8vh, 16px) clamp(24px, 3.5vw, 32px) !important;
+                font-size: clamp(14px, 2vw, 17px) !important;
             }
         }
         
         @media (max-width: 480px) {
             #loginPage {
-                padding: 10px;
+                padding: clamp(5px, 1vw, 10px);
             }
             
             .login-container {
-                padding: clamp(20px, 4vh, 30px) clamp(18px, 4vw, 28px);
-                margin: auto;
-                max-width: 96vw;
-                min-width: 92vw;
-                max-height: 92vh;
+                padding: clamp(10px, 3vh, 25px) clamp(12px, 3vw, 26px);
+                max-width: clamp(280px, 96vw, 600px);
+                max-height: 98vh;
             }
             
             .login-logo-graphic {
-                width: clamp(160px, 65vw, 260px);
+                width: clamp(100px, 50vw, 240px);
+            }
+            
+            .login-header {
+                margin-bottom: clamp(4px, 0.8vh, 10px);
+            }
+            
+            .login-welcome {
+                margin-bottom: clamp(6px, 1vh, 16px);
+            }
+            
+            .login-welcome h3 {
+                font-size: clamp(14px, 4vw, 22px);
+            }
+            
+            .login-welcome p {
+                font-size: clamp(10px, 2.5vw, 13px);
+            }
+            
+            .form-control {
+                padding: clamp(8px, 1.5vh, 12px) clamp(12px, 2.5vw, 18px);
+                font-size: clamp(12px, 2.2vw, 15px);
+            }
+            
+            .login-method-btn {
+                padding: clamp(8px, 1.2vh, 12px) clamp(12px, 2.5vw, 20px);
+                font-size: clamp(11px, 2vw, 14px);
+            }
+            
+            #loginPage .btn-primary {
+                padding: clamp(12px, 2vh, 16px) clamp(20px, 4vw, 32px) !important;
+                font-size: clamp(13px, 2.5vw, 17px) !important;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .login-container {
+                padding: clamp(8px, 2.5vh, 20px) clamp(10px, 2.5vw, 22px);
+                max-width: 98vw;
+            }
+            
+            .login-logo-graphic {
+                width: clamp(80px, 45vw, 200px);
             }
         }
         
@@ -3530,10 +3658,10 @@
             background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #063232 100%) !important;
             background-size: 200% 100%;
             border: none !important;
-            border-radius: 14px !important;
-            padding: 16px 32px !important;
+            border-radius: clamp(10px, 1.2vw, 14px) !important;
+            padding: clamp(12px, 2vh, 16px) clamp(24px, 3.5vw, 32px) !important;
             font-weight: 700 !important;
-            font-size: 17px !important;
+            font-size: clamp(14px, 2vw, 17px) !important;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
             box-shadow: 0 6px 20px rgba(6, 50, 50, 0.3), 0 0 0 3px rgba(249, 214, 124, 0.2) !important;
             letter-spacing: 0.5px !important;
@@ -3541,6 +3669,8 @@
             overflow: hidden;
             color: #ffffff !important;
             animation: buttonGradient 3s ease infinite;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         @keyframes buttonGradient {
