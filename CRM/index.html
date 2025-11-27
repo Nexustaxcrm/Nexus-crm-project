@@ -2983,7 +2983,14 @@
             }
             
             #customerDashboardPage .navbar {
-                padding: 8px 15px !important;
+                padding: 6px 15px !important;
+                height: auto !important;
+                min-height: auto !important;
+            }
+            
+            /* Ensure navbar doesn't create extra space */
+            #customerDashboardPage .navbar::after {
+                display: none !important;
             }
             
             /* Logo Visibility Fix */
@@ -3023,8 +3030,8 @@
             }
             
             .customer-nav-container {
-                gap: clamp(4px, 0.6vw, 8px);
-                margin-right: clamp(5px, 1vw, 10px);
+                gap: clamp(3px, 0.5vw, 6px) !important;
+                margin-right: clamp(3px, 0.8vw, 8px) !important;
                 order: 1;
                 display: flex !important;
                 align-items: center !important;
@@ -3034,32 +3041,41 @@
             }
             
             .customer-nav-item {
-                width: clamp(60px, 6vw, 80px);
-                min-width: clamp(60px, 6vw, 80px);
-                max-width: clamp(60px, 6vw, 80px);
-                padding: clamp(4px, 0.5vh, 6px) clamp(6px, 0.8vw, 10px);
+                width: clamp(55px, 5.5vw, 70px) !important;
+                min-width: clamp(55px, 5.5vw, 70px) !important;
+                max-width: clamp(55px, 5.5vw, 70px) !important;
+                padding: clamp(3px, 0.4vh, 5px) clamp(4px, 0.6vw, 8px) !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 justify-content: center !important;
                 height: auto !important;
-                min-height: 50px !important;
-                max-height: 65px !important;
+                min-height: 45px !important;
+                max-height: 60px !important;
+                margin: 0 !important;
             }
             
             .customer-nav-icon {
-                font-size: clamp(12px, 1.6vw, 16px);
-                margin-bottom: 2px;
+                font-size: clamp(11px, 1.4vw, 14px) !important;
+                margin-bottom: 1px !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
+                line-height: 1 !important;
+                height: auto !important;
+                width: 100% !important;
             }
             
             .customer-nav-label {
-                font-size: clamp(7px, 0.9vw, 9px);
+                font-size: clamp(6px, 0.75vw, 8px) !important;
                 text-align: center !important;
                 width: 100% !important;
-                line-height: 1.2 !important;
+                line-height: 1.1 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
             }
             
             /* User Section */
@@ -3068,13 +3084,38 @@
                 flex-shrink: 0;
             }
             
-            /* Main Content Spacing - Remove Gap */
+            /* Main Content Spacing - Remove Gap Completely */
+            #customerDashboardPage .navbar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1000 !important;
+                height: auto !important;
+                min-height: 60px !important;
+                max-height: 70px !important;
+            }
+            
             #customerDashboardPage .main-content {
-                margin-top: var(--navbar-height) !important;
-                padding-top: 5px !important;
+                margin-top: 70px !important;
+                padding-top: 0 !important;
                 padding-left: 15px !important;
                 padding-right: 15px !important;
                 padding-bottom: 15px !important;
+            }
+            
+            /* Remove any spacing from first section */
+            #customerDashboardPage .customer-section:first-child {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            
+            #customerDashboardPage .container-fluid {
+                padding-top: 0 !important;
+            }
+            
+            #customerDashboardPage .row:first-child {
+                margin-top: 0 !important;
             }
             
             /* Container and Row Width - Full width with centered content */
@@ -3113,6 +3154,21 @@
             
             #customerDashboardPage .customer-section:first-child .card:first-child {
                 margin-top: 0 !important;
+            }
+            
+            #customerDashboardPage .customer-section:first-child {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            
+            #customerDashboardPage .row:first-child .col-12:first-child {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            
+            #customerDashboardPage .container-fluid:first-child {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
             }
             
             /* Tables Width - 95% on Mobile */
@@ -3155,6 +3211,61 @@
             #customerDashboardPage input[type="date"] {
                 width: 100% !important;
                 max-width: 100% !important;
+            }
+            
+            /* Date of Birth Input Group - Icon Inside Box */
+            #customerDashboardPage .input-group {
+                position: relative !important;
+                display: flex !important;
+                width: 100% !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-input {
+                padding-right: 45px !important;
+                width: 100% !important;
+                border-right: none !important;
+                border-top-right-radius: 0 !important;
+                border-bottom-right-radius: 0 !important;
+            }
+            
+            #customerDashboardPage .input-group {
+                border: 1px solid var(--border-color) !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn {
+                position: absolute !important;
+                right: 0 !important;
+                top: 0 !important;
+                height: 100% !important;
+                width: 40px !important;
+                min-width: 40px !important;
+                max-width: 40px !important;
+                border: none !important;
+                border-left: 1px solid var(--border-color) !important;
+                background: transparent !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                z-index: 10 !important;
+                border-radius: 0 !important;
+                border-top-right-radius: 12px !important;
+                border-bottom-right-radius: 12px !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn i {
+                color: var(--text-secondary) !important;
+                font-size: 16px !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn:hover {
+                background: rgba(6, 50, 50, 0.05) !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn:active {
+                background: rgba(6, 50, 50, 0.1) !important;
             }
             
             /* My Information Header and Refer a Friend Button Spacing */
@@ -3219,13 +3330,29 @@
                 font-size: clamp(6px, 0.8vw, 8px);
             }
             
-            /* Main Content Spacing - Remove Gap */
+            /* Main Content Spacing - Remove Gap Completely */
+            #customerDashboardPage .navbar {
+                height: auto !important;
+                min-height: 55px !important;
+                max-height: 65px !important;
+            }
+            
             #customerDashboardPage .main-content {
-                margin-top: var(--navbar-height) !important;
-                padding-top: 5px !important;
+                margin-top: 65px !important;
+                padding-top: 0 !important;
                 padding-left: 10px !important;
                 padding-right: 10px !important;
                 padding-bottom: 10px !important;
+            }
+            
+            /* Remove any spacing from first section */
+            #customerDashboardPage .customer-section:first-child {
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            
+            #customerDashboardPage .container-fluid {
+                padding-top: 0 !important;
             }
             
             /* Navbar Padding */
@@ -3233,20 +3360,55 @@
                 padding: 6px 10px !important;
             }
             
-            /* Nav Tabs Alignment */
+            /* Nav Tabs Alignment - Smaller and Better Aligned */
             .customer-nav-container {
-                gap: 3px !important;
+                gap: 2px !important;
+                margin-right: 3px !important;
                 align-items: center !important;
                 justify-content: flex-end !important;
             }
             
             .customer-nav-item {
+                width: clamp(50px, 5vw, 65px) !important;
+                min-width: clamp(50px, 5vw, 65px) !important;
+                max-width: clamp(50px, 5vw, 65px) !important;
+                padding: clamp(2px, 0.3vh, 4px) clamp(3px, 0.5vw, 6px) !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
                 justify-content: center !important;
-                min-height: 48px !important;
-                max-height: 60px !important;
+                min-height: 42px !important;
+                max-height: 55px !important;
+                margin: 0 !important;
+            }
+            
+            .customer-nav-icon {
+                font-size: clamp(10px, 1.3vw, 13px) !important;
+                margin-bottom: 1px !important;
+                line-height: 1 !important;
+            }
+            
+            .customer-nav-label {
+                font-size: clamp(5.5px, 0.7vw, 7px) !important;
+                line-height: 1.1 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            
+            /* Date of Birth Input Group - Icon Inside Box (Small Mobile) */
+            #customerDashboardPage .ms-date-picker-input {
+                padding-right: 40px !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn {
+                width: 35px !important;
+                min-width: 35px !important;
+                max-width: 35px !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn i {
+                font-size: 14px !important;
             }
             
             /* Container and Row Width - Full width with centered content on Small Mobile */
@@ -3328,6 +3490,21 @@
             #customerDashboardPage .table {
                 width: 95% !important;
                 max-width: 95% !important;
+            }
+            
+            /* Date of Birth Input Group - Icon Inside Box (Very Small Mobile) */
+            #customerDashboardPage .ms-date-picker-input {
+                padding-right: 38px !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn {
+                width: 32px !important;
+                min-width: 32px !important;
+                max-width: 32px !important;
+            }
+            
+            #customerDashboardPage .ms-date-picker-btn i {
+                font-size: 13px !important;
             }
         }
         
