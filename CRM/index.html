@@ -3213,7 +3213,7 @@
                 max-width: 100% !important;
             }
             
-            /* Date of Birth Input Group - Single Unified Box */
+            /* Date of Birth Input Group - Single Unified Box Matching Other Inputs */
             #customerDashboardPage .input-group {
                 position: relative !important;
                 display: flex !important;
@@ -3222,21 +3222,37 @@
                 border-radius: 12px !important;
                 overflow: hidden !important;
                 background: var(--card-bg) !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
             }
             
             #customerDashboardPage .ms-date-picker-input {
-                padding-right: 45px !important;
+                padding: 12px 45px 12px 16px !important;
                 width: 100% !important;
                 border: none !important;
-                border-radius: 0 !important;
-                background: transparent !important;
+                border-radius: 12px !important;
+                background: var(--card-bg) !important;
                 box-shadow: none !important;
+                color: var(--text-color) !important;
+                font-size: 15px !important;
+                height: auto !important;
+                min-height: 38px !important;
+                line-height: 1.5 !important;
             }
             
             #customerDashboardPage .ms-date-picker-input:focus {
                 border: none !important;
                 box-shadow: none !important;
                 outline: none !important;
+                background: var(--card-bg) !important;
+                border-color: transparent !important;
+            }
+            
+            /* Ensure input-group matches form-control appearance exactly */
+            #customerDashboardPage .input-group:focus-within {
+                border-color: var(--primary-color) !important;
+                box-shadow: 0 0 0 4px rgba(6, 50, 50, 0.1), 0 4px 12px rgba(15, 23, 42, 0.1) !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn {
