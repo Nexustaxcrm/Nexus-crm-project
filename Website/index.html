@@ -1407,6 +1407,24 @@
     <script src="assets/js/plugins/scrolltigger.js"></script>
     <script src="assets/js/plugins/scrolltoplugins.js"></script>
 
+    <!-- Success Modal -->
+    <div id="registrationSuccessModal" class="registration-modal" style="display: none;">
+      <div class="registration-modal-overlay"></div>
+      <div class="registration-modal-content">
+        <div class="registration-modal-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="32" r="32" fill="#063232" opacity="0.1"/>
+            <path d="M32 8C18.745 8 8 18.745 8 32s10.745 24 24 24 24-10.745 24-24S45.255 8 32 8zm0 44c-11.046 0-20-8.954-20-20S20.954 12 32 12s20 8.954 20 20-8.954 20-20 20z" fill="#063232"/>
+            <path d="M28 32l4 4 8-8" stroke="#063232" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="registration-modal-title">Registration Successful!</h2>
+        <p class="registration-modal-message">Thank you for your interest! We've added you to our interested customers list and will contact you soon.</p>
+        <button class="registration-modal-button" onclick="closeRegistrationModal()">Got it!</button>
+      </div>
+    </div>
+    <!-- End Success Modal -->
+    
     <script src="assets/js/main.js"></script>
   <!-- Fixed WhatsApp Button -->
   <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer" class="whatsapp-float">

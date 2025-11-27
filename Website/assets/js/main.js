@@ -1165,6 +1165,27 @@
 
 
   if ($.exists("#contactForm")) {
+    // Phone number validation - only allow numbers and common phone formatting characters
+    $("#contactForm #YourPhone").on("input", function() {
+      var value = $(this).val();
+      // Remove any non-numeric characters except +, -, (, ), spaces
+      var cleaned = value.replace(/[^\d\+\-\(\)\s]/g, '');
+      if (value !== cleaned) {
+        $(this).val(cleaned);
+      }
+    });
+
+    // Prevent paste of invalid characters
+    $("#contactForm #YourPhone").on("paste", function(e) {
+      var paste = (e.originalEvent || e).clipboardData.getData('text');
+      // Only allow numbers and common phone formatting characters
+      var cleaned = paste.replace(/[^\d\+\-\(\)\s]/g, '');
+      if (paste !== cleaned) {
+        e.preventDefault();
+        $(this).val($(this).val() + cleaned);
+      }
+    });
+
     $("#contactForm #submit").on("click", function (event) {
       event.preventDefault();
 
@@ -1179,6 +1200,17 @@
       // Validate required fields
       if (!name || !phone || !email || !username || !password) {
         alert("Please fill in all required fields (Name, Phone, Email, Username, and Password).");
+        return;
+      }
+
+      // Validate phone number - only numbers allowed (remove formatting for validation)
+      var phoneDigits = phone.replace(/[^\d]/g, '');
+      if (phoneDigits.length < 10) {
+        alert("Please enter a valid phone number with at least 10 digits.");
+        return;
+      }
+      if (!/^\d{10,15}$/.test(phoneDigits)) {
+        alert("Please enter a valid phone number (10-15 digits).");
         return;
       }
 
