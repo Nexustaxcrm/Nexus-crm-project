@@ -1977,54 +1977,60 @@ kbd {
 }
 @media (max-width: 768px) {
   .ak-top-bar {
-    padding: 8px 0;
+    padding: 6px 0;
   }
   .ak-top-bar-in {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 10px;
   }
   .ak-top-bar-left {
-    gap: 20px;
-    width: 100%;
-    flex-wrap: wrap;
+    gap: 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
   }
   .ak-top-bar-right {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: center;
   }
   .top-bar-contact-item {
-    font-size: 11px;
+    font-size: 10px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
   .top-bar-contact-item span {
     display: inline-block;
-    max-width: 150px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .top-bar-contact-item img {
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
     flex-shrink: 0;
   }
   .top-bar-contact-item svg {
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
     flex-shrink: 0;
   }
   .top-bar-btn {
-    padding: 6px 12px;
-    font-size: 10px;
+    padding: 4px 10px;
+    font-size: 9px;
     white-space: nowrap;
     min-width: auto;
-    line-height: 1.2;
+    line-height: 1.1;
     height: auto;
     display: inline-flex;
     align-items: center;
@@ -2497,6 +2503,16 @@ kbd {
   top: -150px;
   transition: top 0.2s ease-out;
 }
+@media screen and (max-width: 1199px) {
+  .ak-gescout_sticky {
+    top: 0 !important;
+    position: relative !important;
+  }
+  .ak-site_header.ak-sticky_header {
+    position: relative !important;
+    top: 0 !important;
+  }
+}
 @media (min-width: 1199px) {
   .ak-gescout_sticky.style-2 {
     background-color: var(--body-bg-color-two);
@@ -2894,6 +2910,13 @@ kbd {
   .ak-nav .ak-nav_list.show {
     display: flex !important;
     flex-direction: column !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  /* Override any inline styles that might hide the menu */
+  .ak-nav .ak-nav_list[style*="display: none"].active,
+  .ak-nav .ak-nav_list[style*="display: none"].show {
+    display: flex !important;
   }
   .ak-nav .ak-nav_list ul {
     padding-left: 20px;

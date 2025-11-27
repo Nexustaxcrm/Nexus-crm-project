@@ -237,11 +237,29 @@
       '<span class="ak-munu_dropdown_toggle"></span>'
     );
 
-    $(".ak-munu_toggle").on("click", function () {
-      $(this)
-        .toggleClass("ak-toggle_active")
-        .siblings(".ak-nav_list")
-        .slideToggle();
+    $(".ak-munu_toggle").on("click", function (e) {
+      e.stopPropagation();
+      var $menu = $(this).siblings(".ak-nav_list");
+      var $toggle = $(this);
+      
+      $toggle.toggleClass("ak-toggle_active");
+      
+      if ($menu.hasClass("active") || $menu.is(":visible")) {
+        $menu.removeClass("active show").fadeOut(300);
+        $("body").removeClass("menu-open");
+      } else {
+        $menu.addClass("active show").fadeIn(300);
+        $("body").addClass("menu-open");
+      }
+    });
+    
+    // Close menu when clicking outside
+    $(document).on("click", function(e) {
+      if (!$(e.target).closest(".ak-nav, .ak-munu_toggle").length) {
+        $(".ak-nav_list").removeClass("active show").fadeOut(300);
+        $(".ak-munu_toggle").removeClass("ak-toggle_active");
+        $("body").removeClass("menu-open");
+      }
     });
 
     $(".ak-munu_dropdown_toggle").on("click", function () {
@@ -299,11 +317,20 @@
       var $header = $(".ak-sticky_header");
       var scrollThreshold = 10; // Small threshold to start hide/show behavior
       var ticking = false;
+      var isMobile = $(window).width() <= 1199;
 
       function updateHeader() {
         var windowTop = $window.scrollTop();
 
-        // Start hide/show behavior after small scroll threshold
+        // On mobile, always show navbar (don't hide/show on scroll)
+        if (isMobile) {
+          $header.removeClass("ak-gescout_sticky");
+          $header.removeClass("ak-gescout_show");
+          lastScrollTop = windowTop;
+          return;
+        }
+
+        // Start hide/show behavior after small scroll threshold (desktop only)
         if (windowTop >= scrollThreshold) {
           $header.addClass("ak-gescout_sticky");
           
