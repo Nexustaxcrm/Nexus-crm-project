@@ -63,6 +63,7 @@
     packageContent();
     containerAround();
     startCountdown();
+    initKineticTypography();
   });
 
   $(window).on("scroll", function () {
@@ -1721,5 +1722,100 @@
       videoDetectionCleanup = initVideoTextColorDetection();
     }, 1000);
   });
+
+  /*--------------------------------------------------------------
+  Kinetic Typography Animation
+  --------------------------------------------------------------*/
+  function initKineticTypography() {
+    // Create Intersection Observer for scroll-triggered animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const element = entry.target;
+          
+          // Add animated class based on data attribute or default
+          const animationType = element.getAttribute('data-animation') || 'fadeInUp';
+          
+          if (animationType === 'fadeInLeft') {
+            element.classList.add('fade-in-left');
+          } else if (animationType === 'fadeInRight') {
+            element.classList.add('fade-in-right');
+          } else if (animationType === 'scaleIn') {
+            element.classList.add('scale-in');
+          } else if (animationType === 'bounceIn') {
+            element.classList.add('bounce-in');
+          } else {
+            element.classList.add('animated');
+          }
+          
+          // Stop observing once animated
+          observer.unobserve(element);
+        }
+      });
+    }, observerOptions);
+
+    // Observe elements with animate-on-scroll class
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Add kinetic typography to hero titles on load
+    if ($.exists('.hero-main-title')) {
+      $('.hero-main-title').each(function(index) {
+        $(this).css({
+          'animation-delay': (0.3 + index * 0.2) + 's'
+        });
+      });
+    }
+
+    // Add letter-by-letter animation to important headlines
+    if ($.exists('.kinetic-letter-animate')) {
+      $('.kinetic-letter-animate').each(function() {
+        const $this = $(this);
+        const text = $this.text();
+        const letters = text.split('');
+        $this.empty();
+        
+        letters.forEach((letter, index) => {
+          const $span = $('<span>').text(letter === ' ' ? '\u00A0' : letter);
+          $span.css({
+            'display': 'inline-block',
+            'opacity': '0',
+            'animation': 'fadeInUp 0.5s ease-out forwards',
+            'animation-delay': (index * 0.05) + 's'
+          });
+          $this.append($span);
+        });
+      });
+    }
+
+    // Add gradient animation to special text
+    if ($.exists('.kinetic-gradient-text')) {
+      $('.kinetic-gradient-text').addClass('kinetic-gradient-text');
+    }
+
+    // Enhanced animation for section titles
+    if ($.exists('.ak-section-title')) {
+      $('.ak-section-title').not('.animation-title').each(function(index) {
+        $(this).addClass('animate-on-scroll');
+        $(this).attr('data-animation', 'scaleIn');
+        $(this).css('animation-delay', (index * 0.1) + 's');
+      });
+    }
+
+    // Add bounce animation to feature titles
+    if ($.exists('.feature-title')) {
+      $('.feature-title').each(function(index) {
+        $(this).addClass('animate-on-scroll');
+        $(this).attr('data-animation', 'bounceIn');
+        $(this).css('animation-delay', (index * 0.15) + 's');
+      });
+    }
+  }
 
 })(jQuery);
