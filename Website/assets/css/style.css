@@ -4274,9 +4274,24 @@ kbd {
 }
 .common-page-hero .common-hero-content .common-hero-info {
   max-width: 718px;
+  text-align: center;
+}
+.common-page-hero .common-hero-content .common-hero-info .ak-section-heading {
+  text-align: center;
+}
+.common-page-hero .common-hero-content .common-hero-info .ak-section-heading .ak-section-title {
+  text-align: center;
+}
+.common-page-hero .common-hero-content .common-hero-info .ak-section-heading .ak-section-subtitle {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  display: inline-flex;
+  justify-content: center;
 }
 .common-page-hero .common-hero-content .common-hero-info .ak-section-title {
   font-size: 62px;
+  text-align: center;
 }
 .common-page-hero .phone-number {
   position: absolute;
