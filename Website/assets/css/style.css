@@ -2273,13 +2273,9 @@ kbd {
   transition: all 0.3s ease;
   white-space: nowrap;
   text-decoration: none;
-  color: inherit;
-  background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 4s linear infinite;
+  color: #063232;
+  background: none;
+  -webkit-text-fill-color: #063232;
 }
 @media screen and (min-width: 992px) {
   .ak-nav .ak-nav_list li a {
@@ -2311,27 +2307,26 @@ kbd {
 }
 .ak-nav .ak-nav_list > li > a:hover {
   word-spacing: 2px;
-  background: linear-gradient(90deg, #063232 0%, #f9d67c 25%, #063232 50%, #f9d67c 75%, #063232 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 4s linear infinite;
+  color: #f9d67c;
+  background: none;
+  -webkit-text-fill-color: #f9d67c;
   transform: translateY(-1px);
 }
 
-/* Apply gradient effect to dropdown menu items */
+/* Dropdown menu items - single color */
 .ak-nav .ak-nav_list > li.menu-item-has-children > ul > li > a {
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
   font-weight: 600 !important;
   letter-spacing: 0.2px !important;
   text-align: left !important;
-  background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%) !important;
-  background-size: 200% 100% !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-  animation: gradientShift 4s linear infinite !important;
+  color: #063232 !important;
+  background: none !important;
+  -webkit-text-fill-color: #063232 !important;
+}
+
+.ak-nav .ak-nav_list > li.menu-item-has-children > ul > li > a:hover {
+  color: #f9d67c !important;
+  -webkit-text-fill-color: #f9d67c !important;
 }
 
 .ak-sticky_header {
