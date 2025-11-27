@@ -2339,7 +2339,7 @@ kbd {
   transition: background-color 0.4s ease;
 }
 
-/* Gradient line under navbar */
+/* Solid line under navbar */
 .ak-sticky_header::after {
   content: '';
   position: absolute;
@@ -2347,10 +2347,8 @@ kbd {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
-  background-size: 200% 100%;
+  background: #f9d67c;
   z-index: 1000;
-  animation: gradientShift 4s linear infinite;
 }
 
 @keyframes gradientShift {
@@ -2390,24 +2388,17 @@ kbd {
     background-color: var(--body-bg-color-two);
   }
   .ak-sticky_header.style-2 .ak-nav > .ak-nav_list .menu-item-has-children > ul > li > a {
-    background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 4s linear infinite;
+    color: #063232;
+    background: none;
+    -webkit-text-fill-color: #063232;
     transition: all 0.3s ease;
   }
   .ak-sticky_header.style-2 .ak-nav > .ak-nav_list .menu-item-has-children > ul > li > a ::after {
     border: 2px solid rgba(255, 255, 255, 0.7);
   }
   .ak-sticky_header.style-2 .ak-nav > .ak-nav_list .menu-item-has-children > ul > li > a:hover {
-    background: linear-gradient(90deg, #063232 0%, #f9d67c 25%, #063232 50%, #f9d67c 75%, #063232 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 4s linear infinite;
+    color: #f9d67c;
+    -webkit-text-fill-color: #f9d67c;
     word-spacing: 2px;
     transform: translateX(3px);
   }
@@ -2554,12 +2545,16 @@ kbd {
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     font-weight: 600;
     letter-spacing: 0.2px;
-    background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 4s linear infinite;
+    color: #063232;
+    background: none;
+    -webkit-text-fill-color: #063232;
+    transition: all 0.3s ease;
+  }
+  
+  .ak-nav .ak-nav_list > li > a:hover {
+    color: #f9d67c;
+    -webkit-text-fill-color: #f9d67c;
+    transform: translateY(-1px);
   }
   @media screen and (min-width: 1200px) {
     .ak-nav .ak-nav_list > li > a {
@@ -2681,7 +2676,7 @@ kbd {
     display: block;
     line-height: 1.6;
     padding: 10px 20px;
-    color: var(--body-color);
+    color: #063232;
     font-size: 14px;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -2690,12 +2685,8 @@ kbd {
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     font-weight: 600;
     letter-spacing: 0.2px;
-    background: linear-gradient(90deg, #f9d67c 0%, #063232 25%, #f9d67c 50%, #063232 75%, #f9d67c 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 4s linear infinite;
+    background: none;
+    -webkit-text-fill-color: #063232;
   }
   .ak-nav .ak-nav_list ul li:last-child > a {
     border-bottom: none;
@@ -2703,12 +2694,8 @@ kbd {
   .ak-nav .ak-nav_list ul a:hover {
     background-color: rgba(249, 214, 124, 0.1);
     padding-left: 25px;
-    background: linear-gradient(90deg, #063232 0%, #f9d67c 25%, #063232 50%, #f9d67c 75%, #063232 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientShift 4s linear infinite;
+    color: #f9d67c;
+    -webkit-text-fill-color: #f9d67c;
     transform: translateX(3px);
   }
   .ak-nav .ak-nav_list ul ul {
