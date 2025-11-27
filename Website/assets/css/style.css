@@ -1874,6 +1874,13 @@ kbd {
   background-color: #030917;
   padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 100000;
+}
+@media screen and (max-width: 1199px) {
+  .ak-top-bar {
+    z-index: 100001;
+  }
 }
 .ak-top-bar-in {
   display: flex;
@@ -2121,6 +2128,34 @@ kbd {
 .ak-site_header {
   position: relative;
   z-index: 100001;
+}
+@media screen and (max-width: 1199px) {
+  .ak-site_header {
+    z-index: 100002;
+  }
+  
+  /* Body overlay when menu is open */
+  body.menu-open {
+    overflow: hidden;
+  }
+  
+  body.menu-open::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999998;
+    pointer-events: none;
+  }
+  
+  /* Ensure menu appears above overlay */
+  .ak-nav .ak-nav_list.active,
+  .ak-nav .ak-nav_list.show {
+    z-index: 999999 !important;
+  }
 }
 
 .ak-site-branding {
@@ -2837,22 +2872,23 @@ kbd {
     transform: translate(-50%, -50%) rotate(0deg);
   }
   .ak-nav .ak-nav_list {
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
-    left: -15px;
-    padding: 10px 0;
+    height: 100vh;
+    padding: 80px 20px 20px 20px;
     display: none;
-    top: 0%;
-    padding-top: 75px;
-    border-top: 1px solid rgba(77, 77, 77, 0.3215686275);
-    border-bottom: 1px solid rgba(77, 77, 77, 0.3215686275);
-    overflow: auto;
-    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
     line-height: 1.6em;
-    background-color: var(--body-bg-color);
+    background-color: #ffffff;
     flex-direction: column !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
+    z-index: 999999 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: none;
   }
   .ak-nav .ak-nav_list.active,
   .ak-nav .ak-nav_list.show {
@@ -2860,24 +2896,81 @@ kbd {
     flex-direction: column !important;
   }
   .ak-nav .ak-nav_list ul {
-    padding-left: 15px;
+    padding-left: 20px;
     display: none;
     flex-direction: column;
+    width: 100%;
+    margin-top: 5px;
   }
   .ak-nav .ak-nav_list li {
     display: block;
     width: 100%;
     flex: none;
+    margin: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .ak-nav .ak-nav_list li:last-child {
+    border-bottom: none;
   }
   .ak-nav .ak-nav_list a {
     display: block;
-    padding: 12px 20px;
-    text-transform: uppercase;
+    padding: 16px 20px;
+    text-transform: none;
     position: relative;
     width: 100%;
+    color: #030917;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: left;
+    transition: all 0.3s ease;
+  }
+  .ak-nav .ak-nav_list a:hover {
+    color: #063232;
+    background-color: rgba(249, 214, 124, 0.1);
+    padding-left: 25px;
   }
   .ak-nav .menu-item-has-children {
     position: relative;
+    width: 100%;
+  }
+  .ak-nav .menu-item-has-children > a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ak-nav .menu-item-has-children .ak-munu_dropdown_toggle {
+    position: relative;
+    right: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
+  .ak-nav .menu-item-has-children > ul {
+    display: none;
+    width: 100%;
+    position: relative;
+    top: 0;
+    left: 0;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(249, 214, 124, 0.05);
+    border-left: 3px solid #f9d67c;
+  }
+  .ak-nav .menu-item-has-children > ul.active {
+    display: block;
+  }
+  .ak-nav .menu-item-has-children > ul > li {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  }
+  .ak-nav .menu-item-has-children > ul > li > a {
+    padding-left: 40px;
+    font-size: 15px;
   }
   /*Mobile Menu Button*/
   .ak-munu_toggle {
@@ -2888,6 +2981,7 @@ kbd {
     position: absolute;
     top: 27px;
     right: 30px;
+    z-index: 1000003;
   }
   .ak-munu_toggle span,
   .ak-munu_toggle span:before,
