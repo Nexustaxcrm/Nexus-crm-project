@@ -4083,6 +4083,618 @@
                 -ms-flex-pack: end;
             }
         }
+        
+        /* ============================================
+           COMPREHENSIVE MOBILE RESPONSIVENESS FOR CRM
+           ============================================ */
+        
+        @media screen and (max-width: 768px) {
+            /* Body and Container */
+            body {
+                font-size: 14px;
+            }
+            
+            .container,
+            .container-fluid {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            
+            /* Navbar Mobile */
+            .navbar {
+                height: 60px;
+                padding: 0 15px;
+                flex-wrap: wrap;
+            }
+            
+            .navbar .logo {
+                flex: 0 0 auto;
+            }
+            
+            .navbar .nav-right-group {
+                flex: 1;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+            
+            /* Customer Navigation Mobile */
+            .customer-nav-container {
+                flex-direction: row;
+                gap: 4px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                padding: 5px 0;
+            }
+            
+            .customer-nav-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .customer-nav-item {
+                flex-shrink: 0;
+                width: 70px;
+                min-width: 70px;
+                max-width: 70px;
+                padding: 6px 4px;
+            }
+            
+            .customer-nav-icon {
+                font-size: 16px;
+                margin-bottom: 2px;
+            }
+            
+            .customer-nav-label {
+                font-size: 9px;
+                line-height: 1.2;
+            }
+            
+            /* User Section Mobile */
+            .navbar .user-section {
+                gap: 8px;
+            }
+            
+            .navbar .user-avatar {
+                width: 32px;
+                height: 32px;
+            }
+            
+            /* Main Content Padding */
+            #dashboardPage,
+            #customerDashboardPage {
+                padding-top: 70px !important;
+            }
+            
+            /* Cards Mobile */
+            .card {
+                margin-bottom: 15px;
+                border-radius: 12px;
+            }
+            
+            .card-header {
+                padding: 12px 15px;
+                font-size: 16px;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Tables Mobile */
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 8px;
+            }
+            
+            .table {
+                font-size: 12px;
+                min-width: 600px;
+            }
+            
+            .table thead th {
+                font-size: 11px;
+                padding: 8px 6px;
+                white-space: nowrap;
+            }
+            
+            .table tbody td {
+                padding: 8px 6px;
+                white-space: nowrap;
+            }
+            
+            /* Forms Mobile */
+            .form-control,
+            .form-select {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            
+            .form-label {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            /* Buttons Mobile */
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            
+            .btn-sm {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .btn-lg {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            /* Customer Dashboard Sections */
+            .customer-section {
+                padding: 15px 0;
+            }
+            
+            .customer-section .card {
+                margin-bottom: 20px;
+            }
+            
+            /* Stats Cards Mobile */
+            .stat-card,
+            .dashboard-stat {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .stat-card h3,
+            .dashboard-stat h3 {
+                font-size: 20px;
+            }
+            
+            .stat-card p,
+            .dashboard-stat p {
+                font-size: 12px;
+            }
+            
+            /* Modals Mobile */
+            .modal-dialog {
+                margin: 10px;
+                max-width: calc(100% - 20px);
+            }
+            
+            .modal-content {
+                border-radius: 12px;
+            }
+            
+            .modal-header {
+                padding: 15px;
+            }
+            
+            .modal-header .modal-title {
+                font-size: 18px;
+            }
+            
+            .modal-body {
+                padding: 15px;
+            }
+            
+            .modal-footer {
+                padding: 12px 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0;
+            }
+            
+            /* Grid Layouts Mobile */
+            .row {
+                margin-left: -8px;
+                margin-right: -8px;
+            }
+            
+            .row > * {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+            
+            .col-md-6,
+            .col-lg-4,
+            .col-lg-6 {
+                margin-bottom: 15px;
+            }
+            
+            /* Charts Mobile */
+            .chart-container {
+                position: relative;
+                height: 250px;
+                margin-bottom: 20px;
+            }
+            
+            /* Search and Filter Mobile */
+            .search-box,
+            .filter-box {
+                margin-bottom: 15px;
+            }
+            
+            .search-box input,
+            .filter-box select {
+                width: 100%;
+            }
+            
+            /* Action Buttons Mobile */
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
+            
+            /* File Upload Mobile */
+            .file-upload-area {
+                padding: 20px 15px;
+            }
+            
+            .file-upload-area .btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            /* Progress Bars Mobile */
+            .progress {
+                height: 20px;
+                margin-bottom: 15px;
+            }
+            
+            /* Badges Mobile */
+            .badge {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+            
+            /* Alerts Mobile */
+            .alert {
+                padding: 12px 15px;
+                font-size: 13px;
+                margin-bottom: 15px;
+            }
+            
+            /* Pagination Mobile */
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .pagination .page-link {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            /* Extra Small Mobile */
+            .navbar {
+                height: 55px;
+                padding: 0 10px;
+            }
+            
+            .nexus-logo-graphic {
+                width: 150px;
+                height: 45px;
+                margin-left: -15px;
+            }
+            
+            .customer-nav-item {
+                width: 60px;
+                min-width: 60px;
+                max-width: 60px;
+                padding: 5px 3px;
+            }
+            
+            .customer-nav-icon {
+                font-size: 14px;
+            }
+            
+            .customer-nav-label {
+                font-size: 8px;
+            }
+            
+            .card-body {
+                padding: 12px;
+            }
+            
+            .table {
+                font-size: 11px;
+            }
+            
+            .table thead th {
+                font-size: 10px;
+                padding: 6px 4px;
+            }
+            
+            .table tbody td {
+                padding: 6px 4px;
+            }
+            
+            .btn {
+                padding: 7px 14px;
+                font-size: 12px;
+            }
+            
+            .modal-dialog {
+                margin: 5px;
+                max-width: calc(100% - 10px);
+            }
+            
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding: 12px;
+            }
+            
+            .form-control,
+            .form-select {
+                font-size: 13px;
+                padding: 7px 10px;
+            }
+        }
+        
+        /* Landscape Mobile */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            .navbar {
+                height: 50px;
+            }
+            
+            #dashboardPage,
+            #customerDashboardPage {
+                padding-top: 60px !important;
+            }
+        }
+        
+        /* Prevent horizontal scroll */
+        @media screen and (max-width: 768px) {
+            * {
+                max-width: 100%;
+            }
+            
+            body {
+                overflow-x: hidden;
+                position: relative;
+            }
+            
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Customer Dashboard Specific Mobile Styles */
+            #customerDashboardPage {
+                padding: 70px 10px 20px 10px;
+            }
+            
+            #customerDashboardPage .customer-section {
+                padding: 10px 0;
+            }
+            
+            #customerDashboardPage .form-row {
+                flex-direction: column;
+            }
+            
+            #customerDashboardPage .form-row .col-md-6,
+            #customerDashboardPage .form-row .col-md-4 {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            /* Customer Navigation Horizontal Scroll */
+            .customer-nav-container {
+                justify-content: flex-start;
+                padding-bottom: 5px;
+            }
+            
+            /* Dashboard Stats Grid Mobile */
+            .dashboard-stats,
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px;
+            }
+            
+            /* Data Tables Mobile Optimization */
+            .data-table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Form Groups Mobile */
+            .form-group.row {
+                flex-direction: column;
+            }
+            
+            .form-group.row .col-md-6,
+            .form-group.row .col-md-4,
+            .form-group.row .col-md-3 {
+                width: 100%;
+                padding-left: 0;
+                padding-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            /* Button Groups Mobile */
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                width: 100%;
+                border-radius: 6px !important;
+                margin-bottom: 8px;
+            }
+            
+            /* Input Groups Mobile */
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .input-group .form-control,
+            .input-group .btn {
+                width: 100%;
+                border-radius: 6px !important;
+                margin-bottom: 8px;
+            }
+            
+            /* Dropdowns Mobile */
+            .dropdown-menu {
+                width: 100%;
+                max-width: 100%;
+                left: 0 !important;
+                right: 0 !important;
+            }
+            
+            /* Tabs Mobile */
+            .nav-tabs {
+                flex-direction: column;
+                border-bottom: none;
+            }
+            
+            .nav-tabs .nav-item {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .nav-tabs .nav-link {
+                width: 100%;
+                text-align: left;
+                border-radius: 8px;
+            }
+            
+            .tab-content {
+                padding: 15px 0;
+            }
+            
+            /* Accordion Mobile */
+            .accordion-item {
+                margin-bottom: 10px;
+            }
+            
+            .accordion-button {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+            
+            .accordion-body {
+                padding: 15px;
+            }
+            
+            /* List Groups Mobile */
+            .list-group-item {
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+            
+            /* Spacing Adjustments */
+            .mb-4, .my-4 {
+                margin-bottom: 20px !important;
+            }
+            
+            .mt-4, .my-4 {
+                margin-top: 20px !important;
+            }
+            
+            .mb-3, .my-3 {
+                margin-bottom: 15px !important;
+            }
+            
+            .mt-3, .my-3 {
+                margin-top: 15px !important;
+            }
+            
+            /* Text Sizes Mobile */
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            h3 {
+                font-size: 18px;
+            }
+            
+            h4 {
+                font-size: 16px;
+            }
+            
+            h5 {
+                font-size: 14px;
+            }
+            
+            /* Utilities Mobile */
+            .text-center-mobile {
+                text-align: center;
+            }
+            
+            .d-none-mobile {
+                display: none !important;
+            }
+            
+            .d-block-mobile {
+                display: block !important;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            /* Additional Small Screen Fixes */
+            #customerDashboardPage {
+                padding: 60px 8px 15px 8px;
+            }
+            
+            .card-body {
+                padding: 10px;
+            }
+            
+            .customer-nav-container {
+                gap: 3px;
+            }
+            
+            .customer-nav-item {
+                width: 55px;
+                min-width: 55px;
+                max-width: 55px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            h2 {
+                font-size: 18px;
+            }
+            
+            h3 {
+                font-size: 16px;
+            }
+        }
     </style>
     
     <!-- API Configuration -->
