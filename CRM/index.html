@@ -2979,6 +2979,11 @@
                 height: auto;
                 min-height: var(--navbar-height);
                 flex-wrap: wrap;
+                align-items: center !important;
+            }
+            
+            #customerDashboardPage .navbar {
+                padding: 8px 15px !important;
             }
             
             /* Logo Visibility Fix */
@@ -3021,6 +3026,11 @@
                 gap: clamp(4px, 0.6vw, 8px);
                 margin-right: clamp(5px, 1vw, 10px);
                 order: 1;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: flex-end !important;
+                height: 100% !important;
+                flex-wrap: nowrap !important;
             }
             
             .customer-nav-item {
@@ -3028,15 +3038,28 @@
                 min-width: clamp(60px, 6vw, 80px);
                 max-width: clamp(60px, 6vw, 80px);
                 padding: clamp(4px, 0.5vh, 6px) clamp(6px, 0.8vw, 10px);
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                height: auto !important;
+                min-height: 50px !important;
+                max-height: 65px !important;
             }
             
             .customer-nav-icon {
                 font-size: clamp(12px, 1.6vw, 16px);
                 margin-bottom: 2px;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
             }
             
             .customer-nav-label {
                 font-size: clamp(7px, 0.9vw, 9px);
+                text-align: center !important;
+                width: 100% !important;
+                line-height: 1.2 !important;
             }
             
             /* User Section */
@@ -3045,10 +3068,13 @@
                 flex-shrink: 0;
             }
             
-            /* Main Content Spacing */
-            .main-content {
-                margin-top: calc(var(--navbar-height) + 10px) !important;
-                padding: 15px !important;
+            /* Main Content Spacing - Remove Gap */
+            #customerDashboardPage .main-content {
+                margin-top: var(--navbar-height) !important;
+                padding-top: 5px !important;
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                padding-bottom: 15px !important;
             }
             
             /* Container and Row Width - Full width with centered content */
@@ -3078,6 +3104,15 @@
                 margin-left: auto !important;
                 margin-right: auto !important;
                 padding: 20px 15px !important;
+            }
+            
+            /* Remove Gap from First Card */
+            #customerDashboardPage .customer-section .card:first-child {
+                margin-top: 0 !important;
+            }
+            
+            #customerDashboardPage .customer-section:first-child .card:first-child {
+                margin-top: 0 !important;
             }
             
             /* Tables Width - 95% on Mobile */
@@ -3184,8 +3219,34 @@
                 font-size: clamp(6px, 0.8vw, 8px);
             }
             
-            .main-content {
-                padding: 10px !important;
+            /* Main Content Spacing - Remove Gap */
+            #customerDashboardPage .main-content {
+                margin-top: var(--navbar-height) !important;
+                padding-top: 5px !important;
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+                padding-bottom: 10px !important;
+            }
+            
+            /* Navbar Padding */
+            #customerDashboardPage .navbar {
+                padding: 6px 10px !important;
+            }
+            
+            /* Nav Tabs Alignment */
+            .customer-nav-container {
+                gap: 3px !important;
+                align-items: center !important;
+                justify-content: flex-end !important;
+            }
+            
+            .customer-nav-item {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                min-height: 48px !important;
+                max-height: 60px !important;
             }
             
             /* Container and Row Width - Full width with centered content on Small Mobile */
