@@ -2973,9 +2973,54 @@
         }
         
         @media (max-width: 768px) {
+            /* Navbar Mobile Fixes */
+            .navbar {
+                padding: 0 15px;
+                height: auto;
+                min-height: var(--navbar-height);
+                flex-wrap: wrap;
+            }
+            
+            /* Logo Visibility Fix */
+            .navbar .logo {
+                margin-left: 0;
+                margin-right: 10px;
+                flex-shrink: 0;
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                width: auto;
+                max-width: 180px;
+            }
+            
+            .nexus-logo-graphic {
+                width: clamp(120px, 30vw, 180px) !important;
+                max-width: 180px !important;
+                height: clamp(40px, 6vh, 50px) !important;
+                max-height: 50px !important;
+                margin-left: 0 !important;
+            }
+            
+            .nexus-logo-graphic img {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            
+            /* Nav Right Group */
+            .nav-right-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                flex: 1;
+                min-width: 0;
+            }
+            
             .customer-nav-container {
                 gap: clamp(4px, 0.6vw, 8px);
                 margin-right: clamp(5px, 1vw, 10px);
+                order: 1;
             }
             
             .customer-nav-item {
@@ -2992,6 +3037,123 @@
             
             .customer-nav-label {
                 font-size: clamp(7px, 0.9vw, 9px);
+            }
+            
+            /* User Section */
+            .user-section {
+                order: 2;
+                flex-shrink: 0;
+            }
+            
+            /* Main Content Spacing */
+            .main-content {
+                margin-top: calc(var(--navbar-height) + 10px) !important;
+                padding: 15px !important;
+            }
+            
+            /* My Information Header and Refer a Friend Button Spacing */
+            .customer-section .card h4 {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 15px !important;
+                padding-bottom: 18px !important;
+            }
+            
+            .customer-section .card h4 span {
+                width: 100%;
+            }
+            
+            .customer-section .card h4 button[onclick="showReferFriendModal()"] {
+                width: 100%;
+                max-width: 100%;
+                margin-top: 10px;
+                padding: 8px 16px !important;
+                font-size: 0.85em !important;
+            }
+            
+            /* Card Padding Adjustments */
+            .customer-section .card {
+                padding: 20px 15px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Extra Small Mobile */
+            .navbar {
+                padding: 0 10px;
+            }
+            
+            .navbar .logo {
+                max-width: 140px;
+            }
+            
+            .nexus-logo-graphic {
+                width: clamp(100px, 25vw, 140px) !important;
+                max-width: 140px !important;
+                height: clamp(35px, 5vh, 45px) !important;
+                max-height: 45px !important;
+            }
+            
+            .nav-right-group {
+                gap: 5px;
+            }
+            
+            .customer-nav-container {
+                gap: 3px;
+                margin-right: 5px;
+            }
+            
+            .customer-nav-item {
+                width: clamp(50px, 5vw, 65px);
+                min-width: clamp(50px, 5vw, 65px);
+                max-width: clamp(50px, 5vw, 65px);
+                padding: clamp(3px, 0.4vh, 5px) clamp(4px, 0.6vw, 8px);
+            }
+            
+            .customer-nav-icon {
+                font-size: clamp(10px, 1.4vw, 14px);
+            }
+            
+            .customer-nav-label {
+                font-size: clamp(6px, 0.8vw, 8px);
+            }
+            
+            .main-content {
+                padding: 10px !important;
+            }
+            
+            .customer-section .card {
+                padding: 15px 10px !important;
+            }
+            
+            .customer-section .card h4 {
+                font-size: 1.1em !important;
+                gap: 12px !important;
+            }
+            
+            .customer-section .card h4 button[onclick="showReferFriendModal()"] {
+                padding: 6px 12px !important;
+                font-size: 0.8em !important;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            /* Very Small Mobile */
+            .navbar .logo {
+                max-width: 120px;
+            }
+            
+            .nexus-logo-graphic {
+                width: clamp(80px, 20vw, 120px) !important;
+                max-width: 120px !important;
+                height: clamp(30px, 4vh, 40px) !important;
+                max-height: 40px !important;
+            }
+            
+            .customer-nav-item {
+                width: clamp(45px, 4.5vw, 55px);
+                min-width: clamp(45px, 4.5vw, 55px);
+                max-width: clamp(45px, 4.5vw, 55px);
             }
         }
         
