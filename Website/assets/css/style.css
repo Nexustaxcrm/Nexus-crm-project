@@ -2164,21 +2164,54 @@ kbd {
     position: fixed !important;
   }
   
-  /* Ensure hero/video content stays below menu */
+  /* Ensure entire hero section and all containers stay below menu */
+  .ak-slider,
+  .ak-slider-hero,
   .ak-slider-hero-1,
+  .ak-slider-hero-1 .swiper,
+  .ak-slider-hero-1 .swiper-wrapper,
+  .ak-slider-hero-1 .swiper-slide,
   .ak-hero,
+  .ak-hero.ak-style1,
+  .ak-hero.slide-inner,
   .ak-hero-featured,
-  .swiper-slide,
-  .swiper-wrapper {
+  .ak-hero-featured .ak-hero-bg {
     z-index: 1 !important;
     position: relative;
   }
   
-  /* Video elements should stay behind menu */
+  /* All video elements should stay behind menu - force much lower z-index */
   .ak-hero-featured video,
   .ak-hero-bg,
-  video.ak-hero-bg {
-    z-index: -1 !important;
+  video.ak-hero-bg,
+  video.hero-video-primary,
+  video.hero-video-secondary,
+  video.hero-video-tertiary,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.ak-hero-bg,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-primary,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-secondary,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-tertiary,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-primary.fading-out,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-secondary.fading-in,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-secondary.fading-out,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-tertiary.fading-in,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-tertiary.fading-out,
+  .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .ak-hero-featured video.hero-video-primary.fading-in {
+    z-index: -100 !important;
+    position: absolute !important;
+  }
+  
+  /* Ensure swiper container doesn't create stacking context issues */
+  .ak-slider-hero-1 .swiper {
+    z-index: 1 !important;
+    position: relative;
+    isolation: auto;
+  }
+  
+  /* Prevent any stacking context from interfering */
+  .ak-slider-hero-1 .swiper-slide {
+    isolation: auto;
   }
 }
 
@@ -2924,6 +2957,8 @@ kbd {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border: none;
     transform: none !important;
+    isolation: isolate !important;
+    will-change: transform !important;
   }
   .ak-nav .ak-nav_list.active,
   .ak-nav .ak-nav_list.show {
