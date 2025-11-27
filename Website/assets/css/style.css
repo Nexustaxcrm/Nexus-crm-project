@@ -2029,19 +2029,19 @@ kbd {
     flex-shrink: 0;
   }
   .top-bar-btn {
-    padding: 2px 6px;
+    padding: 1px 12px;
     font-size: 7px;
     white-space: nowrap;
     min-width: auto;
     line-height: 1;
     height: auto;
-    min-height: 18px;
+    min-height: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     vertical-align: middle;
     width: 100%;
-    max-width: 70px;
+    max-width: 85px;
   }
 }
 
@@ -2069,18 +2069,18 @@ kbd {
     max-width: 120px;
   }
   .top-bar-btn {
-    padding: 2px 5px;
+    padding: 1px 10px;
     font-size: 6px;
     flex: 0 0 auto;
     line-height: 1;
     height: auto;
-    min-height: 16px;
+    min-height: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
     vertical-align: middle;
     width: 100%;
-    max-width: 65px;
+    max-width: 80px;
   }
 }
 
@@ -2297,12 +2297,12 @@ kbd {
   }
   
   .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .container-md {
-    z-index: 100 !important;
+    z-index: 1000 !important;
     position: relative !important;
   }
   
   .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info {
-    z-index: 100 !important;
+    z-index: 1000 !important;
     position: relative !important;
     width: 100% !important;
     padding: 20px 15px !important;
@@ -2312,7 +2312,7 @@ kbd {
   }
   
   .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .slider-info {
-    z-index: 101 !important;
+    z-index: 1001 !important;
     position: relative !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -2329,7 +2329,7 @@ kbd {
   .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .mini-title,
   .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .hero-title .main-desp,
   .ak-slider-hero-1 .swiper-slide .ak-hero.ak-style1 .hero-slider-info .common-btn {
-    z-index: 101 !important;
+    z-index: 1002 !important;
     position: relative !important;
     opacity: 1 !important;
     visibility: visible !important;
@@ -3111,10 +3111,22 @@ kbd {
     background-color: var(--body-color);
     transition: all 0.3s ease;
   }
+  /* Default state: "+" icon (vertical + horizontal lines) */
   .ak-munu_dropdown_toggle:before {
     transform: translate(-50%, -50%) rotate(90deg);
   }
+  .ak-munu_dropdown_toggle:after {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  /* Active state (expanded): "-" icon (hide vertical line, keep horizontal) */
   .ak-munu_dropdown_toggle.active:before {
+    opacity: 0;
+    width: 0;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  .ak-munu_dropdown_toggle.active:after {
+    opacity: 1;
+    width: 10px;
     transform: translate(-50%, -50%) rotate(0deg);
   }
   .ak-nav .ak-nav_list {
@@ -3128,7 +3140,7 @@ kbd {
     overflow-y: auto;
     overflow-x: hidden;
     line-height: 1.6em;
-    background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%) !important;
+    background: #ffffff !important;
     flex-direction: column !important;
     align-items: stretch !important;
     justify-content: flex-start !important;
@@ -3173,7 +3185,7 @@ kbd {
     flex: none;
     margin: 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    background-color: #ffffff;
+    background-color: #ffffff !important;
     transition: background-color 0.3s ease;
   }
   .ak-nav .ak-nav_list li:first-child {
@@ -3276,10 +3288,12 @@ kbd {
     flex-shrink: 0;
     margin-top: 0;
   }
-  .ak-nav .menu-item-has-children .ak-munu_dropdown_toggle:hover,
+  .ak-nav .menu-item-has-children .ak-munu_dropdown_toggle:hover {
+    background-color: #f9d67c;
+  }
   .ak-nav .menu-item-has-children .ak-munu_dropdown_toggle.active {
     background-color: #f9d67c;
-    transform: translateY(-50%) rotate(90deg);
+    transform: translateY(-50%) rotate(0deg);
   }
   .ak-nav .menu-item-has-children .ak-munu_dropdown_toggle:before,
   .ak-nav .menu-item-has-children .ak-munu_dropdown_toggle:after {
@@ -3318,7 +3332,7 @@ kbd {
   }
   .ak-nav .menu-item-has-children > ul > li {
     border-bottom: 1px solid rgba(249, 214, 124, 0.15);
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: #ffffff !important;
   }
   .ak-nav .menu-item-has-children > ul > li:last-child {
     border-bottom: none;
