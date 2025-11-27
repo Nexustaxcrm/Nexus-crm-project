@@ -5357,8 +5357,34 @@ kbd {
   .funfact-counter .funfact-title-content .funfact-title {
     font-size: 32px;
   }
+  .funfact-counter .auto-counter-section {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .funfact-counter .auto-counter-section .funfact.style1 {
+    width: 100%;
+    max-width: 100%;
+  }
+  .funfact-counter .auto-counter-section .divider-border {
+    display: none !important;
+  }
   .funfact-counter .auto-counter-section .funfact.style1 .funfact-number span {
     font-size: 32px;
+  }
+}
+@media screen and (max-width: 480px) {
+  .funfact-counter .auto-counter-section {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  .funfact-counter .auto-counter-section .funfact.style1 {
+    width: 100%;
+    max-width: 100%;
+  }
+  .funfact-counter .auto-counter-section .divider-border {
+    display: none !important;
   }
 }
 @media screen and (max-width: 399px) {
