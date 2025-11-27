@@ -1977,7 +1977,7 @@ kbd {
 }
 @media (max-width: 768px) {
   .ak-top-bar {
-    padding: 1px 0;
+    padding: 0.5px 0;
     min-height: auto;
   }
   .ak-top-bar-in {
@@ -1987,7 +1987,7 @@ kbd {
     gap: 4px;
   }
   .ak-top-bar-left {
-    gap: 3px;
+    gap: 1px;
     flex-direction: column;
     align-items: flex-start;
     flex: 1;
@@ -1995,10 +1995,10 @@ kbd {
   .ak-top-bar-right {
     flex: 0 0 auto;
     justify-content: flex-end;
-    flex-direction: column;
+    flex-direction: row;
     flex-wrap: nowrap;
-    gap: 1px;
-    align-items: flex-end;
+    gap: 2px;
+    align-items: center;
   }
   .top-bar-contact-item {
     font-size: 8px;
@@ -2029,7 +2029,7 @@ kbd {
     flex-shrink: 0;
   }
   .top-bar-btn {
-    padding: 0px 22px;
+    padding: 0px 12px;
     font-size: 7px;
     white-space: nowrap;
     min-width: auto;
@@ -2040,25 +2040,26 @@ kbd {
     align-items: center;
     justify-content: center;
     vertical-align: middle;
-    width: 100%;
-    max-width: 130px;
+    width: auto;
+    max-width: none;
+    flex: 0 0 auto;
   }
 }
 
 @media (max-width: 480px) {
   .ak-top-bar {
-    padding: 1px 0;
+    padding: 0.5px 0;
     min-height: auto;
   }
   .ak-top-bar-left {
-    gap: 2px;
+    gap: 1px;
     flex-direction: column;
     align-items: flex-start;
   }
   .ak-top-bar-right {
-    gap: 1px;
-    flex-direction: column;
-    align-items: flex-end;
+    gap: 2px;
+    flex-direction: row;
+    align-items: center;
     flex-wrap: nowrap;
   }
   .top-bar-contact-item {
@@ -2078,7 +2079,7 @@ kbd {
     height: 6px;
   }
   .top-bar-btn {
-    padding: 0px 20px;
+    padding: 0px 10px;
     font-size: 6px;
     flex: 0 0 auto;
     line-height: 1;
@@ -2088,8 +2089,8 @@ kbd {
     align-items: center;
     justify-content: center;
     vertical-align: middle;
-    width: 100%;
-    max-width: 120px;
+    width: auto;
+    max-width: none;
   }
 }
 
