@@ -4271,7 +4271,7 @@ kbd {
 
 .service-bg {
   position: relative;
-  background-color: #063232;
+  background: linear-gradient(135deg, #030917 0%, #1a2332 50%, #030917 100%);
   z-index: 10;
 }
 .service-bg .ak-white-bg-service {
