@@ -2310,15 +2310,7 @@ kbd {
   color: #f9d67c;
   background: none;
   -webkit-text-fill-color: #f9d67c;
-  text-shadow: 
-    -0.5px -0.5px 0 #000000,
-    0.5px -0.5px 0 #000000,
-    -0.5px 0.5px 0 #000000,
-    0.5px 0.5px 0 #000000,
-    -0.5px 0 0 #000000,
-    0.5px 0 0 #000000,
-    0 -0.5px 0 #000000,
-    0 0.5px 0 #000000;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
   transform: translateY(-1px);
 }
 
@@ -2336,15 +2328,7 @@ kbd {
 .ak-nav .ak-nav_list > li.menu-item-has-children > ul > li > a:hover {
   color: #f9d67c !important;
   -webkit-text-fill-color: #f9d67c !important;
-  text-shadow: 
-    -0.5px -0.5px 0 #000000,
-    0.5px -0.5px 0 #000000,
-    -0.5px 0.5px 0 #000000,
-    0.5px 0.5px 0 #000000,
-    -0.5px 0 0 #000000,
-    0.5px 0 0 #000000,
-    0 -0.5px 0 #000000,
-    0 0.5px 0 #000000 !important;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6) !important;
 }
 
 .ak-sticky_header {
@@ -2417,15 +2401,7 @@ kbd {
   .ak-sticky_header.style-2 .ak-nav > .ak-nav_list .menu-item-has-children > ul > li > a:hover {
     color: #f9d67c;
     -webkit-text-fill-color: #f9d67c;
-    text-shadow: 
-      -0.5px -0.5px 0 #000000,
-      0.5px -0.5px 0 #000000,
-      -0.5px 0.5px 0 #000000,
-      0.5px 0.5px 0 #000000,
-      -0.5px 0 0 #000000,
-      0.5px 0 0 #000000,
-      0 -0.5px 0 #000000,
-      0 0.5px 0 #000000;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
     word-spacing: 2px;
     transform: translateX(3px);
   }
@@ -2581,15 +2557,7 @@ kbd {
   .ak-nav .ak-nav_list > li > a:hover {
     color: #f9d67c;
     -webkit-text-fill-color: #f9d67c;
-    text-shadow: 
-      -0.5px -0.5px 0 #000000,
-      0.5px -0.5px 0 #000000,
-      -0.5px 0.5px 0 #000000,
-      0.5px 0.5px 0 #000000,
-      -0.5px 0 0 #000000,
-      0.5px 0 0 #000000,
-      0 -0.5px 0 #000000,
-      0 0.5px 0 #000000;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
     transform: translateY(-1px);
   }
   @media screen and (min-width: 1200px) {
@@ -2732,15 +2700,7 @@ kbd {
     padding-left: 25px;
     color: #f9d67c;
     -webkit-text-fill-color: #f9d67c;
-    text-shadow: 
-      -0.5px -0.5px 0 #000000,
-      0.5px -0.5px 0 #000000,
-      -0.5px 0.5px 0 #000000,
-      0.5px 0.5px 0 #000000,
-      -0.5px 0 0 #000000,
-      0.5px 0 0 #000000,
-      0 -0.5px 0 #000000,
-      0 0.5px 0 #000000;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
     transform: translateX(3px);
   }
   .ak-nav .ak-nav_list ul ul {
