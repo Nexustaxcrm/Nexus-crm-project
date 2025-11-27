@@ -3213,25 +3213,30 @@
                 max-width: 100% !important;
             }
             
-            /* Date of Birth Input Group - Icon Inside Box */
+            /* Date of Birth Input Group - Single Unified Box */
             #customerDashboardPage .input-group {
                 position: relative !important;
                 display: flex !important;
                 width: 100% !important;
+                border: 1px solid var(--border-color) !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+                background: var(--card-bg) !important;
             }
             
             #customerDashboardPage .ms-date-picker-input {
                 padding-right: 45px !important;
                 width: 100% !important;
-                border-right: none !important;
-                border-top-right-radius: 0 !important;
-                border-bottom-right-radius: 0 !important;
+                border: none !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
             }
             
-            #customerDashboardPage .input-group {
-                border: 1px solid var(--border-color) !important;
-                border-radius: 12px !important;
-                overflow: hidden !important;
+            #customerDashboardPage .ms-date-picker-input:focus {
+                border: none !important;
+                box-shadow: none !important;
+                outline: none !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn {
@@ -3243,7 +3248,6 @@
                 min-width: 40px !important;
                 max-width: 40px !important;
                 border: none !important;
-                border-left: 1px solid var(--border-color) !important;
                 background: transparent !important;
                 display: flex !important;
                 align-items: center !important;
@@ -3251,8 +3255,6 @@
                 padding: 0 !important;
                 z-index: 10 !important;
                 border-radius: 0 !important;
-                border-top-right-radius: 12px !important;
-                border-bottom-right-radius: 12px !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn i {
@@ -3396,15 +3398,17 @@
                 text-overflow: ellipsis !important;
             }
             
-            /* Date of Birth Input Group - Icon Inside Box (Small Mobile) */
+            /* Date of Birth Input Group - Single Unified Box (Small Mobile) */
             #customerDashboardPage .ms-date-picker-input {
                 padding-right: 40px !important;
+                border: none !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn {
                 width: 35px !important;
                 min-width: 35px !important;
                 max-width: 35px !important;
+                border: none !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn i {
@@ -3492,15 +3496,17 @@
                 max-width: 95% !important;
             }
             
-            /* Date of Birth Input Group - Icon Inside Box (Very Small Mobile) */
+            /* Date of Birth Input Group - Single Unified Box (Very Small Mobile) */
             #customerDashboardPage .ms-date-picker-input {
                 padding-right: 38px !important;
+                border: none !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn {
                 width: 32px !important;
                 min-width: 32px !important;
                 max-width: 32px !important;
+                border: none !important;
             }
             
             #customerDashboardPage .ms-date-picker-btn i {
