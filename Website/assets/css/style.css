@@ -2029,19 +2029,19 @@ kbd {
     flex-shrink: 0;
   }
   .top-bar-btn {
-    padding: 0.5px 16px;
+    padding: 0px 22px;
     font-size: 7px;
     white-space: nowrap;
     min-width: auto;
     line-height: 1;
     height: auto;
-    min-height: 10px;
+    min-height: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
     vertical-align: middle;
     width: 100%;
-    max-width: 95px;
+    max-width: 130px;
   }
 }
 
@@ -2078,18 +2078,18 @@ kbd {
     height: 6px;
   }
   .top-bar-btn {
-    padding: 0.5px 14px;
+    padding: 0px 20px;
     font-size: 6px;
     flex: 0 0 auto;
     line-height: 1;
     height: auto;
-    min-height: 9px;
+    min-height: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     vertical-align: middle;
     width: 100%;
-    max-width: 90px;
+    max-width: 120px;
   }
 }
 

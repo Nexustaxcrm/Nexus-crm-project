@@ -342,10 +342,10 @@
             // Scrolling down - hide navbar immediately
             $header.removeClass("ak-gescout_show");
           }
-        } else {
+          } else {
           // At top of page - always show navbar
           $header.removeClass("ak-gescout_sticky");
-          $header.removeClass("ak-gescout_show");
+            $header.removeClass("ak-gescout_show");
         }
 
         lastScrollTop = windowTop;
