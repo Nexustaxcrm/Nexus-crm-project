@@ -1984,21 +1984,22 @@ kbd {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: 4px;
+    gap: 2px;
   }
   .ak-top-bar-left {
     gap: 1px;
     flex-direction: column;
     align-items: flex-start;
-    flex: 1;
+    flex: 0 1 auto;
   }
   .ak-top-bar-right {
     flex: 0 0 auto;
-    justify-content: flex-end;
+    justify-content: flex-start;
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 2px;
     align-items: center;
+    margin-left: 2px;
   }
   .top-bar-contact-item {
     font-size: 8px;
@@ -2029,13 +2030,13 @@ kbd {
     flex-shrink: 0;
   }
   .top-bar-btn {
-    padding: 0px 12px;
+    padding: 0px 18px;
     font-size: 7px;
     white-space: nowrap;
     min-width: auto;
     line-height: 1;
     height: auto;
-    min-height: 5px;
+    min-height: 3px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2061,6 +2062,7 @@ kbd {
     flex-direction: row;
     align-items: center;
     flex-wrap: nowrap;
+    margin-left: 2px;
   }
   .top-bar-contact-item {
     font-size: 7px;
@@ -2079,12 +2081,12 @@ kbd {
     height: 6px;
   }
   .top-bar-btn {
-    padding: 0px 10px;
+    padding: 0px 16px;
     font-size: 6px;
     flex: 0 0 auto;
     line-height: 1;
     height: auto;
-    min-height: 4px;
+    min-height: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
