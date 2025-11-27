@@ -1937,11 +1937,13 @@ kbd {
   display: inline-block;
 }
 .top-bar-btn.login-btn {
-  background-color: #030917;
-  color: #ffffff;
+  background-color: var(--primary-color);
+  color: #030917;
+  font-weight: 600;
 }
 .top-bar-btn.login-btn:hover {
-  background-color: #1a1a2e;
+  background-color: #063232;
+  color: #ffffff;
 }
 .top-bar-btn.signup-btn {
   background-color: var(--primary-color);
@@ -1953,14 +1955,13 @@ kbd {
   color: #ffffff;
 }
 .top-bar-btn.pay-now-btn {
-  background: linear-gradient(135deg, #f9d67c 0%, #f5c85a 100%);
+  background-color: var(--primary-color);
   color: #030917;
   font-weight: 600;
 }
 .top-bar-btn.pay-now-btn:hover {
-  background: linear-gradient(135deg, #f5c85a 0%, #f9d67c 100%);
-  transform: translateY(-1px);
-  color: #030917;
+  background-color: #1a1a2e;
+  color: #ffffff;
 }
 @media (max-width: 768px) {
   .ak-top-bar {
