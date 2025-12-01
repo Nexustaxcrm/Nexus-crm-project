@@ -118,28 +118,72 @@ const csrfProtection = (req, res, next) => {
     }
     
     // Skip CSRF for authentication endpoints (they use JWT)
-    // Check req.originalUrl which contains the full path including /api
+    // When middleware is mounted at /api/, req.path is relative to that mount point
+    // So /api/auth/login becomes /auth/login in req.path
+    // req.originalUrl contains the full original URL path
     const originalUrl = req.originalUrl || req.url || '';
     const path = req.path || '';
+    const baseUrl = req.baseUrl || '';
+    
+    // Build full path for checking
+    const fullPath = baseUrl + path;
     
     // Check if this is an auth endpoint (login or send-otp)
+    // Check multiple path formats to be safe - normalize to lowercase for case-insensitive matching
+    const originalUrlLower = (originalUrl || '').toLowerCase();
+    const pathLower = (path || '').toLowerCase();
+    const fullPathLower = (fullPath || '').toLowerCase();
+    
+    // Check various path formats that Express might use
     const isAuthEndpoint = 
-        originalUrl.includes('/api/auth/login') ||
-        originalUrl.includes('/api/auth/send-otp') ||
-        path.includes('/auth/login') ||
-        path.includes('/auth/send-otp') ||
-        originalUrl.endsWith('/auth/login') ||
-        originalUrl.endsWith('/auth/send-otp');
+        originalUrlLower.includes('/auth/login') ||
+        originalUrlLower.includes('/auth/send-otp') ||
+        pathLower.includes('/auth/login') ||
+        pathLower.includes('/auth/send-otp') ||
+        fullPathLower.includes('/auth/login') ||
+        fullPathLower.includes('/auth/send-otp') ||
+        originalUrlLower.endsWith('/auth/login') ||
+        originalUrlLower.endsWith('/auth/send-otp') ||
+        pathLower.endsWith('/auth/login') ||
+        pathLower.endsWith('/auth/send-otp') ||
+        pathLower === '/auth/login' ||
+        pathLower === '/auth/send-otp' ||
+        pathLower.startsWith('/auth/login') ||
+        pathLower.startsWith('/auth/send-otp');
     
     if (isAuthEndpoint) {
         // Skip CSRF for authentication endpoints
+        console.log('✅ CSRF protection skipped for auth endpoint:', { 
+            originalUrl, 
+            path, 
+            baseUrl, 
+            fullPath,
+            method: req.method,
+            matched: true
+        });
         return next();
     }
+    
+    // Log when CSRF is being checked (for debugging)
+    console.log('🔒 CSRF protection active for:', { 
+        originalUrl, 
+        path, 
+        baseUrl, 
+        fullPath,
+        method: req.method 
+    });
     
     const token = req.headers['x-csrf-token'] || req.body.csrfToken;
     const storedToken = csrfTokens.get(token);
     
     if (!token || !storedToken) {
+        console.warn('🚨 CSRF token missing or invalid:', { 
+            originalUrl, 
+            path, 
+            method: req.method,
+            hasToken: !!token,
+            hasStoredToken: !!storedToken
+        });
         return res.status(403).json({ error: 'Invalid or missing CSRF token' });
     }
     
@@ -862,11 +906,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// Apply CSRF protection to API routes BEFORE routes are registered
-// This ensures it runs before route handlers, but path exclusion will skip auth endpoints
-app.use('/api/', csrfProtection);
-
+// IMPORTANT: Register auth routes FIRST, then apply CSRF protection
+// Even though CSRF runs after, the path exclusion in csrfProtection will skip auth endpoints
 app.use('/api/auth', authRoutes);
+
+// Apply CSRF protection to API routes
+// The csrfProtection middleware checks the path and skips /api/auth/* endpoints
+app.use('/api/', csrfProtection);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contact', contactRoutes);
