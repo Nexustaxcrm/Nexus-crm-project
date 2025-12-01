@@ -7879,18 +7879,33 @@ function downloadCSVFile(csvContent, filename) {
 }
 
 // User Management Functions
-function loadUserManagementTable() {
+// Switch between Customers Login and Company Logins tabs
+function switchUserManagementTab(tabType) {
+    loadUserManagementTable(tabType);
+}
+
+function loadUserManagementTable(activeTab = 'customers') {
     if (currentUser.role !== 'admin') return;
     
-    const tbody = document.getElementById('userManagementTable');
+    // Filter users by role
+    const customerUsers = users.filter(user => user.role === 'customer');
+    const companyUsers = users.filter(user => 
+        user.role === 'admin' || 
+        user.role === 'employee' || 
+        user.role === 'preparation'
+    );
     
-    tbody.innerHTML = users.map(user => {
+    // Helper function to render user row
+    const renderUserRow = (user) => {
         let roleBadgeClass = 'success'; // default for employee
         if (user.role === 'admin') {
             roleBadgeClass = 'primary';
         } else if (user.role === 'preparation') {
             roleBadgeClass = 'info';
+        } else if (user.role === 'customer') {
+            roleBadgeClass = 'secondary';
         }
+        
         return `
         <tr>
             <td>${user.username}</td>
@@ -7908,7 +7923,58 @@ function loadUserManagementTable() {
             </td>
         </tr>
     `;
-    }).join('');
+    };
+    
+    // Update tab labels with counts
+    const customersTab = document.getElementById('customersLoginTab');
+    const companyTab = document.getElementById('companyLoginsTab');
+    if (customersTab) {
+        customersTab.innerHTML = `<i class="fas fa-user"></i> Customers Login <span class="badge bg-secondary">${customerUsers.length}</span>`;
+    }
+    if (companyTab) {
+        companyTab.innerHTML = `<i class="fas fa-building"></i> Company Logins <span class="badge bg-secondary">${companyUsers.length}</span>`;
+    }
+    
+    // Load Customers Login table
+    const customersTbody = document.getElementById('customersLoginTable');
+    if (customersTbody) {
+        if (customerUsers.length === 0) {
+            customersTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No customer logins found</td></tr>';
+        } else {
+            customersTbody.innerHTML = customerUsers.map(renderUserRow).join('');
+        }
+    }
+    
+    // Load Company Logins table
+    const companyTbody = document.getElementById('companyLoginsTable');
+    if (companyTbody) {
+        if (companyUsers.length === 0) {
+            companyTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No company logins found</td></tr>';
+        } else {
+            companyTbody.innerHTML = companyUsers.map(renderUserRow).join('');
+        }
+    }
+    
+    // Update active tab if specified
+    if (activeTab === 'company') {
+        const companyTab = document.getElementById('companyLoginsTab');
+        const customersTab = document.getElementById('customersLoginTab');
+        if (companyTab && customersTab) {
+            customersTab.classList.remove('active');
+            companyTab.classList.add('active');
+            document.getElementById('customersLoginContent').classList.remove('show', 'active');
+            document.getElementById('companyLoginsContent').classList.add('show', 'active');
+        }
+    } else {
+        const companyTab = document.getElementById('companyLoginsTab');
+        const customersTab = document.getElementById('customersLoginTab');
+        if (companyTab && customersTab) {
+            companyTab.classList.remove('active');
+            customersTab.classList.add('active');
+            document.getElementById('companyLoginsContent').classList.remove('show', 'active');
+            document.getElementById('customersLoginContent').classList.add('show', 'active');
+        }
+    }
 }
 
 function showAddUserModal() {
@@ -8017,8 +8083,9 @@ async function saveNewUser() {
                 form.reset();
             }
             
-            // Reload table
-            loadUserManagementTable();
+            // Reload table - switch to appropriate tab based on role
+            const tabToShow = (role === 'employee' || role === 'preparation' || role === 'admin') ? 'company' : 'customers';
+            loadUserManagementTable(tabToShow);
             
             showNotification('success', 'User Added', 'New user has been added successfully!');
         } else {

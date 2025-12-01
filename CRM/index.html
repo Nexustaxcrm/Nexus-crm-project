@@ -7624,18 +7624,56 @@
                         <button onclick="showAddUserModal()" class="btn btn-primary mb-4">
                             <i class="fas fa-plus"></i> Add New User
                         </button>
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Role</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userManagementTable"></tbody>
-                            </table>
+                        
+                        <!-- Tabs Navigation -->
+                        <ul class="nav nav-tabs mb-3" id="userManagementTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="true" onclick="switchUserManagementTab('customers')">
+                                    <i class="fas fa-user"></i> Customers Login
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="false" onclick="switchUserManagementTab('company')">
+                                    <i class="fas fa-building"></i> Company Logins
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="userManagementTabContent">
+                            <!-- Customers Login Tab -->
+                            <div class="tab-pane fade show active" id="customersLoginContent" role="tabpanel" aria-labelledby="customersLoginTab">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Username</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="customersLoginTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Company Logins Tab -->
+                            <div class="tab-pane fade" id="companyLoginsContent" role="tabpanel" aria-labelledby="companyLoginsTab">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Username</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="companyLoginsTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
