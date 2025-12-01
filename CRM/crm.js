@@ -5725,7 +5725,8 @@ function showPasswordChangeModal() {
         
         // Focus on new password field
         setTimeout(() => {
-            document.getElementById('newPassword').focus();
+            const newPasswordField = document.getElementById('newPasswordChange') || document.getElementById('newPassword');
+            if (newPasswordField) newPasswordField.focus();
         }, 300);
     } else {
         // Show regular password fields (current password, new password, confirm password)
@@ -5756,7 +5757,8 @@ async function changePassword() {
     
     if (isTempPassword) {
         // For OTP login - no current password needed
-        newPassword = document.getElementById('newPassword').value;
+        const newPasswordField = document.getElementById('newPasswordChange') || document.getElementById('newPassword');
+        newPassword = newPasswordField ? newPasswordField.value : '';
         confirmPassword = document.getElementById('confirmPassword').value;
     } else {
         // For regular password change
@@ -8322,7 +8324,7 @@ async function saveNewUser(event) {
     
     if (!role) {
         showNotification('error', 'Missing Information', 'Role is required!');
-        return;
+        return false;
     }
     
     try {

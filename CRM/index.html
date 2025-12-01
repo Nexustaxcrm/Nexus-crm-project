@@ -5611,20 +5611,16 @@
             
             // Store selected login method in a hidden input or data attribute
             if (loginForm) {
-                // Set default method to 'password' for easier login
-                // User can still change to OTP if needed
-                loginForm.setAttribute('data-login-method', 'password');
-                console.log('✅ Login form initialized with default method: password');
+                // Don't set default method - user must choose
+                loginForm.setAttribute('data-login-method', '');
+                console.log('✅ Login form initialized - user must select login method');
                 
-                // Show password field by default, hide OTP field
+                // Hide both password and OTP fields until user selects a method
                 if (passwordField) {
-                    passwordField.style.display = 'block';
+                    passwordField.style.display = 'none';
                 }
                 if (otpField) {
                     otpField.style.display = 'none';
-                }
-                if (passwordInput) {
-                    passwordInput.setAttribute('required', '');
                 }
             }
             
@@ -8362,7 +8358,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="newPassword" placeholder="Enter new password (min. 6 characters)" required minlength="6">
+                                <input type="password" class="form-control" id="newPasswordChange" placeholder="Enter new password (min. 6 characters)" required minlength="6">
                                 <small class="form-text text-muted">Password must be at least 6 characters long</small>
                             </div>
                             <div class="mb-3">
