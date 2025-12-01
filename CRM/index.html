@@ -7626,35 +7626,110 @@
                         </button>
                         
                         <!-- Tabs Navigation -->
-                        <ul class="nav nav-tabs mb-3" id="userManagementTabs" role="tablist">
+                        <ul class="nav nav-tabs mb-4 user-management-tabs" id="userManagementTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="true" onclick="switchUserManagementTab('customers')">
-                                    <i class="fas fa-user"></i> Customers Login
+                                <button class="nav-link active user-tab-btn" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="true" onclick="switchUserManagementTab('customers')">
+                                    <i class="fas fa-users"></i> <span>Customers Logins</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="false" onclick="switchUserManagementTab('company')">
-                                    <i class="fas fa-building"></i> Company Logins
+                                <button class="nav-link user-tab-btn" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="false" onclick="switchUserManagementTab('company')">
+                                    <i class="fas fa-building"></i> <span>Company Logins</span>
                                 </button>
                             </li>
                         </ul>
+                        
+                        <style>
+                            /* Enhanced User Management Tabs Styling */
+                            .user-management-tabs {
+                                gap: 10px;
+                                border-bottom: 2px solid #e9ecef !important;
+                                padding-bottom: 0;
+                            }
+                            
+                            .user-management-tabs .nav-item {
+                                margin-bottom: 0;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn {
+                                border: none !important;
+                                border-radius: 8px 8px 0 0 !important;
+                                padding: 12px 24px !important;
+                                font-weight: 600 !important;
+                                font-size: 15px !important;
+                                color: #6c757d !important;
+                                background: transparent !important;
+                                transition: all 0.3s ease !important;
+                                position: relative !important;
+                                margin-right: 5px !important;
+                                border-bottom: 3px solid transparent !important;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn:hover {
+                                color: #063232 !important;
+                                background: #f8f9fa !important;
+                                border-bottom-color: #f9d67c !important;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn.active {
+                                color: #063232 !important;
+                                background: #ffffff !important;
+                                border-bottom: 3px solid #f9d67c !important;
+                                box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05) !important;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn i {
+                                margin-right: 8px;
+                                font-size: 16px;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn .badge {
+                                margin-left: 8px;
+                                font-size: 11px;
+                                padding: 4px 8px;
+                                font-weight: 600;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn.active .badge {
+                                background-color: #063232 !important;
+                                color: #ffffff !important;
+                            }
+                            
+                            .user-management-tabs .user-tab-btn:not(.active) .badge {
+                                background-color: #6c757d !important;
+                                color: #ffffff !important;
+                            }
+                            
+                            /* Mobile responsive */
+                            @media (max-width: 768px) {
+                                .user-management-tabs .user-tab-btn {
+                                    padding: 10px 16px !important;
+                                    font-size: 14px !important;
+                                }
+                                
+                                .user-management-tabs .user-tab-btn i {
+                                    font-size: 14px;
+                                    margin-right: 6px;
+                                }
+                            }
+                        </style>
                         
                         <!-- Tab Content -->
                         <div class="tab-content" id="userManagementTabContent">
                             <!-- Customers Login Tab -->
                             <div class="tab-pane fade show active" id="customersLoginContent" role="tabpanel" aria-labelledby="customersLoginTab">
-                                <div class="table-responsive">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Username</th>
-                                                <th>Role</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
                                         <tbody id="customersLoginTable"></tbody>
-                                    </table>
+                            </table>
                                 </div>
                             </div>
                             
@@ -8348,7 +8423,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveNewUser()">Add User</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNewUser(event)">Add User</button>
                 </div>
             </div>
         </div>

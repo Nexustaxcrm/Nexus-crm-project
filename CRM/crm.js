@@ -7929,10 +7929,53 @@ function loadUserManagementTable(activeTab = 'customers') {
     const customersTab = document.getElementById('customersLoginTab');
     const companyTab = document.getElementById('companyLoginsTab');
     if (customersTab) {
-        customersTab.innerHTML = `<i class="fas fa-user"></i> Customers Login <span class="badge bg-secondary">${customerUsers.length}</span>`;
+        // Find or create the text span and badge
+        let textSpan = customersTab.querySelector('span:not(.badge)');
+        let badge = customersTab.querySelector('.badge');
+        
+        if (!textSpan) {
+            // Create structure if it doesn't exist
+            const icon = customersTab.querySelector('i') || document.createElement('i');
+            icon.className = 'fas fa-users';
+            customersTab.innerHTML = '';
+            customersTab.appendChild(icon);
+            textSpan = document.createElement('span');
+            customersTab.appendChild(textSpan);
+        }
+        
+        textSpan.textContent = 'Customers Logins ';
+        
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'badge bg-secondary';
+            textSpan.appendChild(badge);
+        }
+        badge.textContent = customerUsers.length;
     }
+    
     if (companyTab) {
-        companyTab.innerHTML = `<i class="fas fa-building"></i> Company Logins <span class="badge bg-secondary">${companyUsers.length}</span>`;
+        // Find or create the text span and badge
+        let textSpan = companyTab.querySelector('span:not(.badge)');
+        let badge = companyTab.querySelector('.badge');
+        
+        if (!textSpan) {
+            // Create structure if it doesn't exist
+            const icon = companyTab.querySelector('i') || document.createElement('i');
+            icon.className = 'fas fa-building';
+            companyTab.innerHTML = '';
+            companyTab.appendChild(icon);
+            textSpan = document.createElement('span');
+            companyTab.appendChild(textSpan);
+        }
+        
+        textSpan.textContent = 'Company Logins ';
+        
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'badge bg-secondary';
+            textSpan.appendChild(badge);
+        }
+        badge.textContent = companyUsers.length;
     }
     
     // Load Customers Login table
@@ -7982,7 +8025,13 @@ function showAddUserModal() {
     modal.show();
 }
 
-async function saveNewUser() {
+async function saveNewUser(event) {
+    // Prevent any form submission
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     const usernameInput = document.getElementById('newUsername');
     const passwordInput = document.getElementById('newPassword');
     const roleInput = document.getElementById('newUserRole');
@@ -7994,45 +8043,74 @@ async function saveNewUser() {
             roleInput: !!roleInput 
         });
         showNotification('error', 'Form Error', 'Could not find form fields. Please refresh the page.');
-        return;
+        return false;
     }
     
-    // Get values - don't trim password (passwords can have spaces, though uncommon)
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value; // Don't trim password - preserve all characters
-    const role = roleInput.value;
+    // Get values directly from inputs - read fresh values multiple times to ensure we get it
+    const username = (usernameInput.value || '').trim();
+    // Read password value - try multiple ways to ensure we get it
+    let password = passwordInput.value;
+    if (!password && passwordInput.getAttribute('value')) {
+        password = passwordInput.getAttribute('value');
+    }
+    if (!password) {
+        // Try reading from the input directly one more time
+        password = passwordInput.value || '';
+    }
+    const role = roleInput.value || '';
     
-    // Debug logging
-    console.log('Creating new user:', { 
-        username: username, 
-        passwordLength: password ? password.length : 0, 
+    // Debug logging with detailed info
+    console.log('🔍 Creating new user - Input values:', { 
+        username: username,
+        usernameLength: username.length,
+        password: password ? '***' + password.length + ' chars***' : 'EMPTY',
+        passwordLength: password ? password.length : 0,
+        passwordType: typeof password,
+        passwordIsString: typeof password === 'string',
         role: role,
-        passwordEmpty: !password || password.length === 0
+        passwordInputExists: !!passwordInput,
+        passwordInputValue: passwordInput.value ? '***' + passwordInput.value.length + ' chars***' : 'EMPTY',
+        passwordInputType: passwordInput.type,
+        passwordInputAttribute: passwordInput.getAttribute('value') || 'no attribute'
     });
     
     // Enhanced validation
     if (!username || username.length === 0) {
         showNotification('error', 'Missing Information', 'Username is required!');
         usernameInput.focus();
-        return;
+        return false;
     }
     
-    // Check password - don't use trim, check actual value
-    if (!password || password.length === 0) {
-        console.error('Password validation failed:', { 
-            passwordValue: password, 
+    // Check password - be more explicit about what we're checking
+    // Re-read password value one more time right before validation
+    password = passwordInput.value || '';
+    
+    if (!password || typeof password !== 'string' || password.length === 0 || password.trim().length === 0) {
+        console.error('❌ Password validation failed - Details:', { 
+            password: password,
+            passwordValue: passwordInput.value,
             passwordLength: password ? password.length : 0,
-            passwordType: typeof password
+            passwordType: typeof password,
+            isNull: password === null,
+            isUndefined: password === undefined,
+            isEmptyString: password === '',
+            isEmptyAfterTrim: password ? password.trim().length === 0 : true,
+            inputElement: passwordInput,
+            inputValue: passwordInput.value,
+            inputValueLength: passwordInput.value ? passwordInput.value.length : 0
         });
-        showNotification('error', 'Missing Information', 'Password is required!');
+        showNotification('error', 'Missing Information', 'Password is required! Please enter a password in the password field.');
         passwordInput.focus();
-        return;
+        passwordInput.value = ''; // Clear and let user re-enter
+        setTimeout(() => passwordInput.focus(), 100);
+        return false;
     }
     
+    // Check minimum length
     if (password.length < 6) {
         showNotification('error', 'Invalid Password', 'Password must be at least 6 characters long!');
         passwordInput.focus();
-        return;
+        return false;
     }
     
     if (!role) {
