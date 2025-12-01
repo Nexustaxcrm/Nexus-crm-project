@@ -8020,9 +8020,35 @@ function loadUserManagementTable(activeTab = 'customers') {
     }
 }
 
+// Store password value as user types (workaround for browser security/autofill issues)
+let storedPasswordValue = '';
+
 function showAddUserModal() {
+    // Reset stored password
+    storedPasswordValue = '';
+    
     const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
     modal.show();
+    
+    // Add event listener to capture password as user types
+    const passwordInput = document.getElementById('newPassword');
+    if (passwordInput) {
+        // Remove any existing listeners by cloning and replacing
+        const newPasswordInput = passwordInput.cloneNode(true);
+        passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
+        
+        // Add input event listener to capture password value
+        newPasswordInput.addEventListener('input', function(e) {
+            storedPasswordValue = e.target.value || '';
+            console.log('Password value captured:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
+        });
+        
+        // Also capture on change event
+        newPasswordInput.addEventListener('change', function(e) {
+            storedPasswordValue = e.target.value || '';
+            console.log('Password value changed:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
+        });
+    }
 }
 
 async function saveNewUser(event) {
@@ -8046,17 +8072,61 @@ async function saveNewUser(event) {
         return false;
     }
     
+    // Small delay to ensure browser has processed the input value
+    // This helps with browser autofill and timing issues
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     // Get values directly from inputs - read fresh values multiple times to ensure we get it
     const username = (usernameInput.value || '').trim();
+    
     // Read password value - try multiple ways to ensure we get it
-    let password = passwordInput.value;
-    if (!password && passwordInput.getAttribute('value')) {
-        password = passwordInput.getAttribute('value');
+    // Password fields can be tricky with browser security and autofill
+    let password = '';
+    
+    // Method 1: Use stored value from input event listener (most reliable)
+    if (storedPasswordValue && storedPasswordValue.length > 0) {
+        password = storedPasswordValue;
+        console.log('✅ Using stored password value from input listener');
     }
-    if (!password) {
-        // Try reading from the input directly one more time
-        password = passwordInput.value || '';
+    
+    // Method 2: Direct value access from input element
+    if (!password || password.length === 0) {
+        try {
+            password = passwordInput.value || '';
+            if (password && password.length > 0) {
+                console.log('✅ Using password value from input element');
+            }
+        } catch (e) {
+            console.warn('Could not read password value (method 2):', e);
+        }
     }
+    
+    // Method 3: If still empty, try reading after a tiny delay (browser might still be processing)
+    if (!password || password.length === 0) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        try {
+            password = passwordInput.value || '';
+            if (password && password.length > 0) {
+                console.log('✅ Using password value after delay');
+            }
+        } catch (e) {
+            console.warn('Could not read password value (method 3):', e);
+        }
+    }
+    
+    // Method 4: Try accessing the value property directly one more time
+    if (!password || password.length === 0) {
+        try {
+            const inputValue = passwordInput.value;
+            if (inputValue && typeof inputValue === 'string' && inputValue.length > 0) {
+                password = inputValue;
+                console.log('✅ Using password value from direct access');
+            }
+        } catch (e) {
+            console.warn('Could not read password value (method 4):', e);
+        }
+    }
+    
     const role = roleInput.value || '';
     
     // Debug logging with detailed info
@@ -8083,9 +8153,28 @@ async function saveNewUser(event) {
     
     // Check password - be more explicit about what we're checking
     // Re-read password value one more time right before validation
-    password = passwordInput.value || '';
+    // Use multiple methods to ensure we capture the value
+    password = passwordInput.value;
     
-    if (!password || typeof password !== 'string' || password.length === 0 || password.trim().length === 0) {
+    // If still empty, try alternative methods
+    if (!password || password.length === 0) {
+        // Try reading directly from the input element
+        password = passwordInput.value || '';
+        
+        // Check if it's a browser security issue - try accessing the value property directly
+        try {
+            const directValue = passwordInput.value;
+            if (directValue && directValue.length > 0) {
+                password = directValue;
+            }
+        } catch (e) {
+            console.warn('Could not read password value directly:', e);
+        }
+    }
+    
+    // Final validation - check if password exists and has content
+    // Don't trim for validation - just check length (passwords can have spaces)
+    if (!password || typeof password !== 'string' || password.length === 0) {
         console.error('❌ Password validation failed - Details:', { 
             password: password,
             passwordValue: passwordInput.value,
@@ -8094,15 +8183,21 @@ async function saveNewUser(event) {
             isNull: password === null,
             isUndefined: password === undefined,
             isEmptyString: password === '',
-            isEmptyAfterTrim: password ? password.trim().length === 0 : true,
             inputElement: passwordInput,
             inputValue: passwordInput.value,
-            inputValueLength: passwordInput.value ? passwordInput.value.length : 0
+            inputValueLength: passwordInput.value ? passwordInput.value.length : 0,
+            inputElementType: passwordInput.type,
+            inputElementId: passwordInput.id,
+            inputElementName: passwordInput.name,
+            inputElementClass: passwordInput.className
         });
-        showNotification('error', 'Missing Information', 'Password is required! Please enter a password in the password field.');
+        
+        // Show a more helpful error message
+        showNotification('error', 'Missing Information', 'Password is required! Please type your password in the password field and try again.');
+        
+        // Don't clear the field - let user see what they typed
         passwordInput.focus();
-        passwordInput.value = ''; // Clear and let user re-enter
-        setTimeout(() => passwordInput.focus(), 100);
+        passwordInput.select();
         return false;
     }
     
