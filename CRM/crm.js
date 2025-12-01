@@ -131,18 +131,34 @@ function showNotification(type, title, message, duration = 4000) {
         info: 'fas fa-info-circle'
     };
     
-    notification.innerHTML = `
-        <div class="notification-icon">
-            <i class="${icons[type]}"></i>
-        </div>
-        <div class="notification-content">
-            <div class="notification-title">${title}</div>
-            <div class="notification-message">${message}</div>
-        </div>
-        <button class="notification-close" onclick="closeNotification(this)">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
+    // XSS-safe: Create elements instead of using innerHTML with user input
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'notification-icon';
+    const icon = document.createElement('i');
+    icon.className = icons[type] || 'fas fa-info-circle';
+    iconDiv.appendChild(icon);
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'notification-content';
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'notification-title';
+    titleDiv.textContent = title; // Safe: textContent escapes HTML
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'notification-message';
+    messageDiv.textContent = message; // Safe: textContent escapes HTML
+    contentDiv.appendChild(titleDiv);
+    contentDiv.appendChild(messageDiv);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-close';
+    closeBtn.onclick = () => closeNotification(closeBtn);
+    const closeIcon = document.createElement('i');
+    closeIcon.className = 'fas fa-times';
+    closeBtn.appendChild(closeIcon);
+    
+    notification.appendChild(iconDiv);
+    notification.appendChild(contentDiv);
+    notification.appendChild(closeBtn);
     
     container.appendChild(notification);
     

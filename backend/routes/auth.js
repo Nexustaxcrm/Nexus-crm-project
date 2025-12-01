@@ -8,8 +8,104 @@ require('dotenv').config();
 // In-memory OTP storage (for production, consider using Redis or database)
 const otpStore = new Map(); // key: username, value: { otp, expiresAt, attempts }
 
+// Account lockout tracking (for production, consider using Redis or database)
+const loginAttempts = new Map(); // key: username, value: { attempts, lockoutUntil }
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 30 * 60 * 1000; // 30 minutes
+
 // OTP expiration time (10 minutes)
 const OTP_EXPIRY_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+// Password strength validation
+function validatePasswordStrength(password) {
+    if (!password || typeof password !== 'string') {
+        return { valid: false, message: 'Password is required' };
+    }
+    
+    if (password.length < 8) {
+        return { valid: false, message: 'Password must be at least 8 characters long' };
+    }
+    
+    if (password.length > 128) {
+        return { valid: false, message: 'Password must be less than 128 characters' };
+    }
+    
+    // Check for at least one uppercase letter
+    if (!/[A-Z]/.test(password)) {
+        return { valid: false, message: 'Password must contain at least one uppercase letter' };
+    }
+    
+    // Check for at least one lowercase letter
+    if (!/[a-z]/.test(password)) {
+        return { valid: false, message: 'Password must contain at least one lowercase letter' };
+    }
+    
+    // Check for at least one number
+    if (!/[0-9]/.test(password)) {
+        return { valid: false, message: 'Password must contain at least one number' };
+    }
+    
+    // Check for at least one special character
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        return { valid: false, message: 'Password must contain at least one special character (!@#$%^&*...)' };
+    }
+    
+    // Check against common passwords (basic check)
+    const commonPasswords = ['password', 'password123', 'admin123', '12345678', 'qwerty123'];
+    if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
+        return { valid: false, message: 'Password is too common. Please choose a stronger password' };
+    }
+    
+    return { valid: true, message: 'Password is strong' };
+}
+
+// Check if account is locked
+function isAccountLocked(username) {
+    const attemptData = loginAttempts.get(username);
+    if (!attemptData) {
+        return false;
+    }
+    
+    if (attemptData.lockoutUntil && Date.now() < attemptData.lockoutUntil) {
+        const minutesLeft = Math.ceil((attemptData.lockoutUntil - Date.now()) / 60000);
+        return { locked: true, minutesLeft };
+    }
+    
+    // Lockout expired, reset attempts
+    if (attemptData.lockoutUntil && Date.now() >= attemptData.lockoutUntil) {
+        loginAttempts.delete(username);
+    }
+    
+    return false;
+}
+
+// Record failed login attempt
+function recordFailedAttempt(username) {
+    const attemptData = loginAttempts.get(username) || { attempts: 0, lockoutUntil: null };
+    attemptData.attempts += 1;
+    
+    if (attemptData.attempts >= MAX_LOGIN_ATTEMPTS) {
+        attemptData.lockoutUntil = Date.now() + LOCKOUT_DURATION;
+        console.warn(`🔒 Account locked for ${username} due to ${attemptData.attempts} failed login attempts`);
+    }
+    
+    loginAttempts.set(username, attemptData);
+}
+
+// Reset failed login attempts on successful login
+function resetFailedAttempts(username) {
+    loginAttempts.delete(username);
+}
+
+// Clean expired lockouts periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [username, data] of loginAttempts.entries()) {
+        if (data.lockoutUntil && now >= data.lockoutUntil) {
+            loginAttempts.delete(username);
+        }
+    }
+}, 60000); // Clean every minute
 
 // Create email transporter
 const createEmailTransporter = () => {
@@ -332,6 +428,16 @@ router.post('/login', async (req, res) => {
         
         const usernameLower = username.toLowerCase().trim();
         
+        // Check if account is locked
+        const lockoutStatus = isAccountLocked(usernameLower);
+        if (lockoutStatus && lockoutStatus.locked) {
+            return res.status(423).json({ 
+                error: 'Account temporarily locked due to too many failed login attempts',
+                message: `Please try again in ${lockoutStatus.minutesLeft} minute(s)`,
+                lockoutUntil: lockoutStatus.lockoutUntil
+            });
+        }
+        
         // Determine login method (check for non-empty values)
         const isOTPLogin = otp !== undefined && otp !== null && otp.toString().trim().length > 0;
         const isPasswordLogin = password !== undefined && password !== null && password.toString().trim().length > 0;
@@ -380,6 +486,7 @@ router.post('/login', async (req, res) => {
         
         if (result.rows.length === 0) {
             console.log(`❌ User not found or account is locked: ${usernameLower}`);
+            // Don't record failed attempt for non-existent users (prevents username enumeration)
             return res.status(401).json({ error: 'Invalid username/email or password' });
         }
         
@@ -472,9 +579,27 @@ router.post('/login', async (req, res) => {
             
             if (!isValid) {
                 console.log(`❌ Password validation failed for user: ${usernameLower}`);
-                return res.status(401).json({ error: 'Invalid username/email or password' });
+                recordFailedAttempt(usernameLower);
+                const attemptData = loginAttempts.get(usernameLower);
+                const remainingAttempts = MAX_LOGIN_ATTEMPTS - (attemptData ? attemptData.attempts : 0);
+                
+                if (remainingAttempts > 0 && (!attemptData || !attemptData.lockoutUntil || Date.now() < attemptData.lockoutUntil)) {
+                    return res.status(401).json({ 
+                        error: 'Invalid username/email or password',
+                        remainingAttempts: remainingAttempts,
+                        message: `You have ${remainingAttempts} attempt(s) remaining before account lockout`
+                    });
+                } else {
+                    return res.status(423).json({ 
+                        error: 'Account locked due to too many failed login attempts',
+                        message: 'Please try again in 30 minutes',
+                        lockoutDuration: 30
+                    });
+                }
             }
             
+            // Successful login - reset failed attempts
+            resetFailedAttempts(usernameLower);
             console.log(`✅ Password validated successfully for user: ${usernameLower}, role: ${user.role}`);
         }
         
@@ -556,8 +681,10 @@ router.post('/change-password', verifyToken, async (req, res) => {
             return res.status(400).json({ error: 'New password and confirm password do not match' });
         }
 
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+        // Validate password strength
+        const passwordValidation = validatePasswordStrength(newPassword);
+        if (!passwordValidation.valid) {
+            return res.status(400).json({ error: passwordValidation.message });
         }
 
         // Get user from database

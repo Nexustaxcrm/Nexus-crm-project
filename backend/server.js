@@ -7,6 +7,8 @@ const { Pool } = require('pg');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -82,6 +84,103 @@ app.use('/api/', cors(corsOptions));
 // Increased limits for large Excel file uploads (300k-500k rows)
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ extended: true, limit: '500mb' }));
+
+// CSRF Protection - Generate and validate CSRF tokens
+const csrfTokens = new Map(); // In production, use Redis or database
+
+// Generate CSRF token
+function generateCSRFToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+// CSRF token endpoint (GET request to get token)
+app.get('/api/csrf-token', (req, res) => {
+    const token = generateCSRFToken();
+    const expiresAt = Date.now() + (60 * 60 * 1000); // 1 hour expiry
+    csrfTokens.set(token, { expiresAt });
+    
+    // Clean expired tokens periodically
+    const now = Date.now();
+    for (const [t, data] of csrfTokens.entries()) {
+        if (data.expiresAt < now) {
+            csrfTokens.delete(t);
+        }
+    }
+    
+    res.json({ csrfToken: token });
+});
+
+// CSRF protection middleware (only for state-changing operations)
+const csrfProtection = (req, res, next) => {
+    // Skip CSRF for GET, HEAD, OPTIONS requests
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        return next();
+    }
+    
+    // Skip CSRF for authentication endpoints (they use JWT)
+    if (req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/send-otp')) {
+        return next();
+    }
+    
+    const token = req.headers['x-csrf-token'] || req.body.csrfToken;
+    const storedToken = csrfTokens.get(token);
+    
+    if (!token || !storedToken) {
+        return res.status(403).json({ error: 'Invalid or missing CSRF token' });
+    }
+    
+    // Check if token expired
+    if (Date.now() > storedToken.expiresAt) {
+        csrfTokens.delete(token);
+        return res.status(403).json({ error: 'CSRF token expired' });
+    }
+    
+    // Token is valid, continue
+    next();
+};
+
+// Input sanitization middleware - sanitize common XSS and injection patterns
+app.use((req, res, next) => {
+    // Recursively sanitize object/array values
+    const sanitize = (obj) => {
+        if (typeof obj === 'string') {
+            // Remove/nullify potentially dangerous characters and patterns
+            return obj
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+                .replace(/javascript:/gi, '') // Remove javascript: protocol
+                .replace(/on\w+\s*=/gi, '') // Remove event handlers (onclick, onerror, etc.)
+                .replace(/<iframe/gi, '') // Remove iframe tags
+                .trim();
+        } else if (Array.isArray(obj)) {
+            return obj.map(sanitize);
+        } else if (obj && typeof obj === 'object') {
+            const sanitized = {};
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    sanitized[key] = sanitize(obj[key]);
+                }
+            }
+            return sanitized;
+        }
+        return obj;
+    };
+    
+    // Sanitize request body, query, and params
+    if (req.body) {
+        req.body = sanitize(req.body);
+    }
+    if (req.query) {
+        req.query = sanitize(req.query);
+    }
+    if (req.params) {
+        req.params = sanitize(req.params);
+    }
+    
+    next();
+});
+
+// Apply CSRF protection to API routes (except auth login/otp)
+app.use('/api/', csrfProtection);
 
 // Connect to database with optimized connection pool for concurrent users
 // CRITICAL: Single shared pool for entire application

@@ -8647,15 +8647,24 @@
                     type: file.type
                 });
                 
-                // Display uploaded file
+                // Display uploaded file (XSS-safe: use textContent instead of innerHTML)
                 const fileItem = document.createElement('div');
                 fileItem.className = 'uploaded-file-item';
-                fileItem.innerHTML = `
-                    <span class="file-name">${file.name} (${formatFileSize(file.size)})</span>
-                    <span class="file-remove" onclick="removeFile(${uploadedFiles.length - 1})">
-                        <i class="fas fa-times"></i>
-                    </span>
-                `;
+                
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.className = 'file-name';
+                fileNameSpan.textContent = `${file.name} (${formatFileSize(file.size)})`;
+                
+                const removeSpan = document.createElement('span');
+                removeSpan.className = 'file-remove';
+                removeSpan.onclick = () => removeFile(uploadedFiles.length - 1);
+                
+                const removeIcon = document.createElement('i');
+                removeIcon.className = 'fas fa-times';
+                removeSpan.appendChild(removeIcon);
+                
+                fileItem.appendChild(fileNameSpan);
+                fileItem.appendChild(removeSpan);
                 uploadedFilesList.appendChild(fileItem);
             });
         }
@@ -8672,12 +8681,22 @@
             uploadedFiles.forEach((fileData, index) => {
                 const fileItem = document.createElement('div');
                 fileItem.className = 'uploaded-file-item';
-                fileItem.innerHTML = `
-                    <span class="file-name">${fileData.name} (${formatFileSize(fileData.size)})</span>
-                    <span class="file-remove" onclick="removeFile(${index})">
-                        <i class="fas fa-times"></i>
-                    </span>
-                `;
+                
+                // XSS-safe: use textContent instead of innerHTML
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.className = 'file-name';
+                fileNameSpan.textContent = `${fileData.name} (${formatFileSize(fileData.size)})`;
+                
+                const removeSpan = document.createElement('span');
+                removeSpan.className = 'file-remove';
+                removeSpan.onclick = () => removeFile(index);
+                
+                const removeIcon = document.createElement('i');
+                removeIcon.className = 'fas fa-times';
+                removeSpan.appendChild(removeIcon);
+                
+                fileItem.appendChild(fileNameSpan);
+                fileItem.appendChild(removeSpan);
                 uploadedFilesList.appendChild(fileItem);
             });
         }
