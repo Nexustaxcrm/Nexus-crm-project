@@ -779,7 +779,7 @@ async function initializeDatabase() {
                 app.locals.emailReceiver = emailReceiver;
                 console.log('✅ Email receiver service initialized');
                 
-                // Add manual trigger endpoint (for testing/admin use)
+                // Add manual trigger endpoint (for testing/admin use) - No CSRF needed, uses JWT auth
                 app.post('/api/admin/check-emails', (req, res) => {
                     if (emailReceiver && emailReceiver.isRunning) {
                         console.log('📧 Manual email check triggered (including read emails)');
@@ -906,62 +906,16 @@ app.use((req, res, next) => {
     next();
 });
 
-// IMPORTANT: Register auth routes FIRST, then apply CSRF protection
-// Register auth routes before CSRF so they're available
+// IMPORTANT: Register auth routes FIRST without CSRF protection
+// Auth routes need to be accessible without CSRF tokens for login to work
 app.use('/api/auth', authRoutes);
 
-// Apply CSRF protection to API routes EXCEPT auth routes
-// Create a conditional CSRF middleware that skips /api/auth/* routes
-// This wrapper MUST run before csrfProtection to exclude auth routes
-app.use('/api', (req, res, next) => {
-    // When middleware is mounted at /api, req.path is relative to that mount
-    // So /api/auth/login becomes /auth/login in req.path
-    // req.originalUrl contains the full path: /api/auth/login
-    const path = req.path || '';
-    const originalUrl = req.originalUrl || req.url || '';
-    const pathLower = path.toLowerCase();
-    const originalUrlLower = originalUrl.toLowerCase();
-    
-    // CRITICAL: Check if this is an auth route - be very explicit and comprehensive
-    // Check both relative path (when mounted at /api) and full originalUrl
-    const isAuthRoute = 
-        pathLower.startsWith('/auth/') ||
-        pathLower === '/auth/login' ||
-        pathLower === '/auth/send-otp' ||
-        pathLower === '/auth' ||
-        originalUrlLower.includes('/api/auth/login') ||
-        originalUrlLower.includes('/api/auth/send-otp') ||
-        originalUrlLower.includes('/auth/login') ||
-        originalUrlLower.includes('/auth/send-otp') ||
-        originalUrlLower.endsWith('/api/auth/login') ||
-        originalUrlLower.endsWith('/api/auth/send-otp');
-    
-    if (isAuthRoute) {
-        // Skip CSRF entirely for auth routes - this is critical for login to work
-        console.log('✅✅✅ CSRF SKIPPED for auth route (wrapper middleware):', {
-            method: req.method,
-            path: path,
-            originalUrl: originalUrl,
-            pathLower: pathLower,
-            originalUrlLower: originalUrlLower,
-            matched: true,
-            timestamp: new Date().toISOString()
-        });
-        return next(); // Proceed directly to route handler, skip CSRF completely
-    }
-    
-    // For all other routes, apply CSRF protection
-    console.log('🔒 CSRF protection active for non-auth route:', {
-        method: req.method,
-        path: path,
-        originalUrl: originalUrl
-    });
-    csrfProtection(req, res, next);
-});
-app.use('/api/customers', customerRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/referrals', referralRoutes);
+// Apply CSRF protection ONLY to specific route groups (NOT to auth routes)
+// This ensures auth routes are completely bypassed
+app.use('/api/customers', csrfProtection, customerRoutes);
+app.use('/api/users', csrfProtection, userRoutes);
+app.use('/api/contact', csrfProtection, contactRoutes);
+app.use('/api/referrals', csrfProtection, referralRoutes);
 
 // Log registered routes for debugging
 console.log('✅ API routes registered:');
