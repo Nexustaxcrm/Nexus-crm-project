@@ -8305,14 +8305,13 @@ async function saveNewUser(event) {
                 inputElementValueType: typeof passwordInput.value
             });
             
-            // Show a more helpful error message
-            showNotification('error', 'Missing Information', 'Password is required! Please type your password in the password field and try again. If you have entered a password, please try typing it again.');
-            
-            // Don't clear the field - let user see what they typed
-            passwordInput.focus();
-            passwordInput.select();
-            return false;
-        }
+        // Show a more helpful error message
+        showNotification('error', 'Missing Information', 'Password is required! Please type your password in the password field and try again. If you have entered a password, please try typing it again.');
+        
+        // Don't clear the field - let user see what they typed
+        passwordInput.focus();
+        passwordInput.select();
+        return false;
     }
     
     // Check minimum length
