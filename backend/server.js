@@ -818,8 +818,17 @@ const limiter = rateLimit({
     skipFailedRequests: false,
 });
 
-// Apply rate limiting to API routes
-app.use('/api/', limiter);
+// Apply rate limiting to API routes EXCEPT auth routes
+// Auth routes need higher limits for login attempts
+app.use('/api', (req, res, next) => {
+    // Skip rate limiting for auth routes
+    if (req.path && req.path.startsWith('/auth/')) {
+        console.log('⏭️  Rate limiting skipped for auth route:', req.method, req.path);
+        return next();
+    }
+    // Apply rate limiting to all other API routes
+    limiter(req, res, next);
+});
 
 // Make pool available to routes
 app.locals.pool = pool;
@@ -909,6 +918,17 @@ app.use((req, res, next) => {
 // IMPORTANT: Register auth routes FIRST without CSRF protection
 // Auth routes need to be accessible without CSRF tokens for login to work
 app.use('/api/auth', authRoutes);
+
+// Add a test endpoint to verify auth routes are accessible
+app.get('/api/auth/test', (req, res) => {
+    console.log('✅ Auth routes test endpoint called');
+    res.json({ 
+        message: 'Auth routes are working!',
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        originalUrl: req.originalUrl
+    });
+});
 
 // Apply CSRF protection ONLY to specific route groups (NOT to auth routes)
 // This ensures auth routes are completely bypassed

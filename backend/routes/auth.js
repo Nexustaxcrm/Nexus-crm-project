@@ -412,12 +412,32 @@ router.post('/send-otp', async (req, res) => {
 
 // Login endpoint (supports both password and OTP)
 router.post('/login', async (req, res) => {
+    console.log('🚀 LOGIN ENDPOINT CALLED:', {
+        method: req.method,
+        path: req.path,
+        originalUrl: req.originalUrl,
+        body: { 
+            username: req.body?.username ? '***' : undefined,
+            hasPassword: !!req.body?.password,
+            hasOTP: !!req.body?.otp,
+            loginMethod: req.body?.otp ? 'OTP' : 'password'
+        },
+        headers: {
+            'content-type': req.headers['content-type'],
+            'authorization': req.headers['authorization'] ? 'present' : 'missing'
+        },
+        timestamp: new Date().toISOString()
+    });
+    
     try {
         // Get pool from request app (fallback if not initialized)
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
+            console.error('❌ Database pool not initialized!');
             return res.status(500).json({ error: 'Database not initialized' });
         }
+        
+        console.log('✅ Database pool available');
         
         const { username, password, otp } = req.body;
         
@@ -648,8 +668,16 @@ router.post('/login', async (req, res) => {
             requiresPasswordChange: hasTempPassword // Flag for frontend to show password change
         });
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('❌ LOGIN ERROR:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            timestamp: new Date().toISOString()
+        });
+        res.status(500).json({ 
+            error: 'Server error',
+            message: error.message || 'An unexpected error occurred during login'
+        });
     }
 });
 
