@@ -567,6 +567,14 @@ async function handleLogin(e) {
             return;
         }
         
+        console.log('📥 Login response received:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            hasData: !!data,
+            error: data?.error || 'none'
+        });
+        
         if (response.ok) {
             // Login successful - save token and user info
             console.log('✅ Login successful, user data:', data.user);
@@ -614,9 +622,25 @@ async function handleLogin(e) {
             showNotification('success', 'Login Successful', 'Welcome back!');
         } else {
             // Login failed - show detailed error
-            console.error('❌ Login failed:', data);
-            const errorMsg = data.error || 'Invalid credentials';
-            showNotification('error', 'Login Failed', errorMsg);
+            console.error('❌ Login failed - Full response details:', {
+                status: response.status,
+                statusText: response.statusText,
+                data: data,
+                error: data?.error,
+                message: data?.message
+            });
+            
+            const errorMsg = data?.error || data?.message || 'Invalid credentials';
+            
+            // Check for specific error types
+            if (response.status === 403) {
+                console.error('🚨 403 Forbidden - This might be a CSRF token issue!');
+                showNotification('error', 'Login Failed', 'Access denied. This might be a security configuration issue. Please contact support.');
+            } else if (response.status === 423) {
+                showNotification('error', 'Account Locked', errorMsg || 'Account temporarily locked due to too many failed attempts');
+            } else {
+                showNotification('error', 'Login Failed', errorMsg);
+            }
             
             // If it's a customer account issue, provide helpful message
             if (errorMsg.includes('username') || errorMsg.includes('password')) {
