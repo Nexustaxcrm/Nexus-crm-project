@@ -300,6 +300,43 @@ function initializeApp() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Load CSRF token if user is already logged in
+    if (currentUser && sessionStorage.getItem('authToken')) {
+        fetchCSRFToken();
+    }
+}
+
+// CSRF Token Management
+let csrfToken = null;
+
+async function fetchCSRFToken() {
+    try {
+        const response = await fetch(API_BASE_URL + '/csrf-token');
+        if (response.ok) {
+            const data = await response.json();
+            csrfToken = data.csrfToken;
+            sessionStorage.setItem('csrfToken', csrfToken);
+            console.log('✅ CSRF token fetched and stored');
+            return csrfToken;
+        } else {
+            console.warn('⚠️ Failed to fetch CSRF token:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Error fetching CSRF token:', error);
+        return null;
+    }
+}
+
+function getCSRFToken() {
+    // Try to get from memory first
+    if (csrfToken) {
+        return csrfToken;
+    }
+    // Fallback to sessionStorage
+    csrfToken = sessionStorage.getItem('csrfToken');
+    return csrfToken;
 }
 
 function setupEventListeners() {
@@ -606,6 +643,9 @@ async function handleLogin(e) {
             currentUser = data.user;
             // Also set on window for global access
             window.currentUser = data.user;
+            
+            // Fetch CSRF token for protected API routes
+            await fetchCSRFToken();
             
             // If customer role, ensure customer dashboard is shown
             if (data.user.role === 'customer') {
@@ -8340,12 +8380,27 @@ async function saveNewUser(event) {
         }
         
         // Create user via API
+        // Get CSRF token
+        const csrf = getCSRFToken();
+        if (!csrf) {
+            console.warn('⚠️ No CSRF token available, fetching...');
+            await fetchCSRFToken();
+        }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        
+        // Add CSRF token if available
+        const csrfToken = getCSRFToken();
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         const response = await fetch(API_BASE_URL + '/users', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: headers,
             body: JSON.stringify({ username, password, role })
         });
         
@@ -8400,12 +8455,19 @@ async function toggleUserLock(username) {
         
         const newLockedStatus = !user.locked;
         
+        // Get CSRF token
+        const csrfToken = getCSRFToken();
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         const response = await fetch(API_BASE_URL + '/users/' + user.id, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: headers,
             body: JSON.stringify({
                 username: user.username,
                 role: user.role,
@@ -8479,11 +8541,18 @@ async function confirmDeleteUser(username) {
             return;
         }
         
+        // Get CSRF token
+        const csrfToken = getCSRFToken();
+        const headers = {
+            'Authorization': `Bearer ${token}`
+        };
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         const response = await fetch(API_BASE_URL + '/users/' + user.id, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: headers
         });
         
         if (response.ok) {
