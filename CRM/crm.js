@@ -7917,12 +7917,41 @@ function showAddUserModal() {
 }
 
 async function saveNewUser() {
-    const username = document.getElementById('newUsername').value.trim();
-    const password = document.getElementById('newPassword').value;
-    const role = document.getElementById('newUserRole').value;
+    const usernameInput = document.getElementById('newUsername');
+    const passwordInput = document.getElementById('newPassword');
+    const roleInput = document.getElementById('newUserRole');
     
-    if (!username || !password) {
-        showNotification('error', 'Missing Information', 'Username and password are required!');
+    if (!usernameInput || !passwordInput || !roleInput) {
+        console.error('Form elements not found:', { usernameInput, passwordInput, roleInput });
+        showNotification('error', 'Form Error', 'Could not find form fields. Please refresh the page.');
+        return;
+    }
+    
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+    const role = roleInput.value;
+    
+    // Enhanced validation
+    if (!username || username.length === 0) {
+        showNotification('error', 'Missing Information', 'Username is required!');
+        usernameInput.focus();
+        return;
+    }
+    
+    if (!password || password.length === 0) {
+        showNotification('error', 'Missing Information', 'Password is required!');
+        passwordInput.focus();
+        return;
+    }
+    
+    if (password.length < 6) {
+        showNotification('error', 'Invalid Password', 'Password must be at least 6 characters long!');
+        passwordInput.focus();
+        return;
+    }
+    
+    if (!role) {
+        showNotification('error', 'Missing Information', 'Role is required!');
         return;
     }
     
