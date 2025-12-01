@@ -2522,6 +2522,15 @@ async function loadReferrals() {
         }
         tbody.innerHTML = html;
         
+        // Add event listeners to checkboxes to update delete selected option state
+        const checkboxes = document.querySelectorAll('#assignWorkTable .customer-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateDeleteSelectedOption);
+        });
+        
+        // Update delete selected option state on initial render
+        updateDeleteSelectedOption();
+        
         // Render pagination
         if (pager && totalPages > 1) {
             let pagerHtml = `<div class="d-flex align-items-center gap-2">
@@ -2978,6 +2987,108 @@ async function importTabularData(headers, dataRows) {
     loadDashboard();
 }
 
+// Delete selected customers (ADMIN ONLY)
+window.deleteSelectedCustomers = async function deleteSelectedCustomers() {
+    console.log('🗑️ deleteSelectedCustomers() called');
+    
+    try {
+        // Check if user is admin
+        if (!currentUser || currentUser.role !== 'admin') {
+            showNotification('error', 'Access Denied', 'Only administrators can delete customers.');
+            console.error('❌ User is not admin:', currentUser);
+            return;
+        }
+        
+        // Get selected customer IDs
+        const selectedIds = getSelectedCustomerIds();
+        
+        if (selectedIds.length === 0) {
+            showNotification('warning', 'No Selection', 'Please select customers to delete.');
+            return;
+        }
+        
+        // Get customer names for confirmation
+        const selectedCustomers = customers.filter(c => selectedIds.includes(c.id));
+        const customerNames = selectedCustomers.map(c => `${c.firstName} ${c.lastName}`).slice(0, 5);
+        const moreCount = selectedCustomers.length > 5 ? selectedCustomers.length - 5 : 0;
+        
+        // Show confirmation
+        const confirmMessage = `You are about to delete ${selectedCustomers.length} customer(s):\n\n${customerNames.join('\n')}${moreCount > 0 ? `\n... and ${moreCount} more` : ''}\n\nThis action CANNOT be undone!\n\nAre you sure you want to continue?`;
+        const confirmed = await showCrmConfirm('⚠️ Delete Selected Customers', confirmMessage);
+        
+        if (!confirmed) {
+            console.log('User cancelled deletion');
+            return;
+        }
+        
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            console.error('❌ No auth token found');
+            showNotification('error', 'Not Authenticated', 'Please log in again.');
+            return;
+        }
+        
+        // Show loading state
+        showNotification('info', 'Deleting...', `Deleting ${selectedCustomers.length} customer(s). This may take a moment...`);
+        console.log('Making POST request to:', API_BASE_URL + '/customers/bulk-delete');
+        console.log('Customer IDs to delete:', selectedIds);
+        
+        const response = await fetch(API_BASE_URL + '/customers/bulk-delete', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ customerIds: selectedIds })
+        });
+        
+        console.log('Response status:', response.status, response.statusText);
+        
+        // Check if response has content before parsing JSON
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            console.error('Non-JSON response:', text);
+            throw new Error('Server returned non-JSON response: ' + text);
+        }
+        
+        console.log('Response data:', data);
+        
+        if (!response.ok) {
+            throw new Error(data.error || `Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        // Success
+        console.log('✅ Successfully deleted customers:', data.deletedCount);
+        showNotification('success', 'Deleted Successfully', `Successfully deleted ${data.deletedCount} customer(s)!`);
+        
+        // Remove deleted customers from local array
+        customers = customers.filter(c => !selectedIds.includes(c.id));
+        
+        // Refresh dashboard and assign work tab
+        setTimeout(() => {
+            if (currentUser && currentUser.role === 'admin') {
+                console.log('Refreshing dashboard and assign work page...');
+                loadAdminDashboard();
+                renderAssignWorkPage();
+            }
+        }, 1000);
+        
+    } catch (error) {
+        console.error('❌ Error deleting selected customers:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        showNotification('error', 'Delete Failed', error.message || 'Failed to delete selected customers. Please check console for details.');
+    }
+};
+
 // Delete ALL customers (ADMIN ONLY - DANGEROUS!)
 // CRITICAL: Make sure this function is globally accessible
 window.deleteAllCustomers = async function deleteAllCustomers() {
@@ -3347,6 +3458,27 @@ function renderArchiveModal() {
 function getSelectedCustomerIds() {
     const checkboxes = document.querySelectorAll('#assignWorkTable .customer-checkbox:checked');
     return Array.from(checkboxes).map(cb => parseInt(cb.getAttribute('data-id')));
+}
+
+// Update delete selected option state based on selection
+function updateDeleteSelectedOption() {
+    const deleteSelectedOption = document.getElementById('deleteSelectedOption');
+    if (!deleteSelectedOption) return;
+    
+    const selectedIds = getSelectedCustomerIds();
+    const hasSelection = selectedIds.length > 0;
+    
+    if (hasSelection) {
+        deleteSelectedOption.classList.remove('disabled');
+        deleteSelectedOption.style.opacity = '1';
+        deleteSelectedOption.style.cursor = 'pointer';
+        deleteSelectedOption.title = `Delete ${selectedIds.length} selected customer(s)`;
+    } else {
+        deleteSelectedOption.classList.add('disabled');
+        deleteSelectedOption.style.opacity = '0.5';
+        deleteSelectedOption.style.cursor = 'not-allowed';
+        deleteSelectedOption.title = 'Select customers to delete';
+    }
 }
 
 async function archiveSelected() {
@@ -4060,6 +4192,15 @@ async function renderAssignWorkPage() {
         </tr>`;
     }
         if (tbody) tbody.innerHTML = html;
+        
+        // Add event listeners to checkboxes to update delete selected option state
+        const checkboxes = document.querySelectorAll('#assignWorkTable .customer-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateDeleteSelectedOption);
+        });
+        
+        // Update delete selected option state on initial render
+        updateDeleteSelectedOption();
     
         // Initialize column reordering for assigned work table (if function exists)
         if (typeof initColumnReordering === 'function') {
@@ -4389,13 +4530,29 @@ function initAssignWorkColumnResize() {
 
 function loadEmployeeDropdown() {
     const employeeList = document.getElementById('employeeDropdownList');
-    const employees = users.filter(u => u.role === 'employee' && !u.locked);
+    if (!employeeList) {
+        console.warn('employeeDropdownList element not found');
+        return;
+    }
     
-    employeeList.innerHTML = employees.map(employee => `
-        <li><a class="dropdown-item" href="#" onclick="assignToEmployee('${employee.username}')">
-            <i class="fas fa-user"></i> ${employee.username}
+    // Include both 'employee' and 'preparation' role users
+    const assignableUsers = users.filter(u => 
+        (u.role === 'employee' || u.role === 'preparation') && !u.locked
+    );
+    
+    if (assignableUsers.length === 0) {
+        employeeList.innerHTML = '<li><span class="dropdown-item text-muted">No employees available</span></li>';
+        return;
+    }
+    
+    employeeList.innerHTML = assignableUsers.map(user => {
+        const roleBadge = user.role === 'preparation' ? '<span class="badge bg-secondary ms-1">Prep</span>' : '';
+        return `
+        <li><a class="dropdown-item" href="#" onclick="assignToEmployee('${user.username}')">
+            <i class="fas fa-user"></i> ${user.username}${roleBadge}
         </a></li>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Delete-by-status workflow
@@ -7797,6 +7954,11 @@ async function saveNewUser() {
             // Reload users from server
             await loadUsers();
             
+            // Refresh employee dropdown if the new user is employee or preparation role
+            if (role === 'employee' || role === 'preparation') {
+                loadEmployeeDropdown();
+            }
+            
             // Hide modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
             modal.hide();
@@ -7850,6 +8012,12 @@ async function toggleUserLock(username) {
         if (response.ok) {
             await loadUsers();
             loadUserManagementTable();
+            
+            // Refresh employee dropdown if the user is employee or preparation role
+            if (user.role === 'employee' || user.role === 'preparation') {
+                loadEmployeeDropdown();
+            }
+            
             showNotification('success', 'User Status Changed', `User ${newLockedStatus ? 'locked' : 'unlocked'} successfully!`);
         } else {
             const error = await response.json();
@@ -7917,6 +8085,11 @@ async function confirmDeleteUser(username) {
         if (response.ok) {
             await loadUsers();
             loadUserManagementTable();
+            
+            // Refresh employee dropdown if the deleted user was employee or preparation role
+            if (user.role === 'employee' || user.role === 'preparation') {
+                loadEmployeeDropdown();
+            }
             
             // Close modal
             const modals = document.querySelectorAll('.modal');
