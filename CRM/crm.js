@@ -412,13 +412,25 @@ function setupEventListeners() {
 // Authentication Functions
 async function handleLogin(e) {
     e.preventDefault();
+    console.log('🚀 handleLogin called');
+    
     const username = document.getElementById('username').value.trim();
     const loginForm = document.getElementById('loginForm');
+    
     // Get login method from form data attribute (set when method button is clicked)
     const loginMethod = loginForm ? loginForm.getAttribute('data-login-method') : '';
     
+    console.log('🔍 Login form found:', !!loginForm);
+    console.log('🔍 Login method from form:', loginMethod);
+    console.log('🔍 Username:', username);
+    
     // Validate that a login method was selected
     if (!loginMethod || (loginMethod !== 'password' && loginMethod !== 'otp')) {
+        console.error('❌ Login method validation failed:', {
+            loginMethod: loginMethod,
+            formExists: !!loginForm,
+            formAttributes: loginForm ? Array.from(loginForm.attributes).map(a => `${a.name}="${a.value}"`).join(', ') : 'N/A'
+        });
         showNotification('error', 'Validation Error', 'Please select a login method (Password or OTP)');
         return;
     }
@@ -519,6 +531,7 @@ async function handleLogin(e) {
         
         console.log('📡 Attempting login for username:', usernameLower);
         console.log('📡 API URL:', API_BASE_URL + '/auth/login');
+        console.log('📡 Full API_BASE_URL:', API_BASE_URL);
         
         // Prepare request body based on login method
         const requestBody = loginMethod === 'otp' 
@@ -530,9 +543,11 @@ async function handleLogin(e) {
             username: usernameLower,
             hasPassword: !!password,
             passwordLength: password ? password.length : 0,
-            hasOTP: !!otp
+            hasOTP: !!otp,
+            requestBodyKeys: Object.keys(requestBody)
         });
         
+        console.log('🌐 Fetch request starting...');
         const response = await fetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
             headers: {
@@ -544,7 +559,15 @@ async function handleLogin(e) {
         
         clearTimeout(timeoutId);
         
-        console.log('📡 Login response status:', response.status, response.statusText);
+        console.log('📥 Login response received:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            headers: {
+                'content-type': response.headers.get('content-type'),
+                'content-length': response.headers.get('content-length')
+            }
+        });
         
         // Parse response - handle both JSON and non-JSON responses
         let data;

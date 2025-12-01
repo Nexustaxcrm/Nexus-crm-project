@@ -5611,24 +5611,34 @@
             
             // Store selected login method in a hidden input or data attribute
             if (loginForm) {
-                // Don't set default method - user must choose
-                loginForm.setAttribute('data-login-method', '');
-                // Keep password and OTP fields hidden until user selects a method
+                // Set default method to 'password' for easier login
+                // User can still change to OTP if needed
+                loginForm.setAttribute('data-login-method', 'password');
+                console.log('✅ Login form initialized with default method: password');
+                
+                // Show password field by default, hide OTP field
                 if (passwordField) {
-                    passwordField.style.display = 'none';
+                    passwordField.style.display = 'block';
                 }
                 if (otpField) {
                     otpField.style.display = 'none';
+                }
+                if (passwordInput) {
+                    passwordInput.setAttribute('required', '');
                 }
             }
             
             loginMethodBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const method = this.getAttribute('data-method');
+                    console.log('🔘 Login method button clicked:', method);
                     
                     // Store the selected method in the form
                     if (loginForm) {
                         loginForm.setAttribute('data-login-method', method);
+                        console.log('✅ Login method set to:', method);
+                    } else {
+                        console.error('❌ Login form not found when setting method!');
                     }
                     
                     // Hide both login method buttons
