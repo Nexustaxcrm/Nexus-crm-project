@@ -7634,13 +7634,13 @@
                         <!-- Tabs Navigation -->
                         <ul class="nav nav-tabs mb-4 user-management-tabs" id="userManagementTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active user-tab-btn" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="true" onclick="switchUserManagementTab('customers')">
-                                    <i class="fas fa-users"></i> <span>Customers Logins</span>
+                                <button class="nav-link active user-tab-btn" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="true" onclick="switchUserManagementTab('company')">
+                                    <i class="fas fa-building"></i> <span>Company Logins</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link user-tab-btn" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="false" onclick="switchUserManagementTab('company')">
-                                    <i class="fas fa-building"></i> <span>Company Logins</span>
+                                <button class="nav-link user-tab-btn" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="false" onclick="switchUserManagementTab('customers')">
+                                    <i class="fas fa-users"></i> <span>Customers Logins</span>
                                 </button>
                             </li>
                         </ul>
@@ -7722,25 +7722,8 @@
                         
                         <!-- Tab Content -->
                         <div class="tab-content" id="userManagementTabContent">
-                            <!-- Customers Login Tab -->
-                            <div class="tab-pane fade show active" id="customersLoginContent" role="tabpanel" aria-labelledby="customersLoginTab">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Role</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                        <tbody id="customersLoginTable"></tbody>
-                            </table>
-                                </div>
-                            </div>
-                            
                             <!-- Company Logins Tab -->
-                            <div class="tab-pane fade" id="companyLoginsContent" role="tabpanel" aria-labelledby="companyLoginsTab">
+                            <div class="tab-pane fade show active" id="companyLoginsContent" role="tabpanel" aria-labelledby="companyLoginsTab">
                                 <div class="table-responsive">
                                     <table class="table">
                                         <thead>
@@ -7752,6 +7735,23 @@
                                             </tr>
                                         </thead>
                                         <tbody id="companyLoginsTable"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Customers Login Tab -->
+                            <div class="tab-pane fade" id="customersLoginContent" role="tabpanel" aria-labelledby="customersLoginTab">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Username</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="customersLoginTable"></tbody>
                                     </table>
                                 </div>
                             </div>

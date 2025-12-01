@@ -7973,7 +7973,7 @@ function switchUserManagementTab(tabType) {
     loadUserManagementTable(tabType);
 }
 
-function loadUserManagementTable(activeTab = 'customers') {
+function loadUserManagementTable(activeTab = 'company') {
     if (currentUser.role !== 'admin') return;
     
     // Filter users by role
