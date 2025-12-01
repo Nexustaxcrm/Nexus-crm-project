@@ -1396,7 +1396,7 @@ async function loadAdminDashboard() {
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('w2_received')">
                     <div class="stats-icon" style="background: #11cdef;">
-                        <i class="fas fa-file-check"></i>
+                        <i class="fas fa-file-invoice"></i>
                     </div>
                     <div class="stats-number">${stats.w2Received || 0}</div>
                     <div class="stats-label">W2 Received</div>
