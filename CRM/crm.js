@@ -8030,25 +8030,37 @@ function showAddUserModal() {
     const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
     modal.show();
     
-    // Add event listener to capture password as user types
-    const passwordInput = document.getElementById('newPassword');
-    if (passwordInput) {
-        // Remove any existing listeners by cloning and replacing
-        const newPasswordInput = passwordInput.cloneNode(true);
-        passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
-        
-        // Add input event listener to capture password value
-        newPasswordInput.addEventListener('input', function(e) {
-            storedPasswordValue = e.target.value || '';
-            console.log('Password value captured:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
-        });
-        
-        // Also capture on change event
-        newPasswordInput.addEventListener('change', function(e) {
-            storedPasswordValue = e.target.value || '';
-            console.log('Password value changed:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
-        });
-    }
+    // Wait for modal to be fully shown, then attach event listeners
+    setTimeout(() => {
+        const passwordInput = document.getElementById('newPassword');
+        if (passwordInput) {
+            // Remove any existing listeners by cloning and replacing (preserves all attributes)
+            const newPasswordInput = passwordInput.cloneNode(true);
+            passwordInput.parentNode.replaceChild(newPasswordInput, passwordInput);
+            
+            // Add input event listener to capture password value in real-time
+            newPasswordInput.addEventListener('input', function(e) {
+                storedPasswordValue = e.target.value || '';
+                console.log('✅ Password input event - Value captured:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
+            }, { capture: true });
+            
+            // Also capture on change event
+            newPasswordInput.addEventListener('change', function(e) {
+                storedPasswordValue = e.target.value || '';
+                console.log('✅ Password change event - Value captured:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
+            }, { capture: true });
+            
+            // Capture on keyup as well (for better compatibility)
+            newPasswordInput.addEventListener('keyup', function(e) {
+                storedPasswordValue = e.target.value || '';
+                console.log('✅ Password keyup event - Value captured:', storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY');
+            }, { capture: true });
+            
+            console.log('✅ Password input event listeners attached');
+        } else {
+            console.error('❌ Password input element not found when attaching listeners');
+        }
+    }, 100);
 }
 
 async function saveNewUser(event) {
@@ -8086,44 +8098,63 @@ async function saveNewUser(event) {
     // Method 1: Use stored value from input event listener (most reliable)
     if (storedPasswordValue && storedPasswordValue.length > 0) {
         password = storedPasswordValue;
-        console.log('✅ Using stored password value from input listener');
+        console.log('✅ Method 1: Using stored password value from input listener -', password.length, 'chars');
     }
     
-    // Method 2: Direct value access from input element
+    // Method 2: Try using FormData (can sometimes bypass browser restrictions)
     if (!password || password.length === 0) {
         try {
-            password = passwordInput.value || '';
-            if (password && password.length > 0) {
-                console.log('✅ Using password value from input element');
+            const form = document.getElementById('addUserForm');
+            if (form) {
+                const formData = new FormData(form);
+                const formPassword = formData.get('newPassword') || formData.get('password') || '';
+                if (formPassword && formPassword.length > 0) {
+                    password = formPassword;
+                    console.log('✅ Method 2: Using password from FormData -', password.length, 'chars');
+                }
             }
         } catch (e) {
-            console.warn('Could not read password value (method 2):', e);
+            console.warn('Could not read password from FormData:', e);
         }
     }
     
-    // Method 3: If still empty, try reading after a tiny delay (browser might still be processing)
+    // Method 3: Direct value access from input element
     if (!password || password.length === 0) {
-        await new Promise(resolve => setTimeout(resolve, 10));
         try {
-            password = passwordInput.value || '';
-            if (password && password.length > 0) {
-                console.log('✅ Using password value after delay');
+            const directValue = passwordInput.value;
+            if (directValue && directValue.length > 0) {
+                password = directValue;
+                console.log('✅ Method 3: Using password value from input element -', password.length, 'chars');
             }
         } catch (e) {
             console.warn('Could not read password value (method 3):', e);
         }
     }
     
-    // Method 4: Try accessing the value property directly one more time
+    // Method 4: If still empty, try reading after a tiny delay (browser might still be processing)
+    if (!password || password.length === 0) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        try {
+            const delayedValue = passwordInput.value;
+            if (delayedValue && delayedValue.length > 0) {
+                password = delayedValue;
+                console.log('✅ Method 4: Using password value after delay -', password.length, 'chars');
+            }
+        } catch (e) {
+            console.warn('Could not read password value (method 4):', e);
+        }
+    }
+    
+    // Method 5: Try accessing the value property directly one more time
     if (!password || password.length === 0) {
         try {
             const inputValue = passwordInput.value;
             if (inputValue && typeof inputValue === 'string' && inputValue.length > 0) {
                 password = inputValue;
-                console.log('✅ Using password value from direct access');
+                console.log('✅ Method 5: Using password value from direct access -', password.length, 'chars');
             }
         } catch (e) {
-            console.warn('Could not read password value (method 4):', e);
+            console.warn('Could not read password value (method 5):', e);
         }
     }
     
@@ -8141,8 +8172,44 @@ async function saveNewUser(event) {
         passwordInputExists: !!passwordInput,
         passwordInputValue: passwordInput.value ? '***' + passwordInput.value.length + ' chars***' : 'EMPTY',
         passwordInputType: passwordInput.type,
-        passwordInputAttribute: passwordInput.getAttribute('value') || 'no attribute'
+        passwordInputAttribute: passwordInput.getAttribute('value') || 'no attribute',
+        storedPasswordValue: storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY',
+        storedPasswordLength: storedPasswordValue ? storedPasswordValue.length : 0
     });
+    
+    // Additional validation: Check if password "Master@123" would be valid
+    if (password && password.length > 0) {
+        console.log('✅ Password found! Length:', password.length);
+        console.log('✅ Password validation check:', {
+            hasLength: password.length >= 6,
+            hasUppercase: /[A-Z]/.test(password),
+            hasLowercase: /[a-z]/.test(password),
+            hasNumber: /[0-9]/.test(password),
+            hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+            isValid: password.length >= 6,
+            passwordPreview: password.substring(0, 2) + '***' + password.substring(password.length - 1)
+        });
+        
+        // If password is "Master@123", confirm it's valid
+        if (password === 'Master@123') {
+            console.log('✅ CONFIRMED: Password "Master@123" is VALID and has been captured successfully!');
+        }
+    } else {
+        console.error('❌ NO PASSWORD FOUND! All methods failed to capture password value.');
+        console.error('🔍 DEBUGGING INFO:', {
+            passwordInputElement: passwordInput,
+            passwordInputValue: passwordInput ? passwordInput.value : 'NO ELEMENT',
+            passwordInputValueLength: passwordInput ? (passwordInput.value ? passwordInput.value.length : 0) : 0,
+            storedPasswordValue: storedPasswordValue,
+            storedPasswordLength: storedPasswordValue ? storedPasswordValue.length : 0,
+            allInputsInForm: Array.from(document.querySelectorAll('#addUserForm input')).map(inp => ({
+                id: inp.id,
+                type: inp.type,
+                value: inp.type === 'password' ? '***' : inp.value,
+                valueLength: inp.value ? inp.value.length : 0
+            }))
+        });
+    }
     
     // Enhanced validation
     if (!username || username.length === 0) {
@@ -8151,54 +8218,52 @@ async function saveNewUser(event) {
         return false;
     }
     
-    // Check password - be more explicit about what we're checking
-    // Re-read password value one more time right before validation
-    // Use multiple methods to ensure we capture the value
-    password = passwordInput.value;
-    
-    // If still empty, try alternative methods
+    // Final password read - try one more time right before validation
+    // This is the absolute last chance to get the password value
     if (!password || password.length === 0) {
-        // Try reading directly from the input element
-        password = passwordInput.value || '';
-        
-        // Check if it's a browser security issue - try accessing the value property directly
-        try {
-            const directValue = passwordInput.value;
-            if (directValue && directValue.length > 0) {
-                password = directValue;
-            }
-        } catch (e) {
-            console.warn('Could not read password value directly:', e);
+        // Try reading directly from the input element one final time
+        const finalRead = passwordInput.value;
+        if (finalRead && finalRead.length > 0) {
+            password = finalRead;
+            console.log('✅ Final password read successful - got', password.length, 'characters');
+        } else if (storedPasswordValue && storedPasswordValue.length > 0) {
+            password = storedPasswordValue;
+            console.log('✅ Using stored password value - got', password.length, 'characters');
         }
     }
     
     // Final validation - check if password exists and has content
-    // Don't trim for validation - just check length (passwords can have spaces)
     if (!password || typeof password !== 'string' || password.length === 0) {
-        console.error('❌ Password validation failed - Details:', { 
-            password: password,
-            passwordValue: passwordInput.value,
-            passwordLength: password ? password.length : 0,
-            passwordType: typeof password,
-            isNull: password === null,
-            isUndefined: password === undefined,
-            isEmptyString: password === '',
-            inputElement: passwordInput,
-            inputValue: passwordInput.value,
-            inputValueLength: passwordInput.value ? passwordInput.value.length : 0,
-            inputElementType: passwordInput.type,
-            inputElementId: passwordInput.id,
-            inputElementName: passwordInput.name,
-            inputElementClass: passwordInput.className
-        });
-        
-        // Show a more helpful error message
-        showNotification('error', 'Missing Information', 'Password is required! Please type your password in the password field and try again.');
-        
-        // Don't clear the field - let user see what they typed
-        passwordInput.focus();
-        passwordInput.select();
-        return false;
+        console.error('❌ Password validation failed - ALL METHODS FAILED - Details:', { 
+                password: password,
+                passwordValue: passwordInput.value,
+                passwordLength: password ? password.length : 0,
+                passwordType: typeof password,
+                isNull: password === null,
+                isUndefined: password === undefined,
+                isEmptyString: password === '',
+                storedPasswordValue: storedPasswordValue ? '***' + storedPasswordValue.length + ' chars***' : 'EMPTY',
+                storedPasswordLength: storedPasswordValue ? storedPasswordValue.length : 0,
+                finalPasswordAttempt: finalPasswordAttempt ? '***' + finalPasswordAttempt.length + ' chars***' : 'EMPTY',
+                inputElement: passwordInput,
+                inputValue: passwordInput.value,
+                inputValueLength: passwordInput.value ? passwordInput.value.length : 0,
+                inputElementType: passwordInput.type,
+                inputElementId: passwordInput.id,
+                inputElementName: passwordInput.name,
+                inputElementClass: passwordInput.className,
+                inputElementValue: passwordInput.value,
+                inputElementValueType: typeof passwordInput.value
+            });
+            
+            // Show a more helpful error message
+            showNotification('error', 'Missing Information', 'Password is required! Please type your password in the password field and try again. If you have entered a password, please try typing it again.');
+            
+            // Don't clear the field - let user see what they typed
+            passwordInput.focus();
+            passwordInput.select();
+            return false;
+        }
     }
     
     // Check minimum length
