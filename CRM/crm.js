@@ -7922,14 +7922,27 @@ async function saveNewUser() {
     const roleInput = document.getElementById('newUserRole');
     
     if (!usernameInput || !passwordInput || !roleInput) {
-        console.error('Form elements not found:', { usernameInput, passwordInput, roleInput });
+        console.error('Form elements not found:', { 
+            usernameInput: !!usernameInput, 
+            passwordInput: !!passwordInput, 
+            roleInput: !!roleInput 
+        });
         showNotification('error', 'Form Error', 'Could not find form fields. Please refresh the page.');
         return;
     }
     
+    // Get values - don't trim password (passwords can have spaces, though uncommon)
     const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    const password = passwordInput.value; // Don't trim password - preserve all characters
     const role = roleInput.value;
+    
+    // Debug logging
+    console.log('Creating new user:', { 
+        username: username, 
+        passwordLength: password ? password.length : 0, 
+        role: role,
+        passwordEmpty: !password || password.length === 0
+    });
     
     // Enhanced validation
     if (!username || username.length === 0) {
@@ -7938,7 +7951,13 @@ async function saveNewUser() {
         return;
     }
     
+    // Check password - don't use trim, check actual value
     if (!password || password.length === 0) {
+        console.error('Password validation failed:', { 
+            passwordValue: password, 
+            passwordLength: password ? password.length : 0,
+            passwordType: typeof password
+        });
         showNotification('error', 'Missing Information', 'Password is required!');
         passwordInput.focus();
         return;
@@ -7992,8 +8011,11 @@ async function saveNewUser() {
             const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
             modal.hide();
             
-            // Reset form
-            document.getElementById('addUserForm').reset();
+            // Reset form (but don't clear if there was an error)
+            const form = document.getElementById('addUserForm');
+            if (form) {
+                form.reset();
+            }
             
             // Reload table
             loadUserManagementTable();

@@ -8288,14 +8288,14 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addUserForm">
+                    <form id="addUserForm" onsubmit="event.preventDefault(); return false;">
                         <div class="mb-3">
                             <label class="form-label">Username *</label>
-                            <input type="text" class="form-control" id="newUsername" required="">
+                            <input type="text" class="form-control" id="newUsername" required autocomplete="username">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password *</label>
-                            <input type="password" class="form-control" id="newPassword" required="" minlength="6">
+                            <input type="password" class="form-control" id="newPassword" required minlength="6" autocomplete="new-password">
                             <small class="form-text text-muted">Password must be at least 6 characters long</small>
                         </div>
                         <div class="mb-3">
