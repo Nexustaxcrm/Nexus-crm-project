@@ -118,7 +118,21 @@ const csrfProtection = (req, res, next) => {
     }
     
     // Skip CSRF for authentication endpoints (they use JWT)
-    if (req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/send-otp')) {
+    // Check req.originalUrl which contains the full path including /api
+    const originalUrl = req.originalUrl || req.url || '';
+    const path = req.path || '';
+    
+    // Check if this is an auth endpoint (login or send-otp)
+    const isAuthEndpoint = 
+        originalUrl.includes('/api/auth/login') ||
+        originalUrl.includes('/api/auth/send-otp') ||
+        path.includes('/auth/login') ||
+        path.includes('/auth/send-otp') ||
+        originalUrl.endsWith('/auth/login') ||
+        originalUrl.endsWith('/auth/send-otp');
+    
+    if (isAuthEndpoint) {
+        // Skip CSRF for authentication endpoints
         return next();
     }
     
@@ -179,8 +193,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Apply CSRF protection to API routes (except auth login/otp)
-app.use('/api/', csrfProtection);
+// NOTE: CSRF protection is applied AFTER routes are registered (see line ~877)
 
 // Connect to database with optimized connection pool for concurrent users
 // CRITICAL: Single shared pool for entire application
@@ -848,6 +861,10 @@ app.use((req, res, next) => {
     
     next();
 });
+
+// Apply CSRF protection to API routes BEFORE routes are registered
+// This ensures it runs before route handlers, but path exclusion will skip auth endpoints
+app.use('/api/', csrfProtection);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
