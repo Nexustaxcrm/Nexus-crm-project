@@ -685,7 +685,68 @@ if (referralRoutes.init) referralRoutes.init(app);
 // Use API routes (must come before static file serving)
 // Add logging middleware to track API requests
 app.use('/api', (req, res, next) => {
+    // Block sensitive file access attempts via API routes
+    const path = req.path.toLowerCase();
+    const sensitiveApiPaths = ['.env', 'config.json', 'package.json', '.git', '.aws', '.ssh'];
+    
+    if (sensitiveApiPaths.some(sensitive => path.includes(sensitive))) {
+        console.warn(`🚨 SECURITY: Blocked API access attempt to sensitive file: ${req.method} ${req.originalUrl} from IP: ${req.ip || req.connection.remoteAddress}`);
+        return res.status(404).json({ 
+            error: 'API endpoint not found',
+            message: 'The requested API endpoint does not exist'
+        });
+    }
+    
     console.log(`📡 API Request: ${req.method} ${req.path}`);
+    next();
+});
+
+// Security: Block access to sensitive files and common exploit paths
+// This must come BEFORE API routes to catch these early
+const sensitivePaths = [
+    '/.env',
+    '/.env.local',
+    '/.env.production',
+    '/.env.development',
+    '/config.json',
+    '/package.json',
+    '/package-lock.json',
+    '/.git',
+    '/.git/config',
+    '/.gitignore',
+    '/.htaccess',
+    '/.htpasswd',
+    '/web.config',
+    '/.well-known',
+    '/phpinfo.php',
+    '/wp-admin',
+    '/wp-login.php',
+    '/admin',
+    '/.aws',
+    '/.ssh'
+];
+
+app.use((req, res, next) => {
+    const path = req.path.toLowerCase();
+    
+    // Check for sensitive file paths
+    if (sensitivePaths.some(sensitive => path === sensitive || path.startsWith(sensitive + '/'))) {
+        console.warn(`🚨 SECURITY: Blocked access attempt to sensitive path: ${req.method} ${req.path} from IP: ${req.ip || req.connection.remoteAddress}`);
+        return res.status(404).json({ 
+            error: 'Not found',
+            message: 'The requested resource does not exist'
+        });
+    }
+    
+    // Block common exploit patterns
+    if (path.includes('..') || path.includes('%2e%2e') || path.includes('%252e%252e')) {
+        console.warn(`🚨 SECURITY: Blocked path traversal attempt: ${req.method} ${req.path} from IP: ${req.ip || req.connection.remoteAddress}`);
+        return res.status(400).json({ 
+            error: 'Invalid request',
+            message: 'Invalid path detected'
+        });
+    }
+    
     next();
 });
 
