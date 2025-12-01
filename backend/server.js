@@ -910,9 +910,39 @@ app.use((req, res, next) => {
 // Even though CSRF runs after, the path exclusion in csrfProtection will skip auth endpoints
 app.use('/api/auth', authRoutes);
 
-// Apply CSRF protection to API routes
-// The csrfProtection middleware checks the path and skips /api/auth/* endpoints
-app.use('/api/', csrfProtection);
+// Apply CSRF protection to API routes EXCEPT auth routes
+// Use a wrapper middleware that explicitly excludes /api/auth/* routes BEFORE applying CSRF
+app.use('/api', (req, res, next) => {
+    // Explicitly skip CSRF for /api/auth/* routes
+    // When mounted at /api, req.path will be relative (e.g., /auth/login)
+    const path = req.path || '';
+    const originalUrl = req.originalUrl || req.url || '';
+    
+    // Check if this is an auth route - check both relative path and full URL
+    const isAuthRoute = 
+        path.startsWith('/auth/') ||
+        path === '/auth/login' ||
+        path === '/auth/send-otp' ||
+        originalUrl.includes('/api/auth/login') ||
+        originalUrl.includes('/api/auth/send-otp');
+    
+    if (isAuthRoute) {
+        console.log('✅ CSRF skipped - Auth route detected:', {
+            method: req.method,
+            path: path,
+            originalUrl: originalUrl
+        });
+        return next(); // Skip CSRF, proceed to route handler
+    }
+    
+    // Apply CSRF protection to all other /api routes
+    console.log('🔒 Applying CSRF protection to:', {
+        method: req.method,
+        path: path,
+        originalUrl: originalUrl
+    });
+    csrfProtection(req, res, next);
+});
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/contact', contactRoutes);
