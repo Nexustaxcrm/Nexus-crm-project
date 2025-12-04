@@ -7726,6 +7726,23 @@ function showEmployeePerformanceModal() {
     // Load employee checkboxes
     loadEmployeeCheckboxes();
     
+    // Expand both sections by default
+    setTimeout(() => {
+        const prepSection = document.getElementById('preparationSection');
+        const empSection = document.getElementById('employeeSection');
+        const prepChevron = document.getElementById('preparationChevron');
+        const empChevron = document.getElementById('employeeChevron');
+        
+        if (prepSection && prepChevron) {
+            prepSection.style.display = 'block';
+            prepChevron.className = 'fas fa-chevron-down';
+        }
+        if (empSection && empChevron) {
+            empSection.style.display = 'block';
+            empChevron.className = 'fas fa-chevron-down';
+        }
+    }, 100);
+    
     // Set default date range (last 30 days)
     const endDate = new Date();
     const startDate = new Date();
@@ -7737,32 +7754,70 @@ function showEmployeePerformanceModal() {
     modal.show();
 }
 
-// Load employee checkboxes in the modal
+// Load employee checkboxes in the modal (grouped by role)
 function loadEmployeeCheckboxes() {
-    const checkboxList = document.getElementById('employeeCheckboxList');
-    if (!checkboxList) return;
+    const preparationList = document.getElementById('preparationCheckboxList');
+    const employeeList = document.getElementById('employeeCheckboxList');
     
-    // Get all employees and preparation users
-    const assignableUsers = users.filter(u => 
-        (u.role === 'employee' || u.role === 'preparation') && !u.locked
-    );
+    // Get preparation users
+    const preparationUsers = users.filter(u => u.role === 'preparation' && !u.locked);
     
-    if (assignableUsers.length === 0) {
-        checkboxList.innerHTML = '<p class="text-muted">No employees available</p>';
-        return;
+    // Get employee users
+    const employeeUsers = users.filter(u => u.role === 'employee' && !u.locked);
+    
+    // Load preparation checkboxes
+    if (preparationList) {
+        if (preparationUsers.length === 0) {
+            preparationList.innerHTML = '<p class="text-muted small">No preparation users available</p>';
+        } else {
+            preparationList.innerHTML = preparationUsers.map(user => {
+                return `
+                    <div class="form-check mb-2">
+                        <input class="form-check-input employee-checkbox" type="checkbox" value="${user.username}" id="emp_${user.username}" data-role="preparation">
+                        <label class="form-check-label" for="emp_${user.username}">
+                            <i class="fas fa-user"></i> ${user.username}
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+        // Update count badge
+        const prepCount = document.getElementById('preparationCount');
+        if (prepCount) prepCount.textContent = preparationUsers.length;
     }
     
-    checkboxList.innerHTML = assignableUsers.map(user => {
-        const roleBadge = user.role === 'preparation' ? '<span class="badge bg-info ms-2">Prep</span>' : '';
-        return `
-            <div class="form-check mb-2">
-                <input class="form-check-input employee-checkbox" type="checkbox" value="${user.username}" id="emp_${user.username}">
-                <label class="form-check-label" for="emp_${user.username}">
-                    <i class="fas fa-user"></i> ${user.username}${roleBadge}
-                </label>
-            </div>
-        `;
-    }).join('');
+    // Load employee checkboxes
+    if (employeeList) {
+        if (employeeUsers.length === 0) {
+            employeeList.innerHTML = '<p class="text-muted small">No employees available</p>';
+        } else {
+            employeeList.innerHTML = employeeUsers.map(user => {
+                return `
+                    <div class="form-check mb-2">
+                        <input class="form-check-input employee-checkbox" type="checkbox" value="${user.username}" id="emp_${user.username}" data-role="employee">
+                        <label class="form-check-label" for="emp_${user.username}">
+                            <i class="fas fa-user"></i> ${user.username}
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
+        // Update count badge
+        const empCount = document.getElementById('employeeCount');
+        if (empCount) empCount.textContent = employeeUsers.length;
+    }
+}
+
+// Toggle employee section (Preparation or Employee)
+function toggleEmployeeSection(role) {
+    const section = document.getElementById(`${role}Section`);
+    const chevron = document.getElementById(`${role}Chevron`);
+    
+    if (section && chevron) {
+        const isVisible = section.style.display !== 'none';
+        section.style.display = isVisible ? 'none' : 'block';
+        chevron.className = isVisible ? 'fas fa-chevron-right' : 'fas fa-chevron-down';
+    }
 }
 
 // Toggle all employees checkbox

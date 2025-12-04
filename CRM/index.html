@@ -7910,15 +7910,42 @@
                     <form id="employeePerformanceForm">
                         <div class="mb-4">
                             <label class="form-label fw-bold">Select Employees <span class="text-muted">(Select one or more)</span></label>
-                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto; background: var(--card-bg);">
-                                <div class="mb-2">
+                            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto; background: var(--card-bg);">
+                                <div class="mb-3">
                                     <label class="form-check-label">
                                         <input type="checkbox" class="form-check-input" id="selectAllEmployees" onchange="toggleAllEmployees(this.checked)">
                                         <strong>Select All Employees</strong>
                                     </label>
                                 </div>
+                                <hr class="my-3">
+                                
+                                <!-- Preparation Section -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleEmployeeSection('preparation')" style="font-weight: 600; color: var(--text-color);">
+                                            <i class="fas fa-chevron-down" id="preparationChevron"></i> <i class="fas fa-user-cog"></i> Preparation
+                                        </button>
+                                        <span class="badge bg-info ms-2" id="preparationCount">0</span>
+                                    </div>
+                                    <div id="preparationSection" style="display: none; margin-left: 20px;">
+                                        <div id="preparationCheckboxList"></div>
+                                    </div>
+                                </div>
+                                
                                 <hr class="my-2">
-                                <div id="employeeCheckboxList"></div>
+                                
+                                <!-- Employee Section -->
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleEmployeeSection('employee')" style="font-weight: 600; color: var(--text-color);">
+                                            <i class="fas fa-chevron-down" id="employeeChevron"></i> <i class="fas fa-user-tie"></i> Employee
+                                        </button>
+                                        <span class="badge bg-success ms-2" id="employeeCount">0</span>
+                                    </div>
+                                    <div id="employeeSection" style="display: none; margin-left: 20px;">
+                                        <div id="employeeCheckboxList"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="mb-4">
