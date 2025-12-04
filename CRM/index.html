@@ -341,20 +341,55 @@
 
         .navbar .nav-menu a i {
             margin-bottom: 6px;
-            font-size: clamp(20px, 2.2vw, 24px);
-            width: 50px;
-            height: 50px;
+            font-size: clamp(22px, 2.4vw, 26px);
+            width: 55px;
+            height: 55px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 14px;
+            border-radius: 12px;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             color: #545454;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+        
+        /* Default icon colors - subtle backgrounds */
+        .navbar .nav-menu li:nth-child(1) a i {
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            color: #667eea;
+        }
+        
+        .navbar .nav-menu li:nth-child(2) a i {
+            background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
+            color: #00c9ff;
+        }
+        
+        .navbar .nav-menu li:nth-child(3) a i {
+            background: linear-gradient(135deg, #e3f2fd 0%, #e0f7fa 100%);
+            color: #4facfe;
+        }
+        
+        .navbar .nav-menu li:nth-child(4) a i {
+            background: linear-gradient(135deg, #fce4ec 0%, #fff3e0 100%);
+            color: #fa709a;
+        }
+        
+        .navbar .nav-menu li:nth-child(5) a i {
+            background: linear-gradient(135deg, #ffe0e0 0%, #fff4e0 100%);
+            color: #ff6b6b;
+        }
+        
+        .navbar .nav-menu li:nth-child(6) a i {
+            background: linear-gradient(135deg, #ffe0e6 0%, #ffe0b2 100%);
+            color: #ff0844;
+        }
+        
+        .navbar .nav-menu li:nth-child(7) a i {
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+            color: #667eea;
         }
         
         .navbar .nav-menu a i::before {
@@ -372,9 +407,8 @@
         
         .navbar .nav-menu a:hover i {
             color: #fff;
-            transform: translateY(-4px) scale(1.12) rotate(5deg);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 6px 15px rgba(0, 0, 0, 0.15), 0 0 20px rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .navbar .nav-menu a:hover i::before {
@@ -386,61 +420,37 @@
         .navbar .nav-menu a.active i {
             color: #fff;
             background: linear-gradient(135deg, #063232 0%, #0a4a4a 50%, #0d5c5c 100%);
-            box-shadow: 0 8px 25px rgba(6, 50, 50, 0.35), 0 4px 15px rgba(6, 50, 50, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transform: scale(1.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 20px rgba(6, 50, 50, 0.3), 0 4px 12px rgba(6, 50, 50, 0.2);
+            transform: scale(1.05);
         }
         
-        /* Individual icon gradient backgrounds on hover for admin nav - More vibrant and modern */
+        /* Individual icon colors on hover for admin nav */
         .navbar .nav-menu li:nth-child(1) a:hover i {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
         .navbar .nav-menu li:nth-child(2) a:hover i {
-            background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 50%, #00f260 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
         }
         
         .navbar .nav-menu li:nth-child(3) a:hover i {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #00d4ff 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
         
         .navbar .nav-menu li:nth-child(4) a:hover i {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 50%, #f5576c 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
         }
         
         .navbar .nav-menu li:nth-child(5) a:hover i {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #ff8c00 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
         }
         
         .navbar .nav-menu li:nth-child(6) a:hover i {
-            background: linear-gradient(135deg, #ff0844 0%, #ffb199 50%, #ff6b6b 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
         }
         
         .navbar .nav-menu li:nth-child(7) a:hover i {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
-        }
-        
-        @keyframes gradientShift {
-            0%, 100% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .navbar .nav-menu a span {
@@ -7086,13 +7096,13 @@
             </div>
             <div class="nav-right-group">
                 <ul class="nav-menu">
-                    <li><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;dashboard&#39;, this)" class="nav-link active" data-tab="dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li id="assignedWorkLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;assignedWork&#39;, this)" class="nav-link" data-tab="assignedWork"><i class="fas fa-clipboard-check"></i> <span>Assigned Work</span></a></li>
-                    <li id="uploadLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;upload&#39;, this)" class="nav-link" data-tab="upload"><i class="fas fa-cloud-upload-alt"></i> <span>File Upload</span></a></li>
-                    <li id="assignWorkLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;assignWork&#39;, this)" class="nav-link" data-tab="assignWork"><i class="fas fa-user-plus"></i> <span>Assign Work</span></a></li>
-                    <li id="progressLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;progress&#39;, this)" class="nav-link" data-tab="progress"><i class="fas fa-chart-line"></i> <span>Progress</span></a></li>
-                    <li id="reportsLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;reports&#39;, this)" class="nav-link" data-tab="reports"><i class="fas fa-file-invoice"></i> <span>Reports</span></a></li>
-                    <li id="userManagementLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;userManagement&#39;, this)" class="nav-link" data-tab="userManagement"><i class="fas fa-user-shield"></i> <span>User Management</span></a></li>
+                    <li><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;dashboard&#39;, this)" class="nav-link active" data-tab="dashboard"><i class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+                    <li id="assignedWorkLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;assignedWork&#39;, this)" class="nav-link" data-tab="assignedWork"><i class="fas fa-tasks"></i> <span>Assigned Work</span></a></li>
+                    <li id="uploadLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;upload&#39;, this)" class="nav-link" data-tab="upload"><i class="fas fa-file-upload"></i> <span>File Upload</span></a></li>
+                    <li id="assignWorkLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;assignWork&#39;, this)" class="nav-link" data-tab="assignWork"><i class="fas fa-tasks"></i> <span>Assign Work</span></a></li>
+                    <li id="progressLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;progress&#39;, this)" class="nav-link" data-tab="progress"><i class="fas fa-chart-pie"></i> <span>Progress</span></a></li>
+                    <li id="reportsLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;reports&#39;, this)" class="nav-link" data-tab="reports"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+                    <li id="userManagementLi"><a href="file:///Users/divsesh/Desktop/Nexus-crm-project/index.html#" onclick="showTab(&#39;userManagement&#39;, this)" class="nav-link" data-tab="userManagement"><i class="fas fa-users-cog"></i> <span>User Management</span></a></li>
                 </ul>
                 <div class="user-section">
                     <span class="user-info" id="userNameDisplay">User</span>
