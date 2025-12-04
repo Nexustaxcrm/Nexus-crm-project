@@ -1368,7 +1368,7 @@ async function loadAdminDashboard() {
         const statsHtml = `
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('all')">
-                    <div class="stats-icon" style="background: #5e72e4;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); background-size: 200% 200%;">
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stats-number">${stats.totalCustomers || 0}</div>
@@ -1377,7 +1377,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('called')">
-                    <div class="stats-icon" style="background: #2dce89;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 50%, #00f260 100%); background-size: 200% 200%;">
                         <i class="fas fa-phone"></i>
                     </div>
                     <div class="stats-number">${stats.callStatusCounts?.called || 0}</div>
@@ -1386,7 +1386,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('voice_mail')">
-                    <div class="stats-icon" style="background: #fb6340;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 50%, #f5576c 100%); background-size: 200% 200%;">
                         <i class="fas fa-voicemail"></i>
                     </div>
                     <div class="stats-number">${stats.callStatusCounts?.voice_mail || 0}</div>
@@ -1395,7 +1395,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('w2_received')">
-                    <div class="stats-icon" style="background: #11cdef;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #00d4ff 100%); background-size: 200% 200%;">
                         <i class="fas fa-file-invoice"></i>
                     </div>
                     <div class="stats-number">${stats.w2Received || 0}</div>
@@ -1404,7 +1404,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('not_called')">
-                    <div class="stats-icon" style="background: #f5365c;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #ff8c00 100%); background-size: 200% 200%;">
                         <i class="fas fa-phone-slash"></i>
                     </div>
                     <div class="stats-number">${stats.callStatusCounts?.not_called || 0}</div>
@@ -1413,7 +1413,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="filterByStatus('interested')">
-                    <div class="stats-icon" style="background: #2dce89;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #ff0844 0%, #ffb199 50%, #ff6b6b 100%); background-size: 200% 200%;">
                         <i class="fas fa-heart"></i>
                     </div>
                     <div class="stats-number">${stats.interestedCount || stats.statusCounts?.interested || 0}</div>
@@ -1422,7 +1422,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="showNewLeadModal()">
-                    <div class="stats-icon" style="background: #2dce89;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 50%, #a8edea 100%); background-size: 200% 200%;">
                         <i class="fas fa-plus"></i>
                     </div>
                     <div class="stats-number">+</div>
@@ -1431,7 +1431,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="openArchiveView()">
-                    <div class="stats-icon" style="background: #6c757d;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #a8caba 0%, #5d4e75 50%, #8b7fa8 100%); background-size: 200% 200%;">
                         <i class="fas fa-archive"></i>
                     </div>
                     <div class="stats-number">${stats.archivedCount || 0}</div>
@@ -1440,7 +1440,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="showReferralsView()">
-                    <div class="stats-icon" style="background: #9b59b6;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); background-size: 200% 200%;">
                         <i class="fas fa-user-friends"></i>
                     </div>
                     <div class="stats-number">${referralStats.totalReferrals || 0}</div>
