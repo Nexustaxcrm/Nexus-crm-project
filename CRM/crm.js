@@ -7711,12 +7711,101 @@ function generateQuickReport(reportType) {
             exportMonthlySummaryReport();
             break;
         case 'employee':
-            exportEmployeePerformanceReport();
+            showEmployeePerformanceModal();
             break;
         case 'export':
             exportAllData();
             break;
     }
+}
+
+// Show Employee Performance Report Modal
+function showEmployeePerformanceModal() {
+    const modal = new bootstrap.Modal(document.getElementById('employeePerformanceModal'));
+    
+    // Load employee checkboxes
+    loadEmployeeCheckboxes();
+    
+    // Set default date range (last 30 days)
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    document.getElementById('employeeReportStartDate').value = startDate.toISOString().split('T')[0];
+    document.getElementById('employeeReportEndDate').value = endDate.toISOString().split('T')[0];
+    
+    modal.show();
+}
+
+// Load employee checkboxes in the modal
+function loadEmployeeCheckboxes() {
+    const checkboxList = document.getElementById('employeeCheckboxList');
+    if (!checkboxList) return;
+    
+    // Get all employees and preparation users
+    const assignableUsers = users.filter(u => 
+        (u.role === 'employee' || u.role === 'preparation') && !u.locked
+    );
+    
+    if (assignableUsers.length === 0) {
+        checkboxList.innerHTML = '<p class="text-muted">No employees available</p>';
+        return;
+    }
+    
+    checkboxList.innerHTML = assignableUsers.map(user => {
+        const roleBadge = user.role === 'preparation' ? '<span class="badge bg-info ms-2">Prep</span>' : '';
+        return `
+            <div class="form-check mb-2">
+                <input class="form-check-input employee-checkbox" type="checkbox" value="${user.username}" id="emp_${user.username}">
+                <label class="form-check-label" for="emp_${user.username}">
+                    <i class="fas fa-user"></i> ${user.username}${roleBadge}
+                </label>
+            </div>
+        `;
+    }).join('');
+}
+
+// Toggle all employees checkbox
+function toggleAllEmployees(checked) {
+    const checkboxes = document.querySelectorAll('.employee-checkbox');
+    checkboxes.forEach(cb => cb.checked = checked);
+}
+
+// Generate Employee Performance Report with filters
+function generateEmployeePerformanceReport() {
+    // Get selected employees
+    const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    if (selectedEmployees.length === 0) {
+        showNotification('error', 'Selection Required', 'Please select at least one employee.');
+        return;
+    }
+    
+    // Get date range
+    const startDate = document.getElementById('employeeReportStartDate').value;
+    const endDate = document.getElementById('employeeReportEndDate').value;
+    
+    if (!startDate || !endDate) {
+        showNotification('error', 'Date Range Required', 'Please select both start and end dates.');
+        return;
+    }
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); // Include entire end date
+    
+    if (start > end) {
+        showNotification('error', 'Invalid Date Range', 'Start date must be before end date.');
+        return;
+    }
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('employeePerformanceModal'));
+    if (modal) modal.hide();
+    
+    // Generate report with filters
+    exportEmployeePerformanceReport(selectedEmployees, start, end);
 }
 
 // Export Status Distribution Report
@@ -7786,17 +7875,48 @@ function exportMonthlySummaryReport() {
 }
 
 // Export Employee Performance Report
-function exportEmployeePerformanceReport() {
+function exportEmployeePerformanceReport(selectedEmployees = null, startDate = null, endDate = null) {
     showNotification('info', 'Employee Report', 'Generating employee performance report...');
+    
+    // Filter customers based on selected employees and date range
+    let filteredCustomers = [...customers];
+    
+    // Filter by selected employees
+    if (selectedEmployees && selectedEmployees.length > 0) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const assignedTo = c.assignedTo || '';
+            return selectedEmployees.includes(assignedTo);
+        });
+    }
+    
+    // Filter by date range (using created_at or createdDate field)
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
     
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "EMPLOYEE PERFORMANCE REPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    
+    // Add filter information to report
+    if (selectedEmployees && selectedEmployees.length > 0) {
+        csvContent += "Selected Employees: " + selectedEmployees.join(', ') + "\n";
+    }
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    csvContent += "\n";
     
     csvContent += "Employee,Total Assigned,Completed,In Progress,Pending,Completion Rate\n";
     
     const employeeStats = {};
-    customers.forEach(c => {
+    filteredCustomers.forEach(c => {
         const assignedTo = c.assignedTo || 'Unassigned';
         if (!employeeStats[assignedTo]) {
             employeeStats[assignedTo] = {
@@ -7817,13 +7937,28 @@ function exportEmployeePerformanceReport() {
         }
     });
     
-    Object.keys(employeeStats).sort().forEach(employee => {
+    // Only include selected employees in the report
+    const employeesToReport = selectedEmployees && selectedEmployees.length > 0 
+        ? selectedEmployees.filter(emp => employeeStats[emp])
+        : Object.keys(employeeStats).sort();
+    
+    employeesToReport.forEach(employee => {
         const stats = employeeStats[employee];
-        const completionRate = stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(2) : '0.00';
-        csvContent += `"${employee}",${stats.total},${stats.completed},${stats.inProgress},${stats.pending},${completionRate}%\n`;
+        if (stats) {
+            const completionRate = stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(2) : '0.00';
+            csvContent += `"${employee}",${stats.total},${stats.completed},${stats.inProgress},${stats.pending},${completionRate}%\n`;
+        }
     });
     
-    downloadCSVFile(csvContent, `Employee_Performance_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    // Generate filename with date range if applicable
+    let filename = `Employee_Performance_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    if (startDate && endDate) {
+        const startStr = startDate.toISOString().split('T')[0];
+        const endStr = endDate.toISOString().split('T')[0];
+        filename = `Employee_Performance_Report_${startStr}_to_${endStr}.csv`;
+    }
+    
+    downloadCSVFile(csvContent, filename);
     setTimeout(() => {
         showNotification('success', 'Report Ready', 'Employee performance report exported successfully!');
     }, 500);

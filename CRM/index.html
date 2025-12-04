@@ -7898,6 +7898,55 @@
         </div>
     </div>
 
+    <!-- Employee Performance Report Modal -->
+    <div class="modal fade" id="employeePerformanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-tie"></i> Employee Performance Report</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="employeePerformanceForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Employees <span class="text-muted">(Select one or more)</span></label>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto; background: var(--card-bg);">
+                                <div class="mb-2">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input" id="selectAllEmployees" onchange="toggleAllEmployees(this.checked)">
+                                        <strong>Select All Employees</strong>
+                                    </label>
+                                </div>
+                                <hr class="my-2">
+                                <div id="employeeCheckboxList"></div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Date Range</label>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="employeeReportStartDate" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="employeeReportEndDate" required>
+                                </div>
+                            </div>
+                            <small class="text-muted">Select the date range for worked cases by the selected employees.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="generateEmployeePerformanceReport()">
+                        <i class="fas fa-download"></i> Generate Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm Delete Modal -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
         <div class="modal-dialog">
