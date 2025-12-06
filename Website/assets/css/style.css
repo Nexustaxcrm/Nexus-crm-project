@@ -102,27 +102,33 @@ h6 {
 }
 
 h1 {
-  font-size: 62px;
+  font-size: clamp(32px, 5vw, 62px);
+  line-height: 1.2;
 }
 
 h2 {
-  font-size: 50px;
+  font-size: clamp(24px, 4vw, 50px);
+  line-height: 1.3;
 }
 
 h3 {
-  font-size: 36px;
+  font-size: clamp(20px, 3.5vw, 36px);
+  line-height: 1.3;
 }
 
 h4 {
-  font-size: 28px;
+  font-size: clamp(18px, 3vw, 28px);
+  line-height: 1.4;
 }
 
 h5 {
-  font-size: 24px;
+  font-size: clamp(16px, 2.5vw, 24px);
+  line-height: 1.4;
 }
 
 h6 {
-  font-size: 20px;
+  font-size: clamp(14px, 2vw, 20px);
+  line-height: 1.5;
 }
 
 p {
@@ -2834,12 +2840,14 @@ kbd {
     position: relative;
   }
   .ak-main_header .container-fluid {
-    padding-right: 0;
-    padding-left: 40px;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
   }
   .ak-main_header .container {
-    padding-right: 0;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
   }
+}
   .ak-main_header_center,
   .ak-top_header_center {
     position: absolute;
@@ -7992,25 +8000,153 @@ kbd {
   }
 }
 
-/* Container Padding Mobile */
+/* Full Width - Remove Container Padding for All Screen Sizes */
+.container,
+.container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Inner content padding for readability - Applied to direct children */
+.container > .row,
+.container-fluid > .row,
+.container > section,
+.container-fluid > section {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Content areas within containers */
+.blog-content-page {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.ak-section-heading,
+.ak-feature-content,
+.service-content,
+.about-content {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Ensure sections use full width */
+section {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Remove padding from specific sections that should be truly full-width */
+.ak-top-bar .container,
+.ak-main_header .container,
+.ak-main_header .container-fluid,
+.ak-site_header .container,
+.ak-site_header .container-fluid,
+section .container,
+section .container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Add padding to inner content areas for readability */
+.ak-top-bar-in,
+.ak-main_header_in,
+.ak-top_header_in {
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+/* Footer containers should also be full-width */
+.ak-footer .container,
+.ak-footer .container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Footer content padding */
+.footer-content,
+.ak-footer-container > .container > * {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
 @media screen and (max-width: 991px) {
-  .container,
-  .container-fluid {
+  .ak-top-bar-in,
+  .ak-main_header_in,
+  .ak-top_header_in {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  .footer-content,
+  .ak-footer-container > .container > * {
     padding-left: 15px;
     padding-right: 15px;
   }
 }
 
 @media screen and (max-width: 767px) {
-  .container,
-  .container-fluid {
+  .ak-top-bar-in,
+  .ak-main_header_in,
+  .ak-top_header_in {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  .footer-content,
+  .ak-footer-container > .container > * {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Container Padding Mobile - Minimal padding for content readability */
+@media screen and (max-width: 991px) {
+  .container > .row,
+  .container-fluid > .row,
+  .container > section,
+  .container-fluid > section,
+  .blog-content-page,
+  .ak-section-heading,
+  .ak-feature-content,
+  .service-content,
+  .about-content {
     padding-left: 12px;
     padding-right: 12px;
   }
   
+  .post-blog-wrapper {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .container > .row,
+  .container-fluid > .row,
+  .container > section,
+  .container-fluid > section,
+  .blog-content-page,
+  .ak-section-heading,
+  .ak-feature-content,
+  .service-content,
+  .about-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
+  .post-blog-wrapper {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  
   section {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 }
 
@@ -8232,6 +8368,14 @@ kbd {
   .container,
   .container-fluid {
     overflow-x: hidden;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Minimal padding for mobile content */
+  .ak-main_header_in {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 
@@ -8426,6 +8570,264 @@ kbd {
   }
 }
 
+/* ============================================
+   COMPREHENSIVE RESPONSIVE DESIGN FOR ALL PAGES
+   ============================================ */
+
+/* Base Responsive Typography - Fluid Sizing */
+html {
+  font-size: clamp(14px, 1.5vw, 16px);
+}
+
+body {
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1.6;
+}
+
+/* Responsive Headings - Override base styles for fluid sizing */
+
+/* Responsive Images - Always Scale */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Responsive Videos and Media */
+video,
+iframe,
+embed,
+object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive SVG */
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive Buttons */
+.common-btn,
+.top-bar-btn,
+.btn {
+  font-size: clamp(12px, 1.5vw, 16px) !important;
+  padding: clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 28px) !important;
+  white-space: nowrap;
+}
+
+/* Responsive Containers - Full Width with Content Padding */
+.container,
+.container-fluid {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Responsive Sections */
+section {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+/* Responsive Grid System */
+.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+[class*="col-"] {
+  padding-left: clamp(10px, 2vw, 15px);
+  padding-right: clamp(10px, 2vw, 15px);
+  box-sizing: border-box;
+}
+
+/* Ensure columns stack on mobile */
+@media screen and (max-width: 991px) {
+  [class*="col-lg-"],
+  [class*="col-xl-"],
+  [class*="col-xxl-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  [class*="col-md-"],
+  [class*="col-sm-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+/* Responsive Tables */
+table {
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table thead,
+table tbody,
+table tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Responsive Forms */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  max-width: 100%;
+  font-size: clamp(14px, 2vw, 16px);
+  padding: clamp(10px, 2vw, 12px);
+  box-sizing: border-box;
+}
+
+/* Responsive Cards */
+.card,
+.blog-card,
+.feature-card {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   BREAKPOINT-SPECIFIC ADJUSTMENTS
+   ============================================ */
+
+/* Medium Screens (992px - 1199px) */
+@media screen and (min-width: 992px) and (max-width: 1199px) {
+  [class*="col-md-"] {
+    flex: 0 0 auto;
+  }
+}
+
+/* Small Screens (768px - 991px) */
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  [class*="col-sm-"],
+  [class*="col-md-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  /* Stack columns vertically */
+  .row > [class*="col-"] {
+    margin-bottom: 20px;
+  }
+}
+
+/* Extra Small Screens (576px - 767px) */
+@media screen and (min-width: 576px) and (max-width: 767px) {
+  /* All columns stack */
+  [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 15px;
+  }
+}
+
+/* Mobile Screens (up to 575px) */
+@media screen and (max-width: 575px) {
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  /* All columns stack */
+  [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 15px;
+  }
+  
+  /* Reduce spacing */
+  .ak-height-125 {
+    height: 40px !important;
+  }
+  
+  .ak-height-100 {
+    height: 30px !important;
+  }
+  
+  .ak-height-80 {
+    height: 20px !important;
+  }
+  
+  .ak-height-50 {
+    height: 15px !important;
+  }
+}
+
+/* Very Small Screens (up to 360px) */
+@media screen and (max-width: 360px) {
+  html {
+    font-size: 14px;
+  }
+  
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 28px !important;
+  }
+  
+  h2 {
+    font-size: 22px !important;
+  }
+  
+  h3 {
+    font-size: 18px !important;
+  }
+  
+  [class*="col-"] {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* Landscape Orientation Adjustments */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .ak-height-125 {
+    height: 30px !important;
+  }
+  
+  .ak-height-100 {
+    height: 20px !important;
+  }
+  
+  section {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+}
+
 /* Ensure all containers respect viewport */
 @media screen and (max-width: 767px) {
   .container-md {
@@ -8434,14 +8836,145 @@ kbd {
   }
   
   .container-fluid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Ensure inner content has padding */
+  .container-md > *,
+  .container-fluid > * {
     padding-left: 12px;
     padding-right: 12px;
   }
 }
 
+/* Additional Responsive Utilities */
+
+/* Flexible Spacing */
+.spacing-responsive {
+  padding: clamp(20px, 4vw, 40px);
+  margin: clamp(15px, 3vw, 30px);
+}
+
+/* Responsive Text Alignment */
+@media screen and (max-width: 767px) {
+  .text-center-mobile {
+    text-align: center !important;
+  }
+  
+  .text-left-mobile {
+    text-align: left !important;
+  }
+}
+
+/* Responsive Display Utilities */
+@media screen and (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .show-mobile {
+    display: block !important;
+  }
+  
+  .show-mobile-flex {
+    display: flex !important;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .hide-desktop {
+    display: none !important;
+  }
+  
+  .show-desktop {
+    display: block !important;
+  }
+  
+  .show-desktop-flex {
+    display: flex !important;
+  }
+}
+
+/* Responsive Flexbox */
+@media screen and (max-width: 767px) {
+  .flex-mobile-column {
+    flex-direction: column !important;
+  }
+  
+  .flex-mobile-wrap {
+    flex-wrap: wrap !important;
+  }
+  
+  .justify-mobile-center {
+    justify-content: center !important;
+  }
+  
+  .align-mobile-center {
+    align-items: center !important;
+  }
+}
+
+/* Responsive Width Utilities */
+@media screen and (max-width: 767px) {
+  .w-mobile-100 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .w-mobile-50 {
+    width: 50% !important;
+    max-width: 50% !important;
+  }
+}
+
 /* Ensure viewport width is respected */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+/* Prevent horizontal overflow */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Ensure all elements respect container bounds */
+* {
+  max-width: 100%;
+}
+
+/* Exceptions for specific elements that need to overflow */
+img,
+video,
+iframe,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive Text Wrapping */
+p,
+span,
+div,
+a,
+li,
+td,
+th {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Prevent text overflow */
+h1, h2, h3, h4, h5, h6 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 /* Fix for iOS Safari viewport issues */
