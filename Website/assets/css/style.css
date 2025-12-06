@@ -3125,6 +3125,37 @@ kbd {
   }
   .ak-site_header.ak-style1 .ak-nav {
     display: flex;
+    position: relative;
+  }
+  
+  /* Completely hide navigation list in header center on mobile */
+  .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* Only show navigation items when menu is active (full-screen menu) */
+  .ak-nav .ak-nav_list.active,
+  .ak-nav .ak-nav_list.show {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+  
+  .ak-nav .ak-nav_list.active > li,
+  .ak-nav .ak-nav_list.show > li {
+    display: block !important;
   }
   .ak-site_header_full_width .container {
     padding: 0 15px;
@@ -3166,6 +3197,7 @@ kbd {
     width: 10px;
     transform: translate(-50%, -50%) rotate(0deg);
   }
+  /* Hide navigation list by default on mobile */
   .ak-nav .ak-nav_list {
     position: fixed !important;
     top: 0 !important;
@@ -3173,7 +3205,7 @@ kbd {
     width: 100vw !important;
     height: 100vh !important;
     padding: 100px 0 40px 0;
-    display: none;
+    display: none !important;
     overflow-y: auto;
     overflow-x: hidden;
     line-height: 1.6em;
@@ -3188,9 +3220,15 @@ kbd {
     transform: none !important;
     isolation: isolate !important;
     will-change: transform !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease, visibility 0.3s ease !important;
   }
   .ak-nav .ak-nav_list.active,
   .ak-nav .ak-nav_list.show {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     display: flex !important;
     flex-direction: column !important;
     visibility: visible !important;
@@ -3425,16 +3463,20 @@ kbd {
   .ak-nav .menu-item-has-children > ul > li > a:hover::before {
     transform: translateX(5px);
   }
-  /*Mobile Menu Button*/
+  /*Mobile Menu Button - Always visible on mobile */
   .ak-munu_toggle {
-    display: inline-block;
-    width: 30px;
-    height: 27px;
-    cursor: pointer;
-    position: absolute;
-    top: 27px;
-    right: 30px;
+    display: inline-block !important;
+    width: 30px !important;
+    height: 27px !important;
+    cursor: pointer !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
     z-index: 100000000 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
   }
   .ak-munu_toggle span,
   .ak-munu_toggle span:before,
@@ -3508,14 +3550,54 @@ kbd {
     min-width: 0;
     overflow: hidden;
   }
+  
+  /* Hide navigation list items in header center on mobile - they should only appear in full-screen menu */
+  .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+  
+  /* Show hamburger menu button */
+  .ak-site_header.ak-style1 .ak-main-header-right {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    margin: 0 !important;
+  }
   .ak-site_header.ak-style1 .ak-main-header-right {
     flex: 0 0 auto;
     min-width: 180px;
   }
   .ak-nav .ak-nav_list li a {
-    padding: 0 15px;
-    font-size: 17px;
+    padding: 20px 30px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: left !important;
   }
+  
+  /* Ensure navigation items are properly styled in mobile menu */
+  .ak-nav .ak-nav_list li {
+    display: block !important;
+    width: 100% !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    background-color: #ffffff !important;
+  }
+  
   .ak-site_header .current-menu-item > a:before {
     display: none;
   }
