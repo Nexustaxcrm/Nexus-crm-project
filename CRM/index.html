@@ -343,6 +343,132 @@
             margin-bottom: 6px;
             font-size: clamp(22px, 2.4vw, 26px);
             width: auto;
+            transition: all 0.3s ease;
+        }
+        
+        /* Individual icon colors for navbar */
+        .navbar .nav-menu li:nth-child(1) a i {
+            color: #667eea; /* Dashboard - Purple */
+        }
+        .navbar .nav-menu li:nth-child(2) a i {
+            color: #00c9ff; /* Assigned Work - Cyan */
+        }
+        .navbar .nav-menu li:nth-child(3) a i {
+            color: #4facfe; /* File Upload - Blue */
+        }
+        .navbar .nav-menu li:nth-child(4) a i {
+            color: #fa709a; /* Assign Work - Pink */
+        }
+        .navbar .nav-menu li:nth-child(5) a i {
+            color: #ff6b6b; /* Progress - Red */
+        }
+        .navbar .nav-menu li:nth-child(6) a i {
+            color: #ff0844; /* Reports - Dark Red */
+        }
+        .navbar .nav-menu li:nth-child(7) a i {
+            color: #667eea; /* User Management - Purple */
+        }
+        
+        /* Hover effects with gradient backgrounds */
+        .navbar .nav-menu li:nth-child(1) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(2) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 201, 255, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(3) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(4) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(250, 112, 154, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(5) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(6) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(255, 8, 68, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(7) a:hover i {
+            color: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Active state with colors */
+        .navbar .nav-menu li:nth-child(1) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(2) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 201, 255, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(3) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(4) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(250, 112, 154, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(5) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(6) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(255, 8, 68, 0.4);
+        }
+        .navbar .nav-menu li:nth-child(7) a.active i {
+            color: #fff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .navbar .nav-menu a span {
