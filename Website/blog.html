@@ -14,6 +14,55 @@
     <link rel="stylesheet" href="assets/css/plugins/swiper.min.css" />
     <link rel="stylesheet" href="assets/css/plugins/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+      /* Post Blog Button Styling */
+      #postBlogButtonContainer {
+        display: flex;
+        align-items: center;
+      }
+      
+      #postBlogButtonContainer button {
+        white-space: nowrap;
+      }
+      
+      /* Mobile Responsive */
+      @media (max-width: 991px) {
+        #postBlogButtonContainer {
+          margin-right: 10px !important;
+        }
+        
+        #postBlogButtonContainer button {
+          padding: 8px 15px !important;
+          font-size: 12px !important;
+        }
+        
+        #postBlogButtonContainer button i {
+          margin-right: 4px;
+        }
+      }
+      
+      @media (max-width: 768px) {
+        #postBlogButtonContainer {
+          margin-right: 5px !important;
+        }
+        
+        #postBlogButtonContainer button {
+          padding: 6px 12px !important;
+          font-size: 11px !important;
+        }
+        
+        #postBlogButtonContainer button span,
+        #postBlogButtonContainer button .fas {
+          display: none;
+        }
+        
+        #postBlogButtonContainer button::before {
+          content: "+";
+          font-size: 16px;
+          font-weight: bold;
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -151,6 +200,12 @@
               </div>
             </div>
             <div class="ak-main-header-right">
+              <!-- Post Blog Button (Admin Only) -->
+              <div id="postBlogButtonContainer" style="display: none; margin-right: 15px;">
+                <button class="btn btn-primary" onclick="showAdminAuthModal()" style="background-color: #063232; border-color: #063232; padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 6px;">
+                  <i class="fas fa-plus"></i> Post Blog
+                </button>
+              </div>
               <div class="ak-munu_toggle">
                 <span></span>
                 <span></span>
@@ -178,10 +233,9 @@
           >
             <p class="ak-section-subtitle animation-title">Blog</p>
             <h2 class="ak-section-title animation-title">
-              Content Management System (CMS)
+              Our Latest Articles
             </h2>
           </div>
-          <p class="back-btn"><a href="/">Home</a> / Blog</p>
         </div>
 
       </div>
@@ -192,28 +246,11 @@
     <div class="ak-height-125 ak-height-lg-80"></div>
     <section class="container">
       <div class="blog-content-page">
-        <!-- Post Blog Button (Admin Only) -->
-        <div class="text-end mb-4" id="postBlogButtonContainer" style="display: none;">
-          <button class="btn btn-primary" onclick="showAdminAuthModal()" style="background-color: #063232; border-color: #063232; padding: 12px 30px; font-size: 16px; font-weight: 600;">
-            <i class="fas fa-plus"></i> Post Blog
-          </button>
-        </div>
-        
         <div class="row">
-          <div class="col-lg-8" id="blogPostsContainer">
+          <div class="col-lg-12" id="blogPostsContainer">
             <!-- Blog posts will be loaded dynamically here -->
             <div class="text-center py-5">
               <p class="text-muted">Loading blog posts...</p>
-            </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="blog-sidebar">
-              <div class="sidebar-section">
-                <h5 class="title">Recent Posts</h5>
-                <ul id="recentPostsList">
-                  <!-- Recent posts will be loaded dynamically here -->
-                </ul>
-              </div>
             </div>
           </div>
         </div>
@@ -749,7 +786,6 @@
 
           if (response.ok && data.posts) {
             displayBlogPosts(data.posts);
-            updateRecentPosts(data.posts);
           } else {
             document.getElementById('blogPostsContainer').innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
           }
@@ -811,20 +847,6 @@
         }).join('');
       }
 
-      // Update recent posts sidebar
-      function updateRecentPosts(posts) {
-        const recentList = document.getElementById('recentPostsList');
-        const recentPosts = posts.slice(0, 5);
-        
-        if (recentPosts.length === 0) {
-          recentList.innerHTML = '<li><span class="text-muted">No recent posts</span></li>';
-          return;
-        }
-
-        recentList.innerHTML = recentPosts.map(post => {
-          return `<li><a href="#" onclick="viewBlogPost(${post.id}); return false;">${escapeHtml(post.title)}</a></li>`;
-        }).join('');
-      }
 
       // View blog post detail
       async function viewBlogPost(postId) {
