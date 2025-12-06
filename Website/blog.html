@@ -15,51 +15,45 @@
     <link rel="stylesheet" href="assets/css/plugins/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <style>
-      /* Post Blog Button Styling */
+      /* Post Blog Button Styling - Below Navbar, Left Side */
       #postBlogButtonContainer {
         display: flex;
         align-items: center;
+        justify-content: flex-start;
       }
       
       #postBlogButtonContainer button {
         white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(6, 50, 50, 0.2);
+        transition: all 0.3s ease;
+      }
+      
+      #postBlogButtonContainer button:hover {
+        background-color: #052525 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 50, 50, 0.3);
       }
       
       /* Mobile Responsive */
       @media (max-width: 991px) {
         #postBlogButtonContainer {
-          margin-right: 10px !important;
+          margin-top: 10px;
         }
         
         #postBlogButtonContainer button {
-          padding: 8px 15px !important;
-          font-size: 12px !important;
-        }
-        
-        #postBlogButtonContainer button i {
-          margin-right: 4px;
+          padding: 10px 20px !important;
+          font-size: 14px !important;
         }
       }
       
       @media (max-width: 768px) {
         #postBlogButtonContainer {
-          margin-right: 5px !important;
+          margin-top: 10px;
         }
         
         #postBlogButtonContainer button {
-          padding: 6px 12px !important;
-          font-size: 11px !important;
-        }
-        
-        #postBlogButtonContainer button span,
-        #postBlogButtonContainer button .fas {
-          display: none;
-        }
-        
-        #postBlogButtonContainer button::before {
-          content: "+";
-          font-size: 16px;
-          font-weight: bold;
+          padding: 10px 18px !important;
+          font-size: 13px !important;
         }
       }
     </style>
@@ -200,12 +194,6 @@
               </div>
             </div>
             <div class="ak-main-header-right">
-              <!-- Post Blog Button (Admin Only) -->
-              <div id="postBlogButtonContainer" style="display: none; margin-right: 15px;">
-                <button class="btn btn-primary" onclick="showAdminAuthModal()" style="background-color: #063232; border-color: #063232; padding: 10px 20px; font-size: 14px; font-weight: 600; border-radius: 6px;">
-                  <i class="fas fa-plus"></i> Post Blog
-                </button>
-              </div>
               <div class="ak-munu_toggle">
                 <span></span>
                 <span></span>
@@ -218,6 +206,15 @@
       <div class="nav-bar-border"></div>
     </header>
     <!-- End Header Section -->
+
+    <!-- Post Blog Button (Admin Only) - Below Navbar, Left Side -->
+    <div class="container" style="margin-top: 20px;">
+      <div id="postBlogButtonContainer" style="display: none;">
+        <button class="btn btn-primary" onclick="showAdminAuthModal()" style="background-color: #063232; border-color: #063232; padding: 12px 25px; font-size: 15px; font-weight: 600; border-radius: 8px;">
+          <i class="fas fa-plus"></i> Post Blog
+        </button>
+      </div>
+    </div>
 
     <!-- Start Hero -->
     <section class="common-page-hero">
