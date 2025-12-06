@@ -15,12 +15,21 @@
     <link rel="stylesheet" href="assets/css/plugins/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <style>
-      /* Post Blog Button Styling - Below Navbar, Right Side */
+      /* Post Blog Button and Page Title - Below Navbar */
       .post-blog-wrapper {
         position: relative;
         z-index: 10;
         padding-top: 100px;
         margin-top: 0;
+        padding-bottom: 20px;
+      }
+      
+      .blog-page-title {
+        font-size: 22px !important;
+        font-weight: 600;
+        color: #063232;
+        margin: 0;
+        line-height: 1.2;
       }
       
       #postBlogButtonContainer {
@@ -29,6 +38,24 @@
         justify-content: flex-end;
         position: relative;
         z-index: 10;
+      }
+      
+      /* Mobile Responsive for Title and Button */
+      @media (max-width: 768px) {
+        .post-blog-wrapper .row > div {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+        }
+        
+        .blog-page-title {
+          font-size: 24px !important;
+        }
+        
+        #postBlogButtonContainer {
+          margin-left: 0 !important;
+        }
       }
       
       #postBlogButtonContainer button {
@@ -234,37 +261,27 @@
     </header>
     <!-- End Header Section -->
 
-    <!-- Post Blog Button (Admin Only) - Below Navbar, Right Side -->
+    <!-- Post Blog Button and Page Title - Below Navbar -->
     <div class="container post-blog-wrapper">
-      <div id="postBlogButtonContainer" style="display: flex;">
-        <button class="btn btn-primary" onclick="showAdminAuthModal()">
-          <i class="fas fa-plus"></i> Post Blog
-        </button>
-      </div>
-    </div>
-
-    <!-- Start Hero -->
-    <section class="common-page-hero">
-      <img
-        src="assets/img/bg/common-bg.png"
-        class="common-hero-bg ak-bg"
-        alt="..."
-      />
-      <div class="common-hero-content">
-        <div class="common-hero-info">
-          <div
-            class="ak-section-heading ak-style-1 animation-title-content animation-style3"
-          >
-            <p class="ak-section-subtitle animation-title">Blog</p>
-            <h2 class="ak-section-title animation-title">
-              Our Latest Articles
-            </h2>
+      <div class="row align-items-center">
+        <div class="col-12">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <!-- Page Title - Centered -->
+            <div style="flex: 1; text-align: center;">
+              <h2 class="blog-page-title">
+                Our Latest Articles
+              </h2>
+            </div>
+            <!-- Post Blog Button - Right Side -->
+            <div id="postBlogButtonContainer" style="display: flex; margin-left: auto;">
+              <button class="btn btn-primary" onclick="showAdminAuthModal()">
+                <i class="fas fa-plus"></i> Post Blog
+              </button>
+            </div>
           </div>
         </div>
-
       </div>
-    </section>
-    <!-- End Hero -->
+    </div>
 
     <!-- Start Feature -->
     <div class="ak-height-125 ak-height-lg-80"></div>
