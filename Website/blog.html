@@ -758,6 +758,17 @@
         }
       }
 
+      // Get blog image URL (handles both S3 and local storage)
+      function getBlogImageUrl(imagePath) {
+        if (!imagePath) return 'assets/img/bg/common-bg.png';
+        
+        // Encode the path for URL
+        const encodedPath = encodeURIComponent(imagePath);
+        
+        // Use the unified image endpoint
+        return `${API_BASE_URL}/api/blog/image?path=${encodedPath}`;
+      }
+
       // Display blog posts
       function displayBlogPosts(posts) {
         const container = document.getElementById('blogPostsContainer');
@@ -770,7 +781,7 @@
         container.innerHTML = posts.map(post => {
           const date = new Date(post.created_at);
           const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-          const imageUrl = post.featured_image ? `${API_BASE_URL}${post.featured_image}` : 'assets/img/bg/common-bg.png';
+          const imageUrl = getBlogImageUrl(post.featured_image);
           
           return `
             <article class="blog-card style-2 mb-4">
@@ -825,12 +836,12 @@
             const post = data.post;
             const date = new Date(post.created_at);
             const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            const imageUrl = post.featured_image ? `${API_BASE_URL}${post.featured_image}` : '';
+            const imageUrl = post.featured_image ? getBlogImageUrl(post.featured_image) : '';
             
             document.getElementById('blogPostDetailModalLabel').textContent = post.title;
             
             let content = '';
-            if (imageUrl) {
+            if (imageUrl && imageUrl !== 'assets/img/bg/common-bg.png') {
               content += `<div class="mb-4"><img src="${imageUrl}" alt="${post.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;"></div>`;
             }
             content += `<div class="blog-meta mb-3"><span>${formattedDate}</span>${post.created_by ? `<span> • </span><span>By ${post.created_by}</span>` : ''}</div>`;
