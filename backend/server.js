@@ -482,6 +482,44 @@ async function createCustomerTaxInfoTableMigration(pool) {
     }
 }
 
+// Migration function to create blog_posts table
+async function createBlogPostsTableMigration(pool) {
+    try {
+        const tableCheck = await pool.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='blog_posts'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('🔄 Creating blog_posts table...');
+            await pool.query(`
+                CREATE TABLE blog_posts (
+                    id SERIAL PRIMARY KEY,
+                    title VARCHAR(500) NOT NULL,
+                    short_description TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    featured_image VARCHAR(500),
+                    created_by VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            
+            // Create indexes
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_blog_posts_created_at ON blog_posts(created_at DESC)');
+            await pool.query('CREATE INDEX IF NOT EXISTS idx_blog_posts_created_by ON blog_posts(created_by)');
+            
+            console.log('✅ blog_posts table created successfully');
+        } else {
+            console.log('✅ blog_posts table already exists');
+        }
+    } catch (error) {
+        console.error('❌ Error creating blog_posts table:', error.message);
+        throw error;
+    }
+}
+
 // Migration function to create referrals table
 async function createReferralsTableMigration(pool) {
     try {
@@ -698,6 +736,14 @@ async function initializeDatabase() {
             // Continue - migration failure won't prevent server startup
         }
         
+        // Run migration to create blog_posts table
+        try {
+            await createBlogPostsTableMigration(pool);
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
         // Run migration to add personal information columns (including marital_status)
         try {
             const personalInfoColumns = [
@@ -839,6 +885,7 @@ const customerRoutes = require('./routes/customers');
 const userRoutes = require('./routes/users');
 const contactRoutes = require('./routes/contact');
 const referralRoutes = require('./routes/referrals');
+const blogRoutes = require('./routes/blog');
 
 // Initialize routes with app (so they can access the pool)
 if (authRoutes.init) authRoutes.init(app);
@@ -846,6 +893,7 @@ if (customerRoutes.init) customerRoutes.init(app);
 if (userRoutes.init) userRoutes.init(app);
 if (contactRoutes.init) contactRoutes.init(app);
 if (referralRoutes.init) referralRoutes.init(app);
+if (blogRoutes.init) blogRoutes.init(app);
 
 // Use API routes (must come before static file serving)
 // Add logging middleware to track API requests
@@ -936,6 +984,7 @@ app.use('/api/customers', csrfProtection, customerRoutes);
 app.use('/api/users', csrfProtection, userRoutes);
 app.use('/api/contact', csrfProtection, contactRoutes);
 app.use('/api/referrals', csrfProtection, referralRoutes);
+app.use('/api/blog', blogRoutes); // Blog routes handle their own auth
 
 // Log registered routes for debugging
 console.log('✅ API routes registered:');
@@ -993,6 +1042,15 @@ app.use(express.static(websitePath, {
 app.use('/crm', express.static(crmPath, {
     fallthrough: true
 }));
+
+// Serve blog uploads
+const blogUploadsPath = path.join(__dirname, 'blog_uploads');
+if (fs.existsSync(blogUploadsPath)) {
+    app.use('/blog_uploads', express.static(blogUploadsPath));
+    console.log('✅ Blog uploads directory served at /blog_uploads');
+} else {
+    console.log('⚠️ Blog uploads directory does not exist yet');
+}
 
 // Serve website index.html for root path
 app.get('/', (req, res) => {

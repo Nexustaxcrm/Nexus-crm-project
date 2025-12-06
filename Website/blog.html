@@ -192,33 +192,26 @@
     <div class="ak-height-125 ak-height-lg-80"></div>
     <section class="container">
       <div class="blog-content-page">
+        <!-- Post Blog Button (Admin Only) -->
+        <div class="text-end mb-4" id="postBlogButtonContainer" style="display: none;">
+          <button class="btn btn-primary" onclick="showAdminAuthModal()" style="background-color: #063232; border-color: #063232; padding: 12px 30px; font-size: 16px; font-weight: 600;">
+            <i class="fas fa-plus"></i> Post Blog
+          </button>
+        </div>
+        
         <div class="row">
-          <div class="col-lg-8">
-            <article class="blog-card style-2">
-              <div class="blog-card-info">
-                <div class="blog-meta-info">
-                  <div class="blog-meta">
-                    <span>Technology</span>
-                    <span>•</span>
-                    <span>January 2025</span>
-                  </div>
-                  <h2 class="blog-title">Content Management System (CMS)</h2>
-                  <div class="blog-content" style="margin-top: 30px; line-height: 1.8; color: #545454;">
-                    <p style="margin-bottom: 20px; font-size: 16px;">
-                      A CMS provides an interface for content creation, editing, and publishing. Instead of writing HTML for each blog post and deploying it, users can log into the CMS, write their content in a user-friendly editor (often with features similar to a word processor), add images, and then publish the post with a click. The CMS handles the underlying code generation and database management, making the process much more efficient.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="bottom-border"></div>
-            </article>
+          <div class="col-lg-8" id="blogPostsContainer">
+            <!-- Blog posts will be loaded dynamically here -->
+            <div class="text-center py-5">
+              <p class="text-muted">Loading blog posts...</p>
+            </div>
           </div>
           <div class="col-lg-4">
             <div class="blog-sidebar">
               <div class="sidebar-section">
                 <h5 class="title">Recent Posts</h5>
-                <ul>
-                  <li><a href="/blog">Content Management System (CMS)</a></li>
+                <ul id="recentPostsList">
+                  <!-- Recent posts will be loaded dynamically here -->
                 </ul>
               </div>
             </div>
@@ -453,6 +446,419 @@
     <script src="assets/js/plugins/scrolltoplugins.js"></script>
 
     <script src="assets/js/main.js"></script>
+    
+    <!-- Admin Authentication Modal -->
+    <div class="modal fade" id="adminAuthModal" tabindex="-1" aria-labelledby="adminAuthModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+          <div class="modal-header" style="border-bottom: 2px solid #f0f0f0; padding: 20px 30px;">
+            <h5 class="modal-title" id="adminAuthModalLabel" style="font-weight: 600; color: #063232;">
+              <i class="fas fa-lock"></i> Admin Authentication
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 30px;">
+            <form id="adminAuthForm">
+              <div class="mb-3">
+                <label for="adminUsername" class="form-label" style="font-weight: 600; color: #545454;">Username</label>
+                <input type="text" class="form-control" id="adminUsername" required style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+              </div>
+              <div class="mb-4">
+                <label for="adminPassword" class="form-label" style="font-weight: 600; color: #545454;">Password</label>
+                <input type="password" class="form-control" id="adminPassword" required style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+              </div>
+              <div id="adminAuthError" class="alert alert-danger" style="display: none; border-radius: 8px;"></div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary" style="background-color: #063232; border-color: #063232; padding: 12px; border-radius: 8px; font-weight: 600;">
+                  Authenticate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog Post Creation Modal -->
+    <div class="modal fade" id="blogPostModal" tabindex="-1" aria-labelledby="blogPostModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-height: 90vh;">
+          <div class="modal-header" style="border-bottom: 2px solid #f0f0f0; padding: 20px 30px;">
+            <h5 class="modal-title" id="blogPostModalLabel" style="font-weight: 600; color: #063232;">
+              <i class="fas fa-edit"></i> Create New Blog Post
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 30px;">
+            <form id="blogPostForm">
+              <div class="mb-4">
+                <label for="blogTitle" class="form-label" style="font-weight: 600; color: #545454;">Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="blogTitle" required placeholder="Enter blog post title" style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+              </div>
+              
+              <div class="mb-4">
+                <label for="blogShortDescription" class="form-label" style="font-weight: 600; color: #545454;">Short Description <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="blogShortDescription" rows="3" required placeholder="Enter a brief description (this will appear on the blog listing)" style="padding: 12px; border-radius: 8px; border: 1px solid #ddd; resize: vertical;"></textarea>
+              </div>
+              
+              <div class="mb-4">
+                <label for="blogFeaturedImage" class="form-label" style="font-weight: 600; color: #545454;">Featured Image</label>
+                <input type="file" class="form-control" id="blogFeaturedImage" accept="image/*" style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                <small class="text-muted">Recommended size: 1200x600px. Max file size: 10MB</small>
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                  <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="form-label" style="font-weight: 600; color: #545454;">Content <span class="text-danger">*</span></label>
+                <!-- Font Editing Toolbar -->
+                <div class="blog-editor-toolbar mb-2" style="border: 1px solid #ddd; border-radius: 8px 8px 0 0; padding: 10px; background: #f8f9fa; display: flex; gap: 5px; flex-wrap: wrap;">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('bold')" title="Bold">
+                    <i class="fas fa-bold"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('italic')" title="Italic">
+                    <i class="fas fa-italic"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('underline')" title="Underline">
+                    <i class="fas fa-underline"></i>
+                  </button>
+                  <div class="vr"></div>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('justifyLeft')" title="Align Left">
+                    <i class="fas fa-align-left"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('justifyCenter')" title="Align Center">
+                    <i class="fas fa-align-center"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="formatText('justifyRight')" title="Align Right">
+                    <i class="fas fa-align-right"></i>
+                  </button>
+                  <div class="vr"></div>
+                  <select class="form-select form-select-sm" style="width: auto;" onchange="formatText('fontSize', this.value)" title="Font Size">
+                    <option value="">Font Size</option>
+                    <option value="1">Small</option>
+                    <option value="3">Normal</option>
+                    <option value="5">Large</option>
+                    <option value="7">Extra Large</option>
+                  </select>
+                  <select class="form-select form-select-sm" style="width: auto;" onchange="formatText('foreColor', this.value)" title="Text Color">
+                    <option value="">Text Color</option>
+                    <option value="#000000">Black</option>
+                    <option value="#063232">Dark Green</option>
+                    <option value="#f9d67c">Yellow</option>
+                    <option value="#ff0000">Red</option>
+                    <option value="#0000ff">Blue</option>
+                  </select>
+                </div>
+                <!-- Rich Text Editor -->
+                <div id="blogContent" contenteditable="true" style="min-height: 400px; padding: 15px; border: 1px solid #ddd; border-radius: 0 0 8px 8px; background: #fff; overflow-y: auto;" placeholder="Enter your blog content here..."></div>
+                <input type="hidden" id="blogContentHidden" name="content">
+              </div>
+              
+              <div id="blogPostError" class="alert alert-danger" style="display: none; border-radius: 8px;"></div>
+              <div id="blogPostSuccess" class="alert alert-success" style="display: none; border-radius: 8px;"></div>
+            </form>
+          </div>
+          <div class="modal-footer" style="border-top: 2px solid #f0f0f0; padding: 20px 30px;">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; padding: 10px 20px;">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="submitBlogPost()" style="background-color: #063232; border-color: #063232; border-radius: 8px; padding: 10px 30px; font-weight: 600;">
+              <i class="fas fa-paper-plane"></i> Post Blog
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog Post Detail Modal -->
+    <div class="modal fade" id="blogPostDetailModal" tabindex="-1" aria-labelledby="blogPostDetailModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+          <div class="modal-header" style="border-bottom: 2px solid #f0f0f0; padding: 20px 30px;">
+            <h5 class="modal-title" id="blogPostDetailModalLabel" style="font-weight: 600; color: #063232;"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 30px;">
+            <div id="blogPostDetailContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog JavaScript -->
+    <script>
+      const API_BASE_URL = window.location.origin;
+      let adminToken = null;
+
+      // Load blog posts on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        loadBlogPosts();
+        checkAdminStatus();
+        
+        // Image preview
+        document.getElementById('blogFeaturedImage').addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              document.getElementById('previewImg').src = e.target.result;
+              document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+        
+        // Admin auth form
+        document.getElementById('adminAuthForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          await authenticateAdmin();
+        });
+      });
+
+      // Check if user is admin (for showing Post Blog button)
+      async function checkAdminStatus() {
+        // This is a simple check - in production, you might want to check session/localStorage
+        // For now, we'll show the button to everyone, but authentication is required
+        document.getElementById('postBlogButtonContainer').style.display = 'block';
+      }
+
+      // Show admin authentication modal
+      function showAdminAuthModal() {
+        const modal = new bootstrap.Modal(document.getElementById('adminAuthModal'));
+        modal.show();
+        document.getElementById('adminAuthError').style.display = 'none';
+        document.getElementById('adminUsername').value = '';
+        document.getElementById('adminPassword').value = '';
+      }
+
+      // Authenticate admin
+      async function authenticateAdmin() {
+        const username = document.getElementById('adminUsername').value;
+        const password = document.getElementById('adminPassword').value;
+        const errorDiv = document.getElementById('adminAuthError');
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/blog/admin-auth`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            adminToken = data.token;
+            // Close auth modal
+            const authModal = bootstrap.Modal.getInstance(document.getElementById('adminAuthModal'));
+            authModal.hide();
+            // Open blog post creation modal
+            const blogModal = new bootstrap.Modal(document.getElementById('blogPostModal'));
+            blogModal.show();
+            resetBlogForm();
+          } else {
+            errorDiv.textContent = data.error || 'Authentication failed';
+            errorDiv.style.display = 'block';
+          }
+        } catch (error) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.style.display = 'block';
+        }
+      }
+
+      // Format text in editor
+      function formatText(command, value = null) {
+        document.execCommand(command, false, value);
+        document.getElementById('blogContent').focus();
+      }
+
+      // Reset blog form
+      function resetBlogForm() {
+        document.getElementById('blogPostForm').reset();
+        document.getElementById('blogContent').innerHTML = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('blogPostError').style.display = 'none';
+        document.getElementById('blogPostSuccess').style.display = 'none';
+      }
+
+      // Submit blog post
+      async function submitBlogPost() {
+        const title = document.getElementById('blogTitle').value.trim();
+        const shortDescription = document.getElementById('blogShortDescription').value.trim();
+        const content = document.getElementById('blogContent').innerHTML;
+        const imageFile = document.getElementById('blogFeaturedImage').files[0];
+        const errorDiv = document.getElementById('blogPostError');
+        const successDiv = document.getElementById('blogPostSuccess');
+
+        if (!title || !shortDescription || !content) {
+          errorDiv.textContent = 'Please fill in all required fields';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        if (!adminToken) {
+          errorDiv.textContent = 'Please authenticate first';
+          errorDiv.style.display = 'block';
+          showAdminAuthModal();
+          return;
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append('title', title);
+          formData.append('shortDescription', shortDescription);
+          formData.append('content', content);
+          if (imageFile) {
+            formData.append('featuredImage', imageFile);
+          }
+
+          const response = await fetch(`${API_BASE_URL}/api/blog/posts`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            successDiv.textContent = 'Blog post created successfully!';
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+              const blogModal = bootstrap.Modal.getInstance(document.getElementById('blogPostModal'));
+              blogModal.hide();
+              resetBlogForm();
+              loadBlogPosts();
+            }, 1500);
+          } else {
+            errorDiv.textContent = data.error || 'Failed to create blog post';
+            errorDiv.style.display = 'block';
+          }
+        } catch (error) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.style.display = 'block';
+        }
+      }
+
+      // Load blog posts
+      async function loadBlogPosts() {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/blog/posts`);
+          const data = await response.json();
+
+          if (response.ok && data.posts) {
+            displayBlogPosts(data.posts);
+            updateRecentPosts(data.posts);
+          } else {
+            document.getElementById('blogPostsContainer').innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
+          }
+        } catch (error) {
+          document.getElementById('blogPostsContainer').innerHTML = '<div class="text-center py-5"><p class="text-danger">Error loading blog posts.</p></div>';
+        }
+      }
+
+      // Display blog posts
+      function displayBlogPosts(posts) {
+        const container = document.getElementById('blogPostsContainer');
+        
+        if (posts.length === 0) {
+          container.innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
+          return;
+        }
+
+        container.innerHTML = posts.map(post => {
+          const date = new Date(post.created_at);
+          const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          const imageUrl = post.featured_image ? `${API_BASE_URL}${post.featured_image}` : 'assets/img/bg/common-bg.png';
+          
+          return `
+            <article class="blog-card style-2 mb-4">
+              ${post.featured_image ? `
+                <div class="blog-img mb-3">
+                  <img src="${imageUrl}" alt="${post.title}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;">
+                </div>
+              ` : ''}
+              <div class="blog-card-info">
+                <div class="blog-meta-info">
+                  <div class="blog-meta mb-2">
+                    <span>${formattedDate}</span>
+                    ${post.created_by ? `<span>•</span><span>By ${post.created_by}</span>` : ''}
+                  </div>
+                  <h2 class="blog-title mb-3">${escapeHtml(post.title)}</h2>
+                  <p class="blog-short-description mb-3" style="color: #545454; line-height: 1.6;">
+                    ${escapeHtml(post.short_description)}
+                  </p>
+                  <a href="#" class="btn btn-primary" onclick="viewBlogPost(${post.id}); return false;" style="background-color: #063232; border-color: #063232; padding: 10px 25px; border-radius: 8px; font-weight: 600;">
+                    Click here to read the blog
+                  </a>
+                </div>
+              </div>
+              <div class="bottom-border"></div>
+            </article>
+          `;
+        }).join('');
+      }
+
+      // Update recent posts sidebar
+      function updateRecentPosts(posts) {
+        const recentList = document.getElementById('recentPostsList');
+        const recentPosts = posts.slice(0, 5);
+        
+        if (recentPosts.length === 0) {
+          recentList.innerHTML = '<li><span class="text-muted">No recent posts</span></li>';
+          return;
+        }
+
+        recentList.innerHTML = recentPosts.map(post => {
+          return `<li><a href="#" onclick="viewBlogPost(${post.id}); return false;">${escapeHtml(post.title)}</a></li>`;
+        }).join('');
+      }
+
+      // View blog post detail
+      async function viewBlogPost(postId) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`);
+          const data = await response.json();
+
+          if (response.ok && data.post) {
+            const post = data.post;
+            const date = new Date(post.created_at);
+            const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const imageUrl = post.featured_image ? `${API_BASE_URL}${post.featured_image}` : '';
+            
+            document.getElementById('blogPostDetailModalLabel').textContent = post.title;
+            
+            let content = '';
+            if (imageUrl) {
+              content += `<div class="mb-4"><img src="${imageUrl}" alt="${post.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;"></div>`;
+            }
+            content += `<div class="blog-meta mb-3"><span>${formattedDate}</span>${post.created_by ? `<span> • </span><span>By ${post.created_by}</span>` : ''}</div>`;
+            content += `<div class="blog-content" style="line-height: 1.8; color: #545454;">${post.content}</div>`;
+            
+            document.getElementById('blogPostDetailContent').innerHTML = content;
+            
+            const modal = new bootstrap.Modal(document.getElementById('blogPostDetailModal'));
+            modal.show();
+          } else {
+            alert('Blog post not found');
+          }
+        } catch (error) {
+          alert('Error loading blog post');
+        }
+      }
+
+      // Escape HTML to prevent XSS
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    </script>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
   <!-- Fixed WhatsApp Button -->
   <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer" class="whatsapp-float">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
