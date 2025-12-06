@@ -1440,7 +1440,7 @@ async function loadAdminDashboard() {
             </div>
             <div class="col-md-3">
                 <div class="stats-card" onclick="showReferralsView()">
-                    <div class="stats-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); background-size: 200% 200%;">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #ff8c42 100%); background-size: 200% 200%;">
                         <i class="fas fa-user-friends"></i>
                     </div>
                     <div class="stats-number">${referralStats.totalReferrals || 0}</div>
