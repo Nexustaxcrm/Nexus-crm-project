@@ -566,8 +566,51 @@
         // Get the link text for debugging
         var linkText = $link.text().trim();
         
-        // Create arrow icon with FORCED visibility - ADD IT AFTER THE TEXT
-        var $arrow = $('<span class="ak-munu_dropdown_toggle" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; margin-left: 8px !important; font-size: 14px !important; color: #063232 !important; transition: transform 0.3s ease !important; transform: rotate(0deg) !important; vertical-align: middle !important; line-height: 1 !important; font-weight: normal !important; position: relative !important; z-index: 10 !important;">▶</span>');
+        // Create attractive down arrow icon - ALWAYS POINTS DOWN - MATCHES WEBSITE DESIGN
+        var $arrow = $('<span class="ak-munu_dropdown_toggle">▼</span>');
+        
+        // Style the arrow to match website - attractive design
+        $arrow.css({
+          'display': 'inline-flex',
+          'align-items': 'center',
+          'justify-content': 'center',
+          'visibility': 'visible',
+          'opacity': '1',
+          'margin-left': '10px',
+          'font-size': '16px',
+          'color': '#f9d67c',
+          'background': 'rgba(249, 214, 124, 0.15)',
+          'width': '28px',
+          'height': '28px',
+          'border-radius': '50%',
+          'transition': 'all 0.3s ease',
+          'vertical-align': 'middle',
+          'line-height': '1',
+          'font-weight': 'bold',
+          'position': 'relative',
+          'z-index': '10',
+          'flex-shrink': '0'
+        });
+        
+        // Force with inline style
+        $arrow.attr('style', 'display: inline-flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; margin-left: 10px !important; font-size: 16px !important; color: #f9d67c !important; background: rgba(249, 214, 124, 0.15) !important; width: 28px !important; height: 28px !important; border-radius: 50% !important; transition: all 0.3s ease !important; vertical-align: middle !important; line-height: 1 !important; font-weight: bold !important; position: relative !important; z-index: 10 !important; flex-shrink: 0 !important;');
+        
+        // Add hover effect
+        $arrow.on('mouseenter', function() {
+          $(this).css({
+            'background': '#f9d67c',
+            'color': '#030917',
+            'transform': 'scale(1.1)'
+          });
+        });
+        
+        $arrow.on('mouseleave', function() {
+          $(this).css({
+            'background': 'rgba(249, 214, 124, 0.15)',
+            'color': '#f9d67c',
+            'transform': 'scale(1)'
+          });
+        });
         
         // If link has menu-link-text span, add arrow after it, otherwise append to link
         var $textSpan = $link.find('.menu-link-text');
@@ -577,7 +620,7 @@
           $link.append($arrow);
         }
         
-        console.log("✓ Arrow added to Services link:", linkText, "Arrow visible:", $arrow.is(':visible'), "Arrow display:", $arrow.css('display'));
+        console.log("✓ Attractive arrow added to Services link:", linkText);
       });
       
       // Make Services link toggle dropdown instead of navigating - BULLETPROOF VERSION
@@ -620,14 +663,17 @@
             });
             $submenu.attr('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; max-height: 0 !important; overflow: hidden !important;');
           });
+          // Arrow always points down - just change background color when active
           $toggle.css({
-            'transform': 'rotate(0deg)',
-            'display': 'inline-block',
+            'background': 'rgba(249, 214, 124, 0.15)',
+            'color': '#f9d67c',
+            'display': 'inline-flex',
             'visibility': 'visible',
-            'opacity': '1'
+            'opacity': '1',
+            'transform': 'scale(1)'
           });
-          $toggle.html('▶');
-          $toggle.attr('style', 'display: inline-block !important; visibility: visible !important; opacity: 1 !important; margin-left: 8px !important; font-size: 14px !important; color: #063232 !important; transition: transform 0.3s ease !important; transform: rotate(0deg) !important; vertical-align: middle !important; line-height: 1 !important; font-weight: normal !important;');
+          $toggle.html('▼');
+          $toggle.attr('style', 'display: inline-flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; margin-left: 10px !important; font-size: 16px !important; color: #f9d67c !important; background: rgba(249, 214, 124, 0.15) !important; width: 28px !important; height: 28px !important; border-radius: 50% !important; transition: all 0.3s ease !important; vertical-align: middle !important; line-height: 1 !important; font-weight: bold !important; position: relative !important; z-index: 10 !important; flex-shrink: 0 !important; transform: scale(1) !important;');
           $parent.removeClass('active');
         } else {
           // EXPAND
@@ -647,14 +693,17 @@
             });
             $submenu.attr('style', 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: 2000px !important; overflow: visible !important;');
           });
+          // Arrow always points down - change to active state (golden background)
           $toggle.css({
-            'transform': 'rotate(90deg)',
-            'display': 'inline-block',
+            'background': '#f9d67c',
+            'color': '#030917',
+            'display': 'inline-flex',
             'visibility': 'visible',
-            'opacity': '1'
+            'opacity': '1',
+            'transform': 'scale(1.05)'
           });
           $toggle.html('▼');
-          $toggle.attr('style', 'display: inline-block !important; visibility: visible !important; opacity: 1 !important; margin-left: 8px !important; font-size: 14px !important; color: #063232 !important; transition: transform 0.3s ease !important; transform: rotate(90deg) !important; vertical-align: middle !important; line-height: 1 !important; font-weight: normal !important;');
+          $toggle.attr('style', 'display: inline-flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; margin-left: 10px !important; font-size: 16px !important; color: #030917 !important; background: #f9d67c !important; width: 28px !important; height: 28px !important; border-radius: 50% !important; transition: all 0.3s ease !important; vertical-align: middle !important; line-height: 1 !important; font-weight: bold !important; position: relative !important; z-index: 10 !important; flex-shrink: 0 !important; transform: scale(1.05) !important;');
           $parent.addClass('active');
         }
         
