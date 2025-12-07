@@ -1875,6 +1875,67 @@ kbd {
 /*--------------------------------------------------------------
 8. Header
 ----------------------------------------------------------------*/
+
+/* CRITICAL FIX: Force hamburger button to be visible on mobile - MUST BE FIRST */
+@media screen and (max-width: 1199px) {
+  .ak-site_header .ak-main-header-right {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 999999 !important;
+  }
+  
+  .ak-site_header .ak-main-header-right .ak-munu_toggle {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    width: 30px !important;
+    height: 27px !important;
+    z-index: 999999 !important;
+    background: transparent !important;
+    cursor: pointer !important;
+  }
+  
+  .ak-site_header .ak-main-header-right .ak-munu_toggle span {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important;
+    position: relative !important;
+    top: 12px !important;
+    margin: 0 auto !important;
+  }
+  
+  .ak-site_header .ak-main-header-right .ak-munu_toggle span:before {
+    content: "" !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important;
+    margin-top: -9px !important;
+    left: 0 !important;
+  }
+  
+  .ak-site_header .ak-main-header-right .ak-munu_toggle span:after {
+    content: "" !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important;
+    margin-top: 9px !important;
+    left: 0 !important;
+  }
+}
 /* Top Bar Styles */
 .ak-top-bar {
   background-color: #030917;
@@ -9249,5 +9310,123 @@ h1, h2, h3, h4, h5, h6 {
   html {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+  }
+}
+/* ============================================
+   FINAL OVERRIDE: Hamburger Button MUST BE VISIBLE ON MOBILE
+   This rule is at the END to override ALL other rules
+   ============================================ */
+@media screen and (max-width: 1199px) {
+  /* Target ALL possible selectors to ensure visibility */
+  header.ak-site_header .ak-main-header-right,
+  header.ak-site_header.ak-style1 .ak-main-header-right,
+  header.ak-sticky_header .ak-main-header-right,
+  .ak-site_header .ak-main-header-right,
+  .ak-site_header.ak-style1 .ak-main-header-right,
+  .ak-sticky_header .ak-main-header-right,
+  div.ak-main-header-right {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 999999 !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    width: auto !important;
+    padding-right: 15px !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  /* Target ALL possible hamburger button selectors */
+  header.ak-site_header .ak-main-header-right .ak-munu_toggle,
+  header.ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle,
+  header.ak-sticky_header .ak-main-header-right .ak-munu_toggle,
+  .ak-site_header .ak-main-header-right .ak-munu_toggle,
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle,
+  .ak-sticky_header .ak-main-header-right .ak-munu_toggle,
+  div.ak-main-header-right .ak-munu_toggle,
+  .ak-munu_toggle {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    width: 30px !important;
+    height: 27px !important;
+    z-index: 999999 !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+  }
+  
+  /* Force hamburger lines to be visible with ALL selectors */
+  header.ak-site_header .ak-main-header-right .ak-munu_toggle span,
+  header.ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span,
+  header.ak-sticky_header .ak-main-header-right .ak-munu_toggle span,
+  .ak-site_header .ak-main-header-right .ak-munu_toggle span,
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span,
+  .ak-sticky_header .ak-main-header-right .ak-munu_toggle span,
+  div.ak-main-header-right .ak-munu_toggle span,
+  .ak-munu_toggle span {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important;
+    position: relative !important;
+    top: 12px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  header.ak-site_header .ak-main-header-right .ak-munu_toggle span:before,
+  header.ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span:before,
+  header.ak-sticky_header .ak-main-header-right .ak-munu_toggle span:before,
+  .ak-site_header .ak-main-header-right .ak-munu_toggle span:before,
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span:before,
+  .ak-sticky_header .ak-main-header-right .ak-munu_toggle span:before,
+  div.ak-main-header-right .ak-munu_toggle span:before,
+  .ak-munu_toggle span:before {
+    content: "" !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important;
+    margin-top: -9px !important;
+    left: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  header.ak-site_header .ak-main-header-right .ak-munu_toggle span:after,
+  header.ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span:after,
+  header.ak-sticky_header .ak-main-header-right .ak-munu_toggle span:after,
+  .ak-site_header .ak-main-header-right .ak-munu_toggle span:after,
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span:after,
+  .ak-sticky_header .ak-main-header-right .ak-munu_toggle span:after,
+  div.ak-main-header-right .ak-munu_toggle span:after,
+  .ak-munu_toggle span:after {
+    content: "" !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: absolute !important;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important;
+    margin-top: 9px !important;
+    left: 0 !important;
+    padding: 0 !important;
+    border: none !important;
   }
 }
