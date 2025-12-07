@@ -8000,8 +8000,8 @@ function exportEmployeePerformanceReport(selectedEmployees = null, startDate = n
     employeesToReport.forEach(employee => {
         const stats = employeeStats[employee];
         if (stats) {
-            const completionRate = stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(2) : '0.00';
-            csvContent += `"${employee}",${stats.total},${stats.completed},${stats.inProgress},${stats.pending},${completionRate}%\n`;
+        const completionRate = stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(2) : '0.00';
+        csvContent += `"${employee}",${stats.total},${stats.completed},${stats.inProgress},${stats.pending},${completionRate}%\n`;
         }
     });
     
@@ -8264,7 +8264,7 @@ function loadUserManagementTable(activeTab = 'company') {
             customersTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No customer logins found</td></tr>';
         } else {
             customersTbody.innerHTML = customerUsers.map(renderUserRow).join('');
-        }
+}
     }
     
     // Load Company Logins table
@@ -8578,8 +8578,8 @@ async function saveNewUser(event) {
         }
         
         const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
         };
         
         // Add CSRF token if available
@@ -8648,8 +8648,8 @@ async function toggleUserLock(username) {
         // Get CSRF token
         const csrfToken = getCSRFToken();
         const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
         };
         if (csrfToken) {
             headers['X-CSRF-Token'] = csrfToken;
@@ -8734,11 +8734,11 @@ async function confirmDeleteUser(username) {
         // Get CSRF token
         const csrfToken = getCSRFToken();
         const headers = {
-            'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`
         };
         if (csrfToken) {
             headers['X-CSRF-Token'] = csrfToken;
-        }
+            }
         
         const response = await fetch(API_BASE_URL + '/users/' + user.id, {
             method: 'DELETE',

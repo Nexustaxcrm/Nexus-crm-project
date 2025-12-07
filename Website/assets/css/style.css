@@ -5267,6 +5267,8 @@ kbd {
   position: relative;
   background: linear-gradient(135deg, #030917 0%, #1a2332 50%, #030917 100%);
   z-index: 10;
+  padding: clamp(20px, 3vw, 40px) clamp(15px, 2vw, 30px);
+  box-sizing: border-box;
 }
 .service-bg .ak-white-bg-service {
   position: absolute;
@@ -5281,12 +5283,16 @@ kbd {
   display: inline-flex;
   flex-direction: column;
   min-width: 0;
+  padding: clamp(10px, 1.5vw, 20px);
+  box-sizing: border-box;
 }
 .service-card .service-thumb {
   margin-bottom: 30px;
   display: inline-block;
   position: relative;
   overflow: hidden;
+  padding: clamp(5px, 1vw, 10px);
+  box-sizing: border-box;
 }
 .service-card .service-thumb img {
   width: 100%;
@@ -5319,6 +5325,8 @@ kbd {
   margin-top: 8px;
   margin-bottom: 25px;
   flex: 1 1 auto;
+  padding: 0 clamp(8px, 1.2vw, 15px);
+  box-sizing: border-box;
 }
 .service-card .service-info .service-title {
   font-size: 28px;
@@ -5529,6 +5537,8 @@ kbd {
   gap: 50px;
   justify-content: space-between;
   margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px) clamp(15px, 2vw, 30px);
+  box-sizing: border-box;
 }
 @media (min-width: 991px) {
   .about-us-content {
@@ -5583,7 +5593,7 @@ kbd {
 
 @media screen and (max-width: 1399px) {
   .about-us-content {
-    padding: 0px;
+    padding: clamp(15px, 2.5vw, 30px) clamp(12px, 1.8vw, 25px);
   }
   .about-us-content .image-content .about-img-1 {
     width: 100%;
@@ -5608,6 +5618,7 @@ kbd {
 @media screen and (max-width: 767px) {
   .about-us-content {
     flex-direction: column;
+    padding: clamp(15px, 3vw, 25px) clamp(10px, 2.5vw, 20px);
   }
   .about-us-content .image-content {
     max-height: 400px;
@@ -5623,6 +5634,11 @@ kbd {
 /*--------------------------------------------------------------
   17. Counter Funfact
 ----------------------------------------------------------------*/
+.funfact-counter {
+  padding: clamp(20px, 3vw, 40px) clamp(15px, 2vw, 30px);
+  box-sizing: border-box;
+}
+
 .funfact-counter .funfact-inner {
   display: flex;
   justify-content: center;
@@ -5630,15 +5646,20 @@ kbd {
   flex-wrap: wrap;
   gap: 30px;
   flex-direction: column;
+  max-width: 100%;
+  margin: 0 auto;
 }
+
 .funfact-counter .auto-counter-section {
   display: flex;
-  gap: 30px;
+  gap: clamp(40px, 5vw, 80px);
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   flex-grow: 1;
   width: 100%;
+  padding: clamp(15px, 2vw, 25px) 0;
+  box-sizing: border-box;
 }
 .funfact-counter .funfact-title-content {
   max-width: 420px;
@@ -5690,19 +5711,39 @@ kbd {
   margin: 0;
 }
 
+@media screen and (max-width: 1199px) {
+  .funfact-counter {
+    padding: clamp(15px, 2.5vw, 30px) clamp(12px, 1.8vw, 25px);
+  }
+  
+  .funfact-counter .auto-counter-section {
+    gap: clamp(30px, 4vw, 60px);
+  }
+}
+
 @media screen and (max-width: 991px) {
   .funfact-counter .auto-counter-section .funfact.style1 .funfact-number span {
     font-size: 36px;
   }
+  
+  .funfact-counter .auto-counter-section {
+    gap: clamp(25px, 3.5vw, 50px);
+  }
 }
+
 @media screen and (max-width: 767px) {
+  .funfact-counter {
+    padding: clamp(15px, 3vw, 25px) clamp(10px, 2.5vw, 20px);
+  }
+  
   .funfact-counter .funfact-title-content .funfact-title {
     font-size: 32px;
   }
   .funfact-counter .auto-counter-section {
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: clamp(20px, 3vw, 30px);
+    padding: clamp(10px, 2vw, 20px) 0;
   }
   .funfact-counter .auto-counter-section .funfact.style1 {
     width: 100%;
@@ -5715,11 +5756,17 @@ kbd {
     font-size: 32px;
   }
 }
+
 @media screen and (max-width: 480px) {
+  .funfact-counter {
+    padding: clamp(12px, 2.5vw, 20px) clamp(8px, 2vw, 15px);
+  }
+  
   .funfact-counter .auto-counter-section {
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: clamp(15px, 2.5vw, 25px);
+    padding: clamp(8px, 1.5vw, 15px) 0;
   }
   .funfact-counter .auto-counter-section .funfact.style1 {
     width: 100%;
@@ -8504,9 +8551,36 @@ iframe {
 }
 
 /* Service Cards Mobile */
+@media screen and (max-width: 1199px) {
+  .service-bg {
+    padding: clamp(15px, 2.5vw, 30px) clamp(12px, 1.8vw, 25px);
+  }
+  
+  .service-card {
+    padding: clamp(8px, 1.2vw, 15px);
+  }
+  
+  .service-card .service-info {
+    padding: 0 clamp(6px, 1vw, 12px);
+  }
+}
+
 @media screen and (max-width: 767px) {
+  .service-bg {
+    padding: clamp(15px, 3vw, 25px) clamp(10px, 2.5vw, 20px);
+  }
+  
   .service-card {
     margin-bottom: 30px;
+    padding: clamp(6px, 1vw, 12px);
+  }
+  
+  .service-card .service-thumb {
+    padding: clamp(4px, 0.8vw, 8px);
+  }
+  
+  .service-card .service-info {
+    padding: 0 clamp(5px, 0.8vw, 10px);
   }
   
   .service-card .service-info .service-title {
@@ -8516,6 +8590,24 @@ iframe {
   .service-card .service-info .service-desp {
     font-size: clamp(13px, 3vw, 15px) !important;
     line-height: 1.6 !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .service-bg {
+    padding: clamp(12px, 2.5vw, 20px) clamp(8px, 2vw, 15px);
+  }
+  
+  .service-card {
+    padding: clamp(5px, 0.8vw, 10px);
+  }
+  
+  .service-card .service-thumb {
+    padding: clamp(3px, 0.6vw, 6px);
+  }
+  
+  .service-card .service-info {
+    padding: 0 clamp(4px, 0.6vw, 8px);
   }
 }
 
