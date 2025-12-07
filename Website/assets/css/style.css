@@ -9448,3 +9448,65 @@ h1, h2, h3, h4, h5, h6 {
     border: none !important;
   }
 }
+
+/* ============================================
+   ABSOLUTE FINAL FIX - HAMBURGER MENU
+   This overrides EVERYTHING
+   ============================================ */
+@media screen and (max-width: 1199px) {
+  /* Make hamburger 100% clickable */
+  .ak-munu_toggle,
+  .ak-munu_toggle * {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.2) !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+  }
+  
+  /* When menu is active, show it NO MATTER WHAT */
+  .ak-nav_list.active,
+  .ak-nav_list.show,
+  .ak-nav_list.active.show {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999999 !important;
+    background-color: #ffffff !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 80px 0 0 0 !important;
+    overflow-y: auto !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Show all menu items when menu is active */
+  .ak-nav_list.active li,
+  .ak-nav_list.show li,
+  .ak-nav_list.active.show li {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+  }
+  
+  /* Menu links styling */
+  .ak-nav_list.active a,
+  .ak-nav_list.show a {
+    display: block !important;
+    padding: 20px 30px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #063232 !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  }
+}
