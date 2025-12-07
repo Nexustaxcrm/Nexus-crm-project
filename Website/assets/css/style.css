@@ -2696,7 +2696,7 @@ kbd {
 
 .ak-site_header_full_width .container {
   max-width: 100%;
-  padding: 0 100px;
+  padding: 0 clamp(20px, 3vw, 100px) !important;
 }
 
 .ak-nav ul {
@@ -8332,17 +8332,120 @@ kbd {
   }
 }
 
-/* Restore normal container behavior for mobile view */
+/* Consistent spacing from edges for all pages - Responsive */
+/* Desktop and Large Screens */
+.container,
+.container-fluid {
+  padding-left: clamp(20px, 3vw, 40px) !important;
+  padding-right: clamp(20px, 3vw, 40px) !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Sections - Add top/bottom spacing */
+section,
+.ak-section {
+  padding-left: clamp(20px, 3vw, 40px) !important;
+  padding-right: clamp(20px, 3vw, 40px) !important;
+  box-sizing: border-box;
+}
+
+/* Full-width sections - ensure inner content has padding */
+.ak-site_header_full_width .container,
+section.full-width .container,
+section.full-width .container-fluid {
+  padding-left: clamp(20px, 3vw, 40px) !important;
+  padding-right: clamp(20px, 3vw, 40px) !important;
+}
+
+/* Ensure content doesn't touch edges */
+.row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+[class*="col-"] {
+  padding-left: clamp(10px, 1.5vw, 20px);
+  padding-right: clamp(10px, 1.5vw, 20px);
+  box-sizing: border-box;
+}
+
+/* Images and media - prevent edge touching */
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+  box-sizing: border-box;
+}
+
+/* Cards and content boxes */
+.card,
+.blog-card,
+.feature-card,
+.ak-feature-item {
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* Tablet and Medium Screens */
 @media screen and (max-width: 1199px) {
-  /* Restore Bootstrap container padding for mobile */
-  .container {
-    padding-left: 15px;
-    padding-right: 15px;
+  .container,
+  .container-fluid {
+    padding-left: clamp(15px, 2.5vw, 30px);
+    padding-right: clamp(15px, 2.5vw, 30px);
   }
   
+  section,
+  .ak-section {
+    padding-left: clamp(15px, 2.5vw, 30px);
+    padding-right: clamp(15px, 2.5vw, 30px);
+  }
+  
+  [class*="col-"] {
+    padding-left: clamp(8px, 1.2vw, 15px);
+    padding-right: clamp(8px, 1.2vw, 15px);
+  }
+}
+
+/* Mobile Screens */
+@media screen and (max-width: 767px) {
+  .container,
   .container-fluid {
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: clamp(12px, 4vw, 20px);
+    padding-right: clamp(12px, 4vw, 20px);
+  }
+  
+  section,
+  .ak-section {
+    padding-left: clamp(12px, 4vw, 20px);
+    padding-right: clamp(12px, 4vw, 20px);
+  }
+  
+  [class*="col-"] {
+    padding-left: clamp(6px, 2vw, 12px);
+    padding-right: clamp(6px, 2vw, 12px);
+  }
+}
+
+/* Extra Small Screens */
+@media screen and (max-width: 480px) {
+  .container,
+  .container-fluid {
+    padding-left: clamp(10px, 3vw, 15px);
+    padding-right: clamp(10px, 3vw, 15px);
+  }
+  
+  section,
+  .ak-section {
+    padding-left: clamp(10px, 3vw, 15px);
+    padding-right: clamp(10px, 3vw, 15px);
+  }
+  
+  [class*="col-"] {
+    padding-left: clamp(5px, 1.5vw, 10px);
+    padding-right: clamp(5px, 1.5vw, 10px);
   }
 }
 
