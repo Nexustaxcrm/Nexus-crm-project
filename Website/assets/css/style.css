@@ -2496,12 +2496,19 @@ kbd {
     min-width: auto !important;
     width: auto !important;
     padding-right: 15px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    position: relative !important;
+    width: 30px !important;
+    height: 27px !important;
+    cursor: pointer !important;
+    z-index: 100000000 !important;
   }
 }
 /* Ensure navigation links don't wrap and auto-adjust spacing */
@@ -2538,9 +2545,10 @@ kbd {
     flex: 0 0 auto;
   }
   .ak-site_header.ak-style1 .ak-main-header-right {
-    display: none;
+    display: none; /* Hide hamburger on desktop */
   }
   .ak-site_header.ak-style1 .ak-main-header-center {
+    display: flex !important; /* Show navigation on desktop */
     justify-content: flex-end;
     padding-right: 20px;
   }
@@ -3659,8 +3667,16 @@ kbd {
   .ak-site_header.ak-style1 {
     top: 0;
   }
-  .ak-main-header-right {
-    display: none;
+  
+  /* Ensure hamburger button is visible on mobile */
+  .ak-site_header.ak-style1 .ak-main-header-right {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    width: auto !important;
+    padding-right: 15px !important;
   }
 }
 @media screen and (max-width: 991px) {
@@ -4032,12 +4048,25 @@ kbd {
   align-items: center;
   justify-content: flex-end;
 }
-@media screen and (min-width: 1199px) {
+
+/* Hide hamburger on desktop, show on mobile */
+@media screen and (min-width: 1200px) {
   .ak-site_header.ak-style1 .ak-main-header-right {
+    display: none !important; /* Hide hamburger on desktop */
+  }
+}
+
+@media screen and (max-width: 1199px) {
+  .ak-site_header.ak-style1 .ak-main-header-right {
+    display: flex !important; /* Show hamburger on mobile */
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    width: auto !important;
+    padding-right: 15px !important;
     position: relative;
-    z-index: 10;
-    padding-right: 0;
-    margin-right: 0;
+    z-index: 100000000;
   }
 }
 
