@@ -66,9 +66,6 @@ html {
   line-height: 1.6em;
   overflow-x: hidden;
   scroll-behavior: auto;
-  border: clamp(8px, 1.5vw, 20px) solid rgba(6, 50, 50, 0.08);
-  min-height: 100vh;
-  box-sizing: border-box;
 }
 
 body {
@@ -8335,33 +8332,21 @@ kbd {
   }
 }
 
-/* Border on all 4 sides - Visual separation from edges */
-html {
-  border: clamp(8px, 1.5vw, 20px) solid rgba(6, 50, 50, 0.08);
-  min-height: 100vh;
-  box-sizing: border-box;
-}
-
-body {
-  position: relative;
-  box-sizing: border-box;
-}
-
-/* Consistent spacing from edges for all pages - Responsive */
+/* Content spacing from edges - Internal padding only */
 /* Desktop and Large Screens */
 .container,
 .container-fluid {
-  padding-left: clamp(20px, 3vw, 40px) !important;
-  padding-right: clamp(20px, 3vw, 40px) !important;
+  padding-left: clamp(15px, 2vw, 30px);
+  padding-right: clamp(15px, 2vw, 30px);
   max-width: 100%;
   box-sizing: border-box;
 }
 
-/* Sections - Add top/bottom spacing */
+/* Sections - Internal padding only */
 section,
 .ak-section {
-  padding-left: clamp(20px, 3vw, 40px) !important;
-  padding-right: clamp(20px, 3vw, 40px) !important;
+  padding-left: clamp(15px, 2vw, 30px);
+  padding-right: clamp(15px, 2vw, 30px);
   box-sizing: border-box;
 }
 
@@ -8369,8 +8354,8 @@ section,
 .ak-site_header_full_width .container,
 section.full-width .container,
 section.full-width .container-fluid {
-  padding-left: clamp(20px, 3vw, 40px) !important;
-  padding-right: clamp(20px, 3vw, 40px) !important;
+  padding-left: clamp(15px, 2vw, 30px);
+  padding-right: clamp(15px, 2vw, 30px);
 }
 
 /* Ensure content doesn't touch edges */
@@ -8380,8 +8365,8 @@ section.full-width .container-fluid {
 }
 
 [class*="col-"] {
-  padding-left: clamp(10px, 1.5vw, 20px);
-  padding-right: clamp(10px, 1.5vw, 20px);
+  padding-left: clamp(8px, 1.2vw, 15px);
+  padding-right: clamp(8px, 1.2vw, 15px);
   box-sizing: border-box;
 }
 
@@ -8408,19 +8393,19 @@ iframe {
 @media screen and (max-width: 1199px) {
   .container,
   .container-fluid {
-    padding-left: clamp(15px, 2.5vw, 30px);
-    padding-right: clamp(15px, 2.5vw, 30px);
+    padding-left: clamp(12px, 2vw, 25px);
+    padding-right: clamp(12px, 2vw, 25px);
   }
   
   section,
   .ak-section {
-    padding-left: clamp(15px, 2.5vw, 30px);
-    padding-right: clamp(15px, 2.5vw, 30px);
+    padding-left: clamp(12px, 2vw, 25px);
+    padding-right: clamp(12px, 2vw, 25px);
   }
   
   [class*="col-"] {
-    padding-left: clamp(8px, 1.2vw, 15px);
-    padding-right: clamp(8px, 1.2vw, 15px);
+    padding-left: clamp(6px, 1vw, 12px);
+    padding-right: clamp(6px, 1vw, 12px);
   }
 }
 
@@ -8428,38 +8413,14 @@ iframe {
 @media screen and (max-width: 767px) {
   .container,
   .container-fluid {
-    padding-left: clamp(12px, 4vw, 20px);
-    padding-right: clamp(12px, 4vw, 20px);
+    padding-left: clamp(10px, 3vw, 18px);
+    padding-right: clamp(10px, 3vw, 18px);
   }
   
   section,
   .ak-section {
-    padding-left: clamp(12px, 4vw, 20px);
-    padding-right: clamp(12px, 4vw, 20px);
-  }
-  
-  [class*="col-"] {
-    padding-left: clamp(6px, 2vw, 12px);
-    padding-right: clamp(6px, 2vw, 12px);
-  }
-}
-
-/* Extra Small Screens */
-@media screen and (max-width: 480px) {
-  html {
-    border-width: clamp(6px, 2vw, 12px);
-  }
-  
-  .container,
-  .container-fluid {
-    padding-left: clamp(10px, 3vw, 15px);
-    padding-right: clamp(10px, 3vw, 15px);
-  }
-  
-  section,
-  .ak-section {
-    padding-left: clamp(10px, 3vw, 15px);
-    padding-right: clamp(10px, 3vw, 15px);
+    padding-left: clamp(10px, 3vw, 18px);
+    padding-right: clamp(10px, 3vw, 18px);
   }
   
   [class*="col-"] {
@@ -8468,16 +8429,23 @@ iframe {
   }
 }
 
-/* Border responsive adjustments */
-@media screen and (max-width: 1199px) {
-  html {
-    border-width: clamp(6px, 1.2vw, 15px);
+/* Extra Small Screens */
+@media screen and (max-width: 480px) {
+  .container,
+  .container-fluid {
+    padding-left: clamp(8px, 2.5vw, 15px);
+    padding-right: clamp(8px, 2.5vw, 15px);
   }
-}
-
-@media screen and (max-width: 767px) {
-  html {
-    border-width: clamp(5px, 1vw, 12px);
+  
+  section,
+  .ak-section {
+    padding-left: clamp(8px, 2.5vw, 15px);
+    padding-right: clamp(8px, 2.5vw, 15px);
+  }
+  
+  [class*="col-"] {
+    padding-left: clamp(4px, 1.2vw, 8px);
+    padding-right: clamp(4px, 1.2vw, 8px);
   }
 }
 
