@@ -502,27 +502,28 @@
         $toggle.html('▼');
       });
       
-      // Re-attach dropdown click handlers
-      $menu.find(".ak-munu_dropdown_toggle").off("click touchstart").on("click touchstart", function (e) {
+      // Make Services link toggle dropdown instead of navigating
+      $menu.find(".menu-item-has-children > a").off("click touchstart").on("click touchstart", function (e) {
         e.preventDefault();
         e.stopPropagation();
         
-        var $toggle = $(this);
-        var $parent = $toggle.closest('li');
+        var $link = $(this);
+        var $parent = $link.closest('li');
         var $submenu = $parent.find('> ul').first();
+        var $toggle = $link.find('.ak-munu_dropdown_toggle');
         
         if ($submenu.length > 0) {
-          var isExpanded = $submenu.css('display') !== 'none' && $submenu.css('display') !== '';
+          var isExpanded = $submenu.css('display') !== 'none' && $submenu.css('display') !== '' && $submenu.is(':visible');
           
           if (isExpanded) {
             // Collapse
             $submenu.slideUp(300);
-            $toggle.css('transform', 'rotate(-90deg) !important');
+            $toggle.css('transform', 'rotate(-90deg)');
             $parent.removeClass('active');
           } else {
             // Expand
             $submenu.slideDown(300);
-            $toggle.css('transform', 'rotate(0deg) !important');
+            $toggle.css('transform', 'rotate(0deg)');
             $parent.addClass('active');
             
             // Ensure submenu is visible after slideDown
@@ -535,6 +536,18 @@
             }, 50);
           }
         }
+        
+        return false;
+      });
+      
+      // Also handle clicks on dropdown toggle arrow
+      $menu.find(".ak-munu_dropdown_toggle").off("click touchstart").on("click touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $toggle = $(this);
+        var $link = $toggle.closest('li').find('> a').first();
+        $link.trigger('click');
         
         return false;
       });
