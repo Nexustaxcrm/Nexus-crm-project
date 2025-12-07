@@ -1387,6 +1387,8 @@ kbd {
 .service-swiper-controller {
   display: flex;
   gap: 15px;
+  padding: clamp(5px, 0.8vw, 10px);
+  box-sizing: border-box;
 }
 
 .ak-slider-client-logo {
@@ -5279,6 +5281,8 @@ kbd {
   align-items: center;
   flex-wrap: wrap;
   gap: 25px;
+  padding: clamp(15px, 2vw, 25px) clamp(10px, 1.5vw, 20px);
+  box-sizing: border-box;
 }
 
 .service-bg {
@@ -8855,13 +8859,28 @@ iframe {
 }
 
 /* Service Swiper Controller Mobile */
+@media screen and (max-width: 1199px) {
+  .service-top {
+    padding: clamp(12px, 1.8vw, 20px) clamp(8px, 1.2vw, 15px);
+  }
+  
+  .service-swiper-controller {
+    padding: clamp(4px, 0.6vw, 8px);
+  }
+}
+
 @media screen and (max-width: 767px) {
+  .service-top {
+    padding: clamp(10px, 1.5vw, 18px) clamp(6px, 1vw, 12px);
+  }
+  
   .service-swiper-controller {
     position: relative;
     margin-top: 20px;
     display: flex;
     justify-content: center;
     gap: 10px;
+    padding: clamp(3px, 0.5vw, 6px);
   }
   
   .service-next-btn,
