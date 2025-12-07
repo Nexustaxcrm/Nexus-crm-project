@@ -396,18 +396,33 @@
           'width': '100% !important',
           'max-width': '600px !important',
           'padding': '0 !important',
-          'margin': '0 auto 0 auto !important',
+          'margin-left': 'auto !important',
+          'margin-right': 'auto !important',
           'margin-bottom': '0 !important',
           'border-bottom': '1px solid rgba(6, 50, 50, 0.08) !important',
           'background': 'transparent !important',
           'text-align': 'center !important'
         });
         
-        // Style main menu links - MATCH MAIN WEBSITE FONT STYLE
+        // Force center alignment with inline style
+        $item.attr('style', $item.attr('style') + ' margin-left: auto !important; margin-right: auto !important; text-align: center !important;');
+        
+        // Style main menu links - MATCH MAIN WEBSITE FONT STYLE - CENTERED
         var $link = $item.find('> a').first();
         if ($link.length > 0) {
+          // Check if it's Services (has children)
+          var isServices = $item.hasClass('menu-item-has-children');
+          
+          // For Services, wrap text in a span so arrow can be next to it
+          if (isServices) {
+            var linkHTML = $link.html();
+            if (!linkHTML.includes('<span class="menu-link-text">')) {
+              $link.html('<span class="menu-link-text">' + $link.text().trim() + '</span>');
+            }
+          }
+          
           $link.css({
-            'display': 'flex !important',
+            'display': 'inline-flex !important',
             'align-items': 'center !important',
             'justify-content': 'center !important',
             'color': '#063232 !important',
@@ -424,7 +439,15 @@
             'cursor': 'pointer !important',
             'width': '100% !important',
             'text-align': 'center !important',
-            '-webkit-text-fill-color': '#063232 !important'
+            '-webkit-text-fill-color': '#063232 !important',
+            'position': 'relative !important',
+            'margin': '0 auto !important'
+          });
+          
+          // Style the menu link text span
+          $link.find('.menu-link-text').css({
+            'display': 'inline-block !important',
+            'text-align': 'center !important'
           });
           
           // Add hover effect matching main website
@@ -526,34 +549,35 @@
         }
       });
       
-      // Re-attach dropdown toggles to cloned menu - ADD ARROW ICON NEXT TO SERVICES
+      // ADD ARROW ICON NEXT TO SERVICES - FORCE IT TO BE VISIBLE
       $menu.find(".menu-item-has-children").each(function() {
         var $parent = $(this);
         var $link = $parent.find('> a').first();
-        var $toggle = $link.find('.ak-munu_dropdown_toggle');
         
-        if ($toggle.length === 0) {
-          $toggle = $('<span class="ak-munu_dropdown_toggle">▶</span>');
-          $link.append($toggle);
-        } else {
-          $toggle.html('▶');
+        if ($link.length === 0) {
+          console.error("Services link not found!");
+          return;
         }
         
-        // Style the dropdown toggle arrow - SMALL ARROW ICON
-        $toggle.css({
-          'display': 'inline-block !important',
-          'margin-left': '8px !important',
-          'font-size': '12px !important',
-          'color': '#063232 !important',
-          'transition': 'transform 0.3s ease !important',
-          'transform': 'rotate(0deg) !important',
-          'vertical-align': 'middle !important',
-          'line-height': '1 !important',
-          'font-weight': 'normal !important'
-        });
+        // Remove any existing toggle first
+        $link.find('.ak-munu_dropdown_toggle').remove();
+        $link.find('span.ak-munu_dropdown_toggle').remove();
         
-        // Ensure arrow is visible
-        $toggle.attr('style', $toggle.attr('style') + ' display: inline-block !important; visibility: visible !important; opacity: 1 !important;');
+        // Get the link text for debugging
+        var linkText = $link.text().trim();
+        
+        // Create arrow icon with FORCED visibility - ADD IT AFTER THE TEXT
+        var $arrow = $('<span class="ak-munu_dropdown_toggle" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; margin-left: 8px !important; font-size: 14px !important; color: #063232 !important; transition: transform 0.3s ease !important; transform: rotate(0deg) !important; vertical-align: middle !important; line-height: 1 !important; font-weight: normal !important; position: relative !important; z-index: 10 !important;">▶</span>');
+        
+        // If link has menu-link-text span, add arrow after it, otherwise append to link
+        var $textSpan = $link.find('.menu-link-text');
+        if ($textSpan.length > 0) {
+          $textSpan.after($arrow);
+        } else {
+          $link.append($arrow);
+        }
+        
+        console.log("✓ Arrow added to Services link:", linkText, "Arrow visible:", $arrow.is(':visible'), "Arrow display:", $arrow.css('display'));
       });
       
       // Make Services link toggle dropdown instead of navigating - BULLETPROOF VERSION
@@ -596,8 +620,14 @@
             });
             $submenu.attr('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; max-height: 0 !important; overflow: hidden !important;');
           });
-          $toggle.css('transform', 'rotate(0deg)'); // Arrow points right when collapsed
+          $toggle.css({
+            'transform': 'rotate(0deg)',
+            'display': 'inline-block',
+            'visibility': 'visible',
+            'opacity': '1'
+          });
           $toggle.html('▶');
+          $toggle.attr('style', 'display: inline-block !important; visibility: visible !important; opacity: 1 !important; margin-left: 8px !important; font-size: 14px !important; color: #063232 !important; transition: transform 0.3s ease !important; transform: rotate(0deg) !important; vertical-align: middle !important; line-height: 1 !important; font-weight: normal !important;');
           $parent.removeClass('active');
         } else {
           // EXPAND
@@ -617,8 +647,14 @@
             });
             $submenu.attr('style', 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: 2000px !important; overflow: visible !important;');
           });
-          $toggle.css('transform', 'rotate(90deg)'); // Arrow points down when expanded
+          $toggle.css({
+            'transform': 'rotate(90deg)',
+            'display': 'inline-block',
+            'visibility': 'visible',
+            'opacity': '1'
+          });
           $toggle.html('▼');
+          $toggle.attr('style', 'display: inline-block !important; visibility: visible !important; opacity: 1 !important; margin-left: 8px !important; font-size: 14px !important; color: #063232 !important; transition: transform 0.3s ease !important; transform: rotate(90deg) !important; vertical-align: middle !important; line-height: 1 !important; font-weight: normal !important;');
           $parent.addClass('active');
         }
         
