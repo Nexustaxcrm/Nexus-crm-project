@@ -244,7 +244,7 @@
     function toggleMobileMenu() {
       console.log("=== TOGGLE MENU CALLED ===");
       
-      // Find the menu list
+      // Find the menu list - search more broadly
       var $menu = $(".ak-nav_list").first();
       
       if ($menu.length === 0) {
@@ -260,7 +260,7 @@
       var $toggle = $(".ak-munu_toggle").first();
       
       // Check if menu is currently visible
-      var isVisible = $menu.hasClass("active") || $menu.hasClass("show") || $menu.is(":visible");
+      var isVisible = $menu.hasClass("active") || $menu.hasClass("show");
       
       console.log("Menu is visible:", isVisible);
       
@@ -269,38 +269,56 @@
         // Close menu
         $menu.removeClass("active show");
         $menu.css({
-          'display': 'none !important',
+          'display': 'none',
           'visibility': 'hidden',
           'opacity': '0'
         });
         $toggle.removeClass("ak-toggle_active");
         $("body").removeClass("menu-open");
+        $("body").css('overflow', '');
       } else {
         console.log("OPENING MENU");
-        // Open menu - force it to be visible with inline styles
-        $menu.addClass("active show");
-        $menu.attr('style', 
-          'display: flex !important; ' +
-          'visibility: visible !important; ' +
-          'opacity: 1 !important; ' +
-          'position: fixed !important; ' +
-          'left: 0 !important; ' +
-          'top: 0 !important; ' +
-          'width: 100vw !important; ' +
-          'height: 100vh !important; ' +
-          'z-index: 99999999 !important; ' +
-          'background-color: #ffffff !important; ' +
-          'flex-direction: column !important; ' +
-          'align-items: flex-start !important; ' +
-          'justify-content: flex-start !important; ' +
-          'padding: 80px 0 0 0 !important; ' +
-          'overflow-y: auto !important; ' +
-          'margin: 0 !important;'
-        );
+        // Open menu - move to body if parent is hidden, or force visibility
+        var menuParent = $menu.parent();
+        var isParentHidden = menuParent.is('.ak-main-header-center') && menuParent.css('display') === 'none';
+        
+        if (isParentHidden) {
+          // Clone and append to body to bypass hidden parent
+          var $clonedMenu = $menu.clone();
+          $clonedMenu.attr('id', 'mobile-menu-clone');
+          $clonedMenu.addClass('active show');
+          $('body').append($clonedMenu);
+          $menu = $clonedMenu;
+        } else {
+          $menu.addClass("active show");
+        }
+        
+        // Force it to be visible with inline styles
+        $menu.css({
+          'display': 'flex',
+          'visibility': 'visible',
+          'opacity': '1',
+          'position': 'fixed',
+          'left': '0',
+          'top': '0',
+          'width': '100vw',
+          'height': '100vh',
+          'z-index': '99999999',
+          'background-color': '#ffffff',
+          'flex-direction': 'column',
+          'align-items': 'flex-start',
+          'justify-content': 'flex-start',
+          'padding': '80px 0 0 0',
+          'overflow-y': 'auto',
+          'margin': '0'
+        });
+        
         $toggle.addClass("ak-toggle_active");
         $("body").addClass("menu-open");
+        $("body").css('overflow', 'hidden');
+        
         console.log("Menu opened, classes:", $menu.attr("class"));
-        console.log("Menu style:", $menu.attr("style"));
+        console.log("Menu style:", $menu.css("display"));
       }
     }
 
@@ -397,12 +415,19 @@
         }
         
         var $menu = $(".ak-nav_list").first();
-        if ($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) {
+        var $clonedMenu = $("#mobile-menu-clone");
+        if (($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) || $clonedMenu.length > 0) {
           console.log("Closing menu - clicked outside");
-          $menu.removeClass("active show");
-          $menu.attr('style', 'display: none !important; visibility: hidden; opacity: 0;');
+          if ($menu) {
+            $menu.removeClass("active show");
+            $menu.css({'display': 'none', 'visibility': 'hidden', 'opacity': '0'});
+          }
+          if ($clonedMenu.length > 0) {
+            $clonedMenu.remove();
+          }
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
+          $("body").css('overflow', '');
         }
       });
     }, 200);
@@ -411,12 +436,19 @@
     $(document).on("keydown", function(e) {
       if (e.key === "Escape" || e.keyCode === 27) {
         var $menu = $(".ak-nav_list").first();
-        if ($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) {
+        var $clonedMenu = $("#mobile-menu-clone");
+        if (($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) || $clonedMenu.length > 0) {
           console.log("Closing menu - ESC pressed");
-          $menu.removeClass("active show");
-          $menu.attr('style', 'display: none !important; visibility: hidden; opacity: 0;');
+          if ($menu) {
+            $menu.removeClass("active show");
+            $menu.css({'display': 'none', 'visibility': 'hidden', 'opacity': '0'});
+          }
+          if ($clonedMenu.length > 0) {
+            $clonedMenu.remove();
+          }
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
+          $("body").css('overflow', '');
         }
       }
     });
