@@ -5629,14 +5629,16 @@ kbd {
   align-items: center;
   flex-wrap: wrap;
   gap: 30px;
+  flex-direction: column;
 }
 .funfact-counter .auto-counter-section {
   display: flex;
   gap: 30px;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   flex-grow: 1;
+  width: 100%;
 }
 .funfact-counter .funfact-title-content {
   max-width: 420px;
