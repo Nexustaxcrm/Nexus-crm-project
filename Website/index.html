@@ -1403,6 +1403,80 @@
     <script src="assets/js/main.js"></script>
     <!-- Standalone Hamburger Fix - Loads LAST to override everything -->
     <script src="assets/js/hamburger-fix.js"></script>
+    
+    <!-- INLINE HAMBURGER FIX - GUARANTEED TO RUN -->
+    <script>
+    (function() {
+      console.log("=== INLINE HAMBURGER FIX STARTING ===");
+      
+      function initHamburger() {
+        var h = document.querySelector('.ak-munu_toggle');
+        var m = document.querySelector('.ak-nav_list');
+        
+        if (!h || !m) {
+          console.log("Elements not ready, retrying...");
+          setTimeout(initHamburger, 200);
+          return;
+        }
+        
+        console.log("✓ Found hamburger and menu");
+        
+        var isOpen = false;
+        
+        function toggle() {
+          console.log("TOGGLE CALLED, isOpen:", isOpen);
+          isOpen = !isOpen;
+          
+          if (isOpen) {
+            console.log("OPENING");
+            m.classList.add('active', 'show');
+            m.style.cssText = 'display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;z-index:99999999!important;background:#fff!important;flex-direction:column!important;padding:80px 0 0 0!important;overflow-y:auto!important;';
+            h.classList.add('ak-toggle_active');
+            document.body.classList.add('menu-open');
+          } else {
+            console.log("CLOSING");
+            m.classList.remove('active', 'show');
+            m.style.cssText = 'display:none!important;visibility:hidden!important;opacity:0!important;';
+            h.classList.remove('ak-toggle_active');
+            document.body.classList.remove('menu-open');
+          }
+        }
+        
+        h.style.cssText = 'pointer-events:auto!important;cursor:pointer!important;z-index:99999999!important;position:relative!important;display:inline-block!important;';
+        
+        h.onclick = function(e) {
+          console.log("CLICKED!");
+          e.preventDefault();
+          e.stopPropagation();
+          toggle();
+          return false;
+        };
+        
+        var s = h.querySelector('span');
+        if (s) {
+          s.onclick = function(e) {
+            console.log("SPAN CLICKED!");
+            e.preventDefault();
+            e.stopPropagation();
+            toggle();
+            return false;
+          };
+        }
+        
+        console.log("✓ Hamburger initialized!");
+      }
+      
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHamburger);
+      } else {
+        initHamburger();
+      }
+      
+      setTimeout(initHamburger, 500);
+      setTimeout(initHamburger, 1000);
+      setTimeout(initHamburger, 2000);
+    })();
+    </script>
   <!-- Fixed WhatsApp Button -->
   <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer" class="whatsapp-float">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
