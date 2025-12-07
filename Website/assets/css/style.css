@@ -3262,22 +3262,18 @@ kbd {
     left: -9999px !important;
   }
   
+  /* Hide menu list by default on mobile */
   .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
   }
   
   .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list li {
     display: none !important;
   }
   
-  /* Only show navigation items when menu is active (full-screen menu) */
+  /* CRITICAL: When menu is active, it MUST break out of hidden parent and be visible */
   .ak-nav .ak-nav_list.active,
   .ak-nav .ak-nav_list.show {
     display: flex !important;
@@ -3295,6 +3291,18 @@ kbd {
     justify-content: flex-start !important;
     padding: 80px 0 0 0 !important;
     overflow-y: auto !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Force menu items to be visible when menu is active */
+  .ak-nav .ak-nav_list.active > li,
+  .ak-nav .ak-nav_list.show > li {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
   }
   
   .ak-nav .ak-nav_list.active > li,
