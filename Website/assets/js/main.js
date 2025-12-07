@@ -252,6 +252,7 @@
         // CLOSE MENU
         console.log("CLOSING MENU");
         $clonedMenu.remove();
+        $('.mobile-menu-close-btn').remove(); // Remove close button
         $toggle.removeClass("ak-toggle_active");
         $("body").removeClass("menu-open");
         $("body").css('overflow', '');
@@ -277,10 +278,65 @@
       // Remove any existing clone first
       $("#mobile-menu-clone").remove();
       
+      // CRITICAL: Hide ALL submenus by default (Services dropdown collapsed)
+      $menu.find('.menu-item-has-children > ul').css({
+        'display': 'none !important',
+        'visibility': 'hidden !important',
+        'opacity': '0 !important'
+      });
+      
       // Append to body
       $('body').append($menu);
       
-      // Force visibility with inline styles
+      // Add close button (X) at top right
+      var $closeBtn = $('<button class="mobile-menu-close-btn">✕</button>');
+      $closeBtn.css({
+        'position': 'fixed !important',
+        'top': '20px !important',
+        'right': '20px !important',
+        'width': '45px !important',
+        'height': '45px !important',
+        'z-index': '999999999 !important',
+        'background': '#063232 !important',
+        'color': '#ffffff !important',
+        'border': 'none !important',
+        'border-radius': '50% !important',
+        'font-size': '24px !important',
+        'font-weight': 'bold !important',
+        'cursor': 'pointer !important',
+        'display': 'flex !important',
+        'align-items': 'center !important',
+        'justify-content': 'center !important',
+        'box-shadow': '0 2px 10px rgba(0, 0, 0, 0.2) !important',
+        'transition': 'all 0.3s ease !important',
+        'line-height': '1 !important',
+        'padding': '0 !important'
+      });
+      
+      $closeBtn.on('mouseenter', function() {
+        $(this).css({
+          'background': '#030917 !important',
+          'transform': 'scale(1.1)'
+        });
+      });
+      
+      $closeBtn.on('mouseleave', function() {
+        $(this).css({
+          'background': '#063232 !important',
+          'transform': 'scale(1)'
+        });
+      });
+      
+      $closeBtn.on('click touchstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMobileMenu();
+        return false;
+      });
+      
+      $('body').append($closeBtn);
+      
+      // Style menu container with attractive gradient matching website colors
       $menu.css({
         'display': 'flex !important',
         'visibility': 'visible !important',
@@ -291,37 +347,196 @@
         'width': '100vw !important',
         'height': '100vh !important',
         'z-index': '99999999 !important',
-        'background-color': '#ffffff !important',
+        'background': 'linear-gradient(135deg, #fdfbf7 0%, #f4ffff 100%) !important',
         'flex-direction': 'column !important',
         'align-items': 'flex-start !important',
         'justify-content': 'flex-start !important',
-        'padding': '80px 0 0 0 !important',
+        'padding': '100px 0 30px 0 !important',
         'overflow-y': 'auto !important',
-        'margin': '0 !important'
+        'margin': '0 !important',
+        'list-style': 'none !important',
+        'box-shadow': '-5px 0 30px rgba(3, 9, 23, 0.1) !important'
       });
       
-      // Show all menu items
-      $menu.find('li').css({
-        'display': 'block !important',
-        'visibility': 'visible !important',
-        'opacity': '1 !important'
+      // Style all main menu items
+      $menu.find('> li').each(function() {
+        var $item = $(this);
+        var isParent = $item.hasClass('menu-item-has-children');
+        
+        $item.css({
+          'display': 'block !important',
+          'visibility': 'visible !important',
+          'opacity': '1 !important',
+          'width': '100% !important',
+          'padding': '0 !important',
+          'margin-bottom': '0 !important',
+          'border-bottom': '1px solid rgba(6, 50, 50, 0.08) !important',
+          'background': 'transparent !important'
+        });
+        
+        // Style main menu links
+        var $link = $item.find('> a').first();
+        if ($link.length > 0) {
+          $link.css({
+            'display': 'flex !important',
+            'align-items': 'center !important',
+            'justify-content': 'space-between !important',
+            'color': '#063232 !important',
+            'text-decoration': 'none !important',
+            'font-size': '20px !important',
+            'font-weight': '600 !important',
+            'font-family': '"Lato", sans-serif !important',
+            'padding': '18px 30px !important',
+            'border-radius': '0 !important',
+            'transition': 'all 0.3s ease !important',
+            'background': 'transparent !important',
+            'cursor': 'pointer !important',
+            'width': '100% !important'
+          });
+          
+          // Add hover effect
+          $link.on('mouseenter', function() {
+            if (!$item.hasClass('active')) {
+              $(this).css({
+                'background': 'rgba(249, 214, 124, 0.15) !important',
+                'color': '#030917 !important'
+              });
+            }
+          });
+          
+          $link.on('mouseleave', function() {
+            if (!$item.hasClass('active')) {
+              $(this).css({
+                'background': 'transparent !important',
+                'color': '#063232 !important'
+              });
+            }
+          });
+        }
+        
+        // Style submenu (Services dropdown)
+        var $submenu = $item.find('> ul').first();
+        if ($submenu.length > 0) {
+          $submenu.css({
+            'display': 'none !important',
+            'visibility': 'hidden !important',
+            'opacity': '0 !important',
+            'max-height': '0 !important',
+            'overflow': 'hidden !important',
+            'padding': '0 !important',
+            'margin': '0 !important',
+            'list-style': 'none !important',
+            'background': 'rgba(249, 214, 124, 0.05) !important',
+            'width': '100% !important'
+          });
+          
+          // Style submenu items
+          $submenu.find('> li').each(function() {
+            $(this).css({
+              'display': 'block !important',
+              'width': '100% !important',
+              'padding': '0 !important',
+              'margin': '0 !important',
+              'border-bottom': '1px solid rgba(6, 50, 50, 0.05) !important',
+              'list-style': 'none !important'
+            });
+            
+            var $subLink = $(this).find('a').first();
+            if ($subLink.length > 0) {
+              $subLink.css({
+                'display': 'block !important',
+                'color': '#485b60 !important',
+                'text-decoration': 'none !important',
+                'font-size': '16px !important',
+                'font-weight': '500 !important',
+                'font-family': '"DM Sans", sans-serif !important',
+                'padding': '12px 30px 12px 50px !important',
+                'border-radius': '0 !important',
+                'transition': 'all 0.3s ease !important',
+                'background': 'transparent !important',
+                'cursor': 'pointer !important'
+              });
+              
+              // Submenu hover effect
+              $subLink.on('mouseenter', function() {
+                $(this).css({
+                  'background': 'rgba(249, 214, 124, 0.2) !important',
+                  'color': '#030917 !important',
+                  'padding-left': '55px !important'
+                });
+              });
+              
+              $subLink.on('mouseleave', function() {
+                $(this).css({
+                  'background': 'transparent !important',
+                  'color': '#485b60 !important',
+                  'padding-left': '50px !important'
+                });
+              });
+            }
+          });
+        }
       });
       
       // Re-attach dropdown toggles to cloned menu
       $menu.find(".menu-item-has-children").each(function() {
-        if ($(this).find('.ak-munu_dropdown_toggle').length === 0) {
-          $(this).append('<span class="ak-munu_dropdown_toggle"></span>');
+        var $parent = $(this);
+        var $toggle = $parent.find('.ak-munu_dropdown_toggle');
+        
+        if ($toggle.length === 0) {
+          $toggle = $('<span class="ak-munu_dropdown_toggle"></span>');
+          $parent.find('> a').first().append($toggle);
         }
+        
+        // Style the dropdown toggle arrow
+        $toggle.css({
+          'display': 'inline-block !important',
+          'margin-left': '10px !important',
+          'font-size': '14px !important',
+          'color': '#063232 !important',
+          'transition': 'transform 0.3s ease !important',
+          'transform': 'rotate(-90deg) !important'
+        });
+        
+        // Update toggle content
+        $toggle.html('▼');
       });
       
       // Re-attach dropdown click handlers
-      $menu.find(".ak-munu_dropdown_toggle").off("click").on("click", function () {
-      $(this)
-          .toggleClass("active")
-          .siblings("ul")
-          .slideToggle()
-          .parent()
-          .toggleClass("active");
+      $menu.find(".ak-munu_dropdown_toggle").off("click touchstart").on("click touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $toggle = $(this);
+        var $parent = $toggle.closest('li');
+        var $submenu = $parent.find('> ul').first();
+        
+        if ($submenu.length > 0) {
+          var isExpanded = $submenu.css('display') !== 'none' && $submenu.css('display') !== '';
+          
+          if (isExpanded) {
+            // Collapse
+            $submenu.slideUp(300);
+            $toggle.css('transform', 'rotate(-90deg) !important');
+            $parent.removeClass('active');
+          } else {
+            // Expand
+            $submenu.slideDown(300);
+            $toggle.css('transform', 'rotate(0deg) !important');
+            $parent.addClass('active');
+            
+            // Ensure submenu is visible after slideDown
+            setTimeout(function() {
+              $submenu.css({
+                'display': 'block !important',
+                'visibility': 'visible !important',
+                'opacity': '1 !important'
+              });
+            }, 50);
+          }
+        }
+        
+        return false;
       });
       
       $toggle.addClass("ak-toggle_active");
@@ -456,6 +671,7 @@
         if ($clonedMenu.length > 0) {
           console.log("Closing menu - clicked outside");
           $clonedMenu.remove();
+          $('.mobile-menu-close-btn').remove(); // Remove close button
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
           $("body").css('overflow', '');
@@ -470,6 +686,7 @@
         if ($clonedMenu.length > 0) {
           console.log("Closing menu - ESC pressed");
           $clonedMenu.remove();
+          $('.mobile-menu-close-btn').remove(); // Remove close button
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
           $("body").css('overflow', '');
