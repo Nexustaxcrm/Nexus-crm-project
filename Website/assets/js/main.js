@@ -232,14 +232,26 @@
     2. Mobile Menu  
   --------------------------------------------------------------*/
   function mainNav() {
-    $(".ak-nav").append('<span class="ak-munu_toggle"><span></span></span>');
+    // Don't append hamburger if it already exists in HTML
+    if ($(".ak-main-header-right .ak-munu_toggle").length === 0) {
+      $(".ak-nav").append('<span class="ak-munu_toggle"><span></span></span>');
+    }
     $(".menu-item-has-children").append(
       '<span class="ak-munu_dropdown_toggle"></span>'
     );
 
     $(".ak-munu_toggle").on("click", function (e) {
       e.stopPropagation();
+      // Find the menu list - it could be a sibling or we need to find it in the header
       var $menu = $(this).siblings(".ak-nav_list");
+      // If not found as sibling, look for it in the header structure
+      if ($menu.length === 0) {
+        $menu = $(this).closest(".ak-site_header, .ak-main_header, .ak-main_header_in").find(".ak-nav_list");
+      }
+      // If still not found, search the entire header
+      if ($menu.length === 0) {
+        $menu = $(".ak-site_header .ak-nav_list");
+      }
       var $toggle = $(this);
       
       $toggle.toggleClass("ak-toggle_active");
