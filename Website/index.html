@@ -1452,19 +1452,30 @@
           }
           
           console.log("✓ Found submenu with", submenu.querySelectorAll('li').length, "items");
+          console.log("Submenu HTML:", submenu.outerHTML.substring(0, 200));
           
           // FORCE HIDE submenu by default - collapsed state
           submenu.setAttribute('data-dropdown-state', 'collapsed');
-          submenu.style.cssText = 
-            'display: none !important; ' +
-            'visibility: hidden !important; ' +
-            'opacity: 0 !important; ' +
-            'max-height: 0 !important; ' +
-            'overflow: hidden !important; ' +
-            'padding: 0 !important; ' +
-            'margin: 0 !important; ' +
-            'transition: all 0.3s ease !important; ' +
-            'list-style: none !important;';
+          submenu.classList.remove('active');
+          // Use setProperty for each style to ensure they apply
+          submenu.style.setProperty('display', 'none', 'important');
+          submenu.style.setProperty('visibility', 'hidden', 'important');
+          submenu.style.setProperty('opacity', '0', 'important');
+          submenu.style.setProperty('max-height', '0', 'important');
+          submenu.style.setProperty('overflow', 'hidden', 'important');
+          submenu.style.setProperty('padding', '0', 'important');
+          submenu.style.setProperty('margin', '0', 'important');
+          submenu.style.setProperty('list-style', 'none', 'important');
+          
+          // Ensure submenu items are visible (they'll show when parent expands)
+          var subItems = submenu.querySelectorAll('li');
+          subItems.forEach(function(subItem) {
+            subItem.style.setProperty('display', 'block', 'important');
+            subItem.style.setProperty('visibility', 'visible', 'important');
+            subItem.style.setProperty('opacity', '1', 'important');
+          });
+          
+          console.log("Submenu initialized - display:", window.getComputedStyle(submenu).display);
           
           // Remove any existing arrow
           var existingArrow = parentLink.querySelector('.dropdown-arrow');
@@ -1504,46 +1515,52 @@
               var currentState = currentSubmenu.getAttribute('data-dropdown-state');
               console.log("Current state:", currentState);
               console.log("Submenu element:", currentSubmenu);
+              console.log("Submenu before:", window.getComputedStyle(currentSubmenu).display);
               
               if (currentState === 'expanded') {
                 console.log(">>> COLLAPSING <<<");
                 // Collapse
                 currentSubmenu.setAttribute('data-dropdown-state', 'collapsed');
-                currentSubmenu.style.cssText = 
-                  'display: none !important; ' +
-                  'visibility: hidden !important; ' +
-                  'opacity: 0 !important; ' +
-                  'max-height: 0 !important; ' +
-                  'overflow: hidden !important; ' +
-                  'padding: 0 !important; ' +
-                  'margin: 0 !important; ' +
-                  'transition: all 0.3s ease !important; ' +
-                  'list-style: none !important;';
+                currentSubmenu.classList.remove('active');
+                currentSubmenu.style.setProperty('display', 'none', 'important');
+                currentSubmenu.style.setProperty('visibility', 'hidden', 'important');
+                currentSubmenu.style.setProperty('opacity', '0', 'important');
+                currentSubmenu.style.setProperty('max-height', '0', 'important');
+                currentSubmenu.style.setProperty('overflow', 'hidden', 'important');
+                currentSubmenu.style.setProperty('padding', '0', 'important');
+                currentSubmenu.style.setProperty('margin', '0', 'important');
                 var arrowEl = link.querySelector('.dropdown-arrow');
                 if (arrowEl) arrowEl.style.transform = 'rotate(-90deg)';
                 item.classList.remove('dropdown-open');
+                console.log("Submenu after collapse:", window.getComputedStyle(currentSubmenu).display);
               } else {
                 console.log(">>> EXPANDING <<<");
-                // Expand
+                // Expand - use setProperty for each style to ensure they apply
                 currentSubmenu.setAttribute('data-dropdown-state', 'expanded');
-                currentSubmenu.style.cssText = 
-                  'display: flex !important; ' +
-                  'visibility: visible !important; ' +
-                  'opacity: 1 !important; ' +
-                  'max-height: 2000px !important; ' +
-                  'overflow: visible !important; ' +
-                  'flex-direction: column !important; ' +
-                  'padding-left: 20px !important; ' +
-                  'margin-top: 10px !important; ' +
-                  'transition: all 0.3s ease !important; ' +
-                  'list-style: none !important;';
+                currentSubmenu.classList.add('active');
+                currentSubmenu.style.setProperty('display', 'flex', 'important');
+                currentSubmenu.style.setProperty('visibility', 'visible', 'important');
+                currentSubmenu.style.setProperty('opacity', '1', 'important');
+                currentSubmenu.style.setProperty('max-height', '2000px', 'important');
+                currentSubmenu.style.setProperty('overflow', 'visible', 'important');
+                currentSubmenu.style.setProperty('flex-direction', 'column', 'important');
+                currentSubmenu.style.setProperty('padding-left', '20px', 'important');
+                currentSubmenu.style.setProperty('margin-top', '10px', 'important');
+                currentSubmenu.style.setProperty('list-style', 'none', 'important');
+                currentSubmenu.style.setProperty('width', '100%', 'important');
+                currentSubmenu.style.setProperty('position', 'relative', 'important');
+                currentSubmenu.style.setProperty('z-index', '1', 'important');
                 var arrowEl = link.querySelector('.dropdown-arrow');
                 if (arrowEl) arrowEl.style.transform = 'rotate(0deg)';
                 item.classList.add('dropdown-open');
                 
-                console.log("Submenu should now be visible!");
-                console.log("Submenu computed style:", window.getComputedStyle(currentSubmenu).display);
-                console.log("Submenu inline style:", currentSubmenu.style.display);
+                console.log("Submenu after expand - computed:", window.getComputedStyle(currentSubmenu).display);
+                console.log("Submenu after expand - inline:", currentSubmenu.style.display);
+                console.log("Submenu visibility:", window.getComputedStyle(currentSubmenu).visibility);
+                console.log("Submenu opacity:", window.getComputedStyle(currentSubmenu).opacity);
+                
+                // Force a reflow to ensure styles are applied
+                currentSubmenu.offsetHeight;
               }
               
               return false;
