@@ -299,6 +299,18 @@
           height: 180px;
         }
       }
+      
+      /* Style for links in blog content */
+      .blog-content a,
+      #blogPostDetailContent a {
+        color: #063232;
+        text-decoration: underline;
+      }
+      
+      .blog-content a:hover,
+      #blogPostDetailContent a:hover {
+        color: #f9d67c;
+      }
     </style>
   </head>
 
@@ -1096,6 +1108,22 @@
             content += `<div class="blog-content" style="line-height: 1.8; color: #545454;">${post.content}</div>`;
             
             document.getElementById('blogPostDetailContent').innerHTML = content;
+            
+            // Make all links in blog content open in new tab
+            // Use setTimeout to ensure DOM is ready
+            setTimeout(() => {
+              const blogContent = document.getElementById('blogPostDetailContent');
+              if (blogContent) {
+                const links = blogContent.querySelectorAll('a');
+                links.forEach(link => {
+                  // Only add target if it doesn't already have one
+                  if (!link.hasAttribute('target')) {
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener noreferrer');
+                  }
+                });
+              }
+            }, 100);
             
             const modal = new bootstrap.Modal(document.getElementById('blogPostDetailModal'));
             modal.show();
