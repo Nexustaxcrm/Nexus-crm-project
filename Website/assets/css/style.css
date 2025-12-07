@@ -3288,6 +3288,13 @@ kbd {
     top: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
+    z-index: 99999999 !important;
+    background-color: #ffffff !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 80px 0 0 0 !important;
+    overflow-y: auto !important;
   }
   
   .ak-nav .ak-nav_list.active > li,
@@ -9362,6 +9369,9 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0 !important;
     border: none !important;
     outline: none !important;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+    touch-action: manipulation !important;
   }
   
   /* Force hamburger lines to be visible with ALL selectors */
