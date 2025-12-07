@@ -361,7 +361,7 @@
       
       console.log("Close button added to DOM");
       
-      // Style menu container with attractive gradient matching website colors
+      // Style menu container - CENTERED with attractive gradient matching website colors
       $menu.css({
         'display': 'flex !important',
         'visibility': 'visible !important',
@@ -374,13 +374,14 @@
         'z-index': '99999999 !important',
         'background': 'linear-gradient(135deg, #fdfbf7 0%, #f4ffff 100%) !important',
         'flex-direction': 'column !important',
-        'align-items': 'flex-start !important',
-        'justify-content': 'flex-start !important',
-        'padding': '100px 0 30px 0 !important',
+        'align-items': 'center !important',
+        'justify-content': 'center !important',
+        'padding': '100px 20px 30px 20px !important',
         'overflow-y': 'auto !important',
         'margin': '0 !important',
         'list-style': 'none !important',
-        'box-shadow': '-5px 0 30px rgba(3, 9, 23, 0.1) !important'
+        'box-shadow': '-5px 0 30px rgba(3, 9, 23, 0.1) !important',
+        'text-align': 'center !important'
       });
       
       // Style all main menu items
@@ -393,38 +394,48 @@
           'visibility': 'visible !important',
           'opacity': '1 !important',
           'width': '100% !important',
+          'max-width': '600px !important',
           'padding': '0 !important',
+          'margin': '0 auto 0 auto !important',
           'margin-bottom': '0 !important',
           'border-bottom': '1px solid rgba(6, 50, 50, 0.08) !important',
-          'background': 'transparent !important'
+          'background': 'transparent !important',
+          'text-align': 'center !important'
         });
         
-        // Style main menu links
+        // Style main menu links - MATCH MAIN WEBSITE FONT STYLE
         var $link = $item.find('> a').first();
         if ($link.length > 0) {
           $link.css({
             'display': 'flex !important',
             'align-items': 'center !important',
-            'justify-content': 'space-between !important',
+            'justify-content': 'center !important',
             'color': '#063232 !important',
             'text-decoration': 'none !important',
-            'font-size': '20px !important',
+            'font-size': '18px !important',
             'font-weight': '600 !important',
-            'font-family': '"Lato", sans-serif !important',
+            'font-family': "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important",
+            'letter-spacing': '0.2px !important',
+            'text-transform': 'capitalize !important',
             'padding': '18px 30px !important',
             'border-radius': '0 !important',
             'transition': 'all 0.3s ease !important',
             'background': 'transparent !important',
             'cursor': 'pointer !important',
-            'width': '100% !important'
+            'width': '100% !important',
+            'text-align': 'center !important',
+            '-webkit-text-fill-color': '#063232 !important'
           });
           
-          // Add hover effect
+          // Add hover effect matching main website
           $link.on('mouseenter', function() {
             if (!$item.hasClass('active')) {
               $(this).css({
-                'background': 'rgba(249, 214, 124, 0.15) !important',
-                'color': '#030917 !important'
+                'color': '#f9d67c !important',
+                '-webkit-text-fill-color': '#f9d67c !important',
+                'text-shadow': '0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6) !important',
+                'transform': 'translateY(-1px) !important',
+                'word-spacing': '2px !important'
               });
             }
           });
@@ -432,8 +443,11 @@
           $link.on('mouseleave', function() {
             if (!$item.hasClass('active')) {
               $(this).css({
-                'background': 'transparent !important',
-                'color': '#063232 !important'
+                'color': '#063232 !important',
+                '-webkit-text-fill-color': '#063232 !important',
+                'text-shadow': 'none !important',
+                'transform': 'translateY(0) !important',
+                'word-spacing': 'normal !important'
               });
             }
           });
@@ -470,32 +484,41 @@
             if ($subLink.length > 0) {
               $subLink.css({
                 'display': 'block !important',
-                'color': '#485b60 !important',
+                'color': '#063232 !important',
                 'text-decoration': 'none !important',
-                'font-size': '16px !important',
-                'font-weight': '500 !important',
-                'font-family': '"DM Sans", sans-serif !important',
-                'padding': '12px 30px 12px 50px !important',
+                'font-size': '14px !important',
+                'font-weight': '600 !important',
+                'font-family': "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important",
+                'letter-spacing': '0.2px !important',
+                'padding': '12px 30px !important',
                 'border-radius': '0 !important',
-                'transition': 'all 0.3s ease !important',
+                'transition': 'all 0.2s ease !important',
                 'background': 'transparent !important',
-                'cursor': 'pointer !important'
+                'cursor': 'pointer !important',
+                'text-align': 'center !important',
+                '-webkit-text-fill-color': '#063232 !important'
               });
               
-              // Submenu hover effect
+              // Submenu hover effect matching main website
               $subLink.on('mouseenter', function() {
                 $(this).css({
-                  'background': 'rgba(249, 214, 124, 0.2) !important',
-                  'color': '#030917 !important',
-                  'padding-left': '55px !important'
+                  'background-color': 'rgba(249, 214, 124, 0.1) !important',
+                  'color': '#f9d67c !important',
+                  '-webkit-text-fill-color': '#f9d67c !important',
+                  'text-shadow': '0 0 8px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6) !important',
+                  'transform': 'translateX(3px) !important',
+                  'padding-left': '35px !important'
                 });
               });
               
               $subLink.on('mouseleave', function() {
                 $(this).css({
-                  'background': 'transparent !important',
-                  'color': '#485b60 !important',
-                  'padding-left': '50px !important'
+                  'background-color': 'transparent !important',
+                  'color': '#063232 !important',
+                  '-webkit-text-fill-color': '#063232 !important',
+                  'text-shadow': 'none !important',
+                  'transform': 'translateX(0) !important',
+                  'padding-left': '30px !important'
                 });
               });
             }
@@ -503,28 +526,34 @@
         }
       });
       
-      // Re-attach dropdown toggles to cloned menu
+      // Re-attach dropdown toggles to cloned menu - ADD ARROW ICON NEXT TO SERVICES
       $menu.find(".menu-item-has-children").each(function() {
         var $parent = $(this);
-        var $toggle = $parent.find('.ak-munu_dropdown_toggle');
+        var $link = $parent.find('> a').first();
+        var $toggle = $link.find('.ak-munu_dropdown_toggle');
         
         if ($toggle.length === 0) {
-          $toggle = $('<span class="ak-munu_dropdown_toggle"></span>');
-          $parent.find('> a').first().append($toggle);
+          $toggle = $('<span class="ak-munu_dropdown_toggle">▶</span>');
+          $link.append($toggle);
+        } else {
+          $toggle.html('▶');
         }
         
-        // Style the dropdown toggle arrow
+        // Style the dropdown toggle arrow - SMALL ARROW ICON
         $toggle.css({
           'display': 'inline-block !important',
-          'margin-left': '10px !important',
-          'font-size': '14px !important',
+          'margin-left': '8px !important',
+          'font-size': '12px !important',
           'color': '#063232 !important',
           'transition': 'transform 0.3s ease !important',
-          'transform': 'rotate(-90deg) !important'
+          'transform': 'rotate(0deg) !important',
+          'vertical-align': 'middle !important',
+          'line-height': '1 !important',
+          'font-weight': 'normal !important'
         });
         
-        // Update toggle content
-        $toggle.html('▼');
+        // Ensure arrow is visible
+        $toggle.attr('style', $toggle.attr('style') + ' display: inline-block !important; visibility: visible !important; opacity: 1 !important;');
       });
       
       // Make Services link toggle dropdown instead of navigating - BULLETPROOF VERSION
@@ -567,7 +596,8 @@
             });
             $submenu.attr('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; max-height: 0 !important; overflow: hidden !important;');
           });
-          $toggle.css('transform', 'rotate(-90deg)');
+          $toggle.css('transform', 'rotate(0deg)'); // Arrow points right when collapsed
+          $toggle.html('▶');
           $parent.removeClass('active');
         } else {
           // EXPAND
@@ -587,7 +617,8 @@
             });
             $submenu.attr('style', 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: 2000px !important; overflow: visible !important;');
           });
-          $toggle.css('transform', 'rotate(0deg)');
+          $toggle.css('transform', 'rotate(90deg)'); // Arrow points down when expanded
+          $toggle.html('▼');
           $parent.addClass('active');
         }
         
