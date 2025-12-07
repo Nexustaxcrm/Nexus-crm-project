@@ -66,6 +66,9 @@ html {
   line-height: 1.6em;
   overflow-x: hidden;
   scroll-behavior: auto;
+  border: clamp(8px, 1.5vw, 20px) solid rgba(6, 50, 50, 0.08);
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 body {
@@ -8332,6 +8335,18 @@ kbd {
   }
 }
 
+/* Border on all 4 sides - Visual separation from edges */
+html {
+  border: clamp(8px, 1.5vw, 20px) solid rgba(6, 50, 50, 0.08);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+body {
+  position: relative;
+  box-sizing: border-box;
+}
+
 /* Consistent spacing from edges for all pages - Responsive */
 /* Desktop and Large Screens */
 .container,
@@ -8431,6 +8446,10 @@ iframe {
 
 /* Extra Small Screens */
 @media screen and (max-width: 480px) {
+  html {
+    border-width: clamp(6px, 2vw, 12px);
+  }
+  
   .container,
   .container-fluid {
     padding-left: clamp(10px, 3vw, 15px);
@@ -8446,6 +8465,19 @@ iframe {
   [class*="col-"] {
     padding-left: clamp(5px, 1.5vw, 10px);
     padding-right: clamp(5px, 1.5vw, 10px);
+  }
+}
+
+/* Border responsive adjustments */
+@media screen and (max-width: 1199px) {
+  html {
+    border-width: clamp(6px, 1.2vw, 15px);
+  }
+}
+
+@media screen and (max-width: 767px) {
+  html {
+    border-width: clamp(5px, 1vw, 12px);
   }
 }
 
