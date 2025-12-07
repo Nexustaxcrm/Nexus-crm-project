@@ -2260,6 +2260,14 @@ kbd {
     pointer-events: none;
   }
   
+  /* CRITICAL: Ensure hamburger is ALWAYS above overlay */
+  body.menu-open .ak-munu_toggle,
+  body.menu-open .ak-main-header-right {
+    z-index: 99999999 !important;
+    position: relative !important;
+    pointer-events: auto !important;
+  }
+  
   /* Ensure menu appears above overlay and all content including videos */
   .ak-nav .ak-nav_list.active,
   .ak-nav .ak-nav_list.show {
