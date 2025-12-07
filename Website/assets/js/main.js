@@ -432,7 +432,8 @@
             'font-family': "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important",
             'letter-spacing': '0.2px !important',
             'text-transform': 'capitalize !important',
-            'padding': '18px 30px !important',
+            'padding': '20px 30px !important',
+            'min-height': '56px !important',
             'border-radius': '0 !important',
             'transition': 'all 0.3s ease !important',
             'background': 'transparent !important',
@@ -505,22 +506,31 @@
             
             var $subLink = $(this).find('a').first();
             if ($subLink.length > 0) {
+              // Make submenu items CLEARLY SMALLER than main menu
+              // Main menu: 18px font, 20px padding
+              // Submenu: 13px font, 8px padding - CLEARLY SMALLER
               $subLink.css({
                 'display': 'block !important',
                 'color': '#063232 !important',
                 'text-decoration': 'none !important',
-                'font-size': '15px !important',
+                'font-size': '13px !important',
                 'font-weight': '500 !important',
                 'font-family': "'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important",
                 'letter-spacing': '0.15px !important',
-                'padding': '12px 30px !important',
+                'padding': '8px 30px !important',
                 'border-radius': '0 !important',
                 'transition': 'all 0.2s ease !important',
                 'background': 'transparent !important',
                 'cursor': 'pointer !important',
                 'text-align': 'center !important',
-                '-webkit-text-fill-color': '#063232 !important'
+                '-webkit-text-fill-color': '#063232 !important',
+                'line-height': '1.4 !important',
+                'min-height': 'auto !important'
               });
+              
+              // Force smaller size with inline style - OVERRIDE ANY CSS
+              var existingStyle = $subLink.attr('style') || '';
+              $subLink.attr('style', existingStyle + ' font-size: 13px !important; padding: 8px 30px !important; font-weight: 500 !important; line-height: 1.4 !important; min-height: auto !important;');
               
               // Submenu hover effect matching main website
               $subLink.on('mouseenter', function() {
