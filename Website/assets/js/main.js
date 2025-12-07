@@ -240,113 +240,181 @@
       '<span class="ak-munu_dropdown_toggle"></span>'
     );
 
-    // Attach click handler immediately and also with delay for safety
-    function attachHamburgerHandler() {
-      // Remove any existing handlers to avoid duplicates
-      $(document).off("click", ".ak-munu_toggle");
-      $(".ak-munu_toggle").off("click");
+    // Function to toggle menu
+    function toggleMobileMenu() {
+      console.log("=== TOGGLE MENU CALLED ===");
       
-      // Use event delegation - this works even if elements are added later
-      $(document).on("click", ".ak-munu_toggle", function (e) {
+      // Find the menu list
+      var $menu = $(".ak-nav_list").first();
+      
+      if ($menu.length === 0) {
+        console.error("ERROR: Menu list not found!");
+        return;
+      }
+      
+      console.log("Menu found:", $menu.length, $menu[0]);
+      console.log("Menu current classes:", $menu.attr("class"));
+      console.log("Menu current display:", $menu.css("display"));
+      
+      // Get the hamburger button
+      var $toggle = $(".ak-munu_toggle").first();
+      
+      // Check if menu is currently visible
+      var isVisible = $menu.hasClass("active") || $menu.hasClass("show") || $menu.is(":visible");
+      
+      console.log("Menu is visible:", isVisible);
+      
+      if (isVisible) {
+        console.log("CLOSING MENU");
+        // Close menu
+        $menu.removeClass("active show");
+        $menu.css({
+          'display': 'none !important',
+          'visibility': 'hidden',
+          'opacity': '0'
+        });
+        $toggle.removeClass("ak-toggle_active");
+        $("body").removeClass("menu-open");
+      } else {
+        console.log("OPENING MENU");
+        // Open menu - force it to be visible with inline styles
+        $menu.addClass("active show");
+        $menu.attr('style', 
+          'display: flex !important; ' +
+          'visibility: visible !important; ' +
+          'opacity: 1 !important; ' +
+          'position: fixed !important; ' +
+          'left: 0 !important; ' +
+          'top: 0 !important; ' +
+          'width: 100vw !important; ' +
+          'height: 100vh !important; ' +
+          'z-index: 99999999 !important; ' +
+          'background-color: #ffffff !important; ' +
+          'flex-direction: column !important; ' +
+          'align-items: flex-start !important; ' +
+          'justify-content: flex-start !important; ' +
+          'padding: 80px 0 0 0 !important; ' +
+          'overflow-y: auto !important; ' +
+          'margin: 0 !important;'
+        );
+        $toggle.addClass("ak-toggle_active");
+        $("body").addClass("menu-open");
+        console.log("Menu opened, classes:", $menu.attr("class"));
+        console.log("Menu style:", $menu.attr("style"));
+      }
+    }
+
+    // Attach click handler with multiple methods to ensure it works
+    function attachHamburgerHandler() {
+      console.log("Attaching hamburger handler...");
+      
+      // Method 1: Event delegation on document
+      $(document).off("click touchstart", ".ak-munu_toggle, .ak-munu_toggle *");
+      $(document).on("click touchstart", ".ak-munu_toggle, .ak-munu_toggle *", function (e) {
         e.preventDefault();
         e.stopPropagation();
-        
-        console.log("Hamburger clicked!"); // Debug log
-        
-        // Find the menu list - it's inside .ak-nav which is inside .ak-main-header-center
-        var $menu = $(".ak-nav_list").first();
-        
-        if ($menu.length === 0) {
-          console.error("Menu list not found!");
-          return false;
-        }
-        
-        console.log("Menu found:", $menu.length, $menu[0]); // Debug log
-        
-        var $toggle = $(this);
-        
-        // Toggle the active class on the hamburger
-        $toggle.toggleClass("ak-toggle_active");
-        
-        // Check if menu is currently visible
-        var isVisible = $menu.hasClass("active") || $menu.hasClass("show");
-        
-        if (isVisible) {
-          console.log("Closing menu"); // Debug log
-          // Close menu
-          $menu.removeClass("active show");
-          $menu.css({
-            'display': 'none',
-            'visibility': 'hidden',
-            'opacity': '0'
-          });
-          $("body").removeClass("menu-open");
-        } else {
-          console.log("Opening menu"); // Debug log
-          // Open menu - force it to be visible
-          $menu.addClass("active show");
-          $menu.css({
-            'display': 'flex',
-            'visibility': 'visible',
-            'opacity': '1',
-            'position': 'fixed',
-            'left': '0',
-            'top': '0',
-            'width': '100vw',
-            'height': '100vh',
-            'z-index': '99999999',
-            'background-color': '#ffffff',
-            'flex-direction': 'column',
-            'align-items': 'flex-start',
-            'justify-content': 'flex-start',
-            'padding': '80px 0 0 0',
-            'overflow-y': 'auto'
-          });
-          $("body").addClass("menu-open");
-        }
-        
+        e.stopImmediatePropagation();
+        console.log("Hamburger clicked via delegation!");
+        toggleMobileMenu();
         return false;
       });
       
-      console.log("Hamburger click handler attached. Found", $(".ak-munu_toggle").length, "hamburger buttons");
+      // Method 2: Direct binding to existing elements
+      $(".ak-munu_toggle").off("click touchstart");
+      $(".ak-munu_toggle").on("click touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log("Hamburger clicked via direct binding!");
+        toggleMobileMenu();
+        return false;
+      });
+      
+      // Method 3: Also bind to the span inside
+      $(".ak-munu_toggle span").off("click touchstart");
+      $(".ak-munu_toggle span").on("click touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log("Hamburger span clicked!");
+        $(this).closest(".ak-munu_toggle").trigger("click");
+        toggleMobileMenu();
+        return false;
+      });
+      
+      console.log("Hamburger handlers attached. Found", $(".ak-munu_toggle").length, "hamburger buttons");
       console.log("Menu list found:", $(".ak-nav_list").length);
     }
     
-    // Attach immediately
-    attachHamburgerHandler();
+    // Attach immediately when DOM is ready
+    if (document.readyState === 'loading') {
+      $(document).ready(function() {
+        attachHamburgerHandler();
+      });
+    } else {
+      attachHamburgerHandler();
+    }
     
-    // Also attach after a short delay to ensure DOM is ready
+    // Also attach after delays to ensure it works
     setTimeout(attachHamburgerHandler, 100);
     setTimeout(attachHamburgerHandler, 500);
+    setTimeout(attachHamburgerHandler, 1000);
     
-    // Close menu when clicking outside
-    $(document).on("click", function(e) {
-      if (!$(e.target).closest(".ak-nav, .ak-munu_toggle, .ak-nav_list").length) {
+    // NATIVE JAVASCRIPT FALLBACK - in case jQuery fails
+    setTimeout(function() {
+      var hamburger = document.querySelector('.ak-munu_toggle');
+      if (hamburger) {
+        console.log("Native JS: Found hamburger button");
+        hamburger.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Native JS: Hamburger clicked!");
+          toggleMobileMenu();
+        }, true); // Use capture phase
+        
+        // Also listen on the span
+        var hamburgerSpan = hamburger.querySelector('span');
+        if (hamburgerSpan) {
+          hamburgerSpan.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Native JS: Hamburger span clicked!");
+            toggleMobileMenu();
+          }, true);
+        }
+      } else {
+        console.error("Native JS: Hamburger button NOT found!");
+      }
+    }, 1500);
+    
+    // Close menu when clicking outside (with delay to avoid conflicts)
+    setTimeout(function() {
+      $(document).off("click", ".close-menu-outside");
+      $(document).on("click", function(e) {
+        // Don't close if clicking on hamburger or menu
+        if ($(e.target).closest(".ak-munu_toggle, .ak-nav_list, .ak-nav").length) {
+          return;
+        }
+        
         var $menu = $(".ak-nav_list").first();
-        if ($menu.hasClass("active") || $menu.hasClass("show")) {
+        if ($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) {
+          console.log("Closing menu - clicked outside");
           $menu.removeClass("active show");
-          $menu.css({
-            'display': 'none',
-            'visibility': 'hidden',
-            'opacity': '0'
-          });
+          $menu.attr('style', 'display: none !important; visibility: hidden; opacity: 0;');
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
         }
-      }
-    });
+      });
+    }, 200);
     
     // Close menu when pressing ESC key
     $(document).on("keydown", function(e) {
       if (e.key === "Escape" || e.keyCode === 27) {
         var $menu = $(".ak-nav_list").first();
-        if ($menu.hasClass("active") || $menu.hasClass("show")) {
+        if ($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) {
+          console.log("Closing menu - ESC pressed");
           $menu.removeClass("active show");
-          $menu.css({
-            'display': 'none',
-            'visibility': 'hidden',
-            'opacity': '0'
-          });
+          $menu.attr('style', 'display: none !important; visibility: hidden; opacity: 0;');
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
         }
