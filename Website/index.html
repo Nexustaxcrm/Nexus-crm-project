@@ -1442,9 +1442,9 @@
             return;
           }
           
-          console.log("Found submenu, hiding it now");
+          console.log("Found submenu, setting it up");
           
-          // FORCE HIDE submenu by default - this is critical!
+          // FORCE HIDE submenu by default - collapsed state
           submenu.style.cssText = 
             'display: none !important; ' +
             'visibility: hidden !important; ' +
@@ -1464,33 +1464,16 @@
           // Add dropdown indicator to parent link
           var arrow = document.createElement('span');
           arrow.className = 'dropdown-arrow';
-          arrow.innerHTML = '▶';
+          arrow.innerHTML = '▼';
           arrow.style.cssText = 
             'display: inline-block !important; ' +
             'margin-left: 10px !important; ' +
-            'font-size: 10px !important; ' +
+            'font-size: 12px !important; ' +
             'transition: transform 0.3s ease !important; ' +
             'color: #063232 !important; ' +
-            'font-weight: normal !important;';
+            'font-weight: normal !important; ' +
+            'transform: rotate(-90deg) !important;';
           parentLink.appendChild(arrow);
-          
-          // Remove any existing click handlers
-          var newParentLink = parentLink.cloneNode(true);
-          parentLink.parentNode.replaceChild(newParentLink, parentLink);
-          parentLink = newParentLink;
-          
-          // Re-add arrow after cloning
-          var newArrow = document.createElement('span');
-          newArrow.className = 'dropdown-arrow';
-          newArrow.innerHTML = '▶';
-          newArrow.style.cssText = 
-            'display: inline-block !important; ' +
-            'margin-left: 10px !important; ' +
-            'font-size: 10px !important; ' +
-            'transition: transform 0.3s ease !important; ' +
-            'color: #063232 !important; ' +
-            'font-weight: normal !important;';
-          parentLink.appendChild(newArrow);
           
           // Make parent link clickable for dropdown toggle
           parentLink.addEventListener('click', function(e) {
@@ -1502,7 +1485,8 @@
             
             var isExpanded = submenu.style.display === 'flex' || 
                            submenu.style.display === 'block' ||
-                           submenu.style.visibility === 'visible';
+                           submenu.style.visibility === 'visible' ||
+                           parentItem.classList.contains('dropdown-open');
             
             if (isExpanded) {
               console.log("Collapsing submenu");
@@ -1517,7 +1501,7 @@
                 'margin: 0 !important; ' +
                 'transition: all 0.3s ease !important;';
               var arrowEl = parentLink.querySelector('.dropdown-arrow');
-              if (arrowEl) arrowEl.style.transform = 'rotate(0deg)';
+              if (arrowEl) arrowEl.style.transform = 'rotate(-90deg)';
               parentItem.classList.remove('dropdown-open');
             } else {
               console.log("Expanding submenu");
@@ -1533,7 +1517,7 @@
                 'margin-top: 10px !important; ' +
                 'transition: all 0.3s ease !important;';
               var arrowEl = parentLink.querySelector('.dropdown-arrow');
-              if (arrowEl) arrowEl.style.transform = 'rotate(90deg)';
+              if (arrowEl) arrowEl.style.transform = 'rotate(0deg)';
               parentItem.classList.add('dropdown-open');
             }
             
@@ -1571,6 +1555,53 @@
             'margin: 0 !important;';
         });
         console.log("Hidden", allSubmenus.length, "submenus by default");
+        
+        // Create close button (X) at top right
+        var closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕';
+        closeBtn.className = 'mobile-menu-close-btn';
+        closeBtn.style.cssText = 
+          'position: fixed !important; ' +
+          'top: 20px !important; ' +
+          'right: 20px !important; ' +
+          'width: 45px !important; ' +
+          'height: 45px !important; ' +
+          'z-index: 999999999 !important; ' +
+          'background: #063232 !important; ' +
+          'color: #ffffff !important; ' +
+          'border: none !important; ' +
+          'border-radius: 50% !important; ' +
+          'font-size: 24px !important; ' +
+          'font-weight: bold !important; ' +
+          'cursor: pointer !important; ' +
+          'display: flex !important; ' +
+          'align-items: center !important; ' +
+          'justify-content: center !important; ' +
+          'box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important; ' +
+          'transition: all 0.3s ease !important; ' +
+          'line-height: 1 !important; ' +
+          'padding: 0 !important;';
+        
+        closeBtn.addEventListener('mouseenter', function() {
+          this.style.background = '#030917 !important';
+          this.style.transform = 'scale(1.1)';
+        });
+        
+        closeBtn.addEventListener('mouseleave', function() {
+          this.style.background = '#063232 !important';
+          this.style.transform = 'scale(1)';
+        });
+        
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeMenu();
+        });
+        
+        document.body.appendChild(closeBtn);
+        
+        // Store close button reference for cleanup
+        clonedMenu.closeBtn = closeBtn;
         
         // Style the cloned menu with attractive design matching website colors
         clonedMenu.style.cssText = 
@@ -1641,10 +1672,10 @@
             });
           }
           
-          // Style submenu items (but keep submenu hidden)
+          // Style submenu items (but keep submenu hidden initially)
           var submenu = item.querySelector('> ul');
           if (submenu) {
-            // Ensure submenu stays hidden
+            // Submenu will be shown/hidden by setupDropdowns, but style it for when it's visible
             submenu.style.cssText = 
               'display: none !important; ' +
               'visibility: hidden !important; ' +
@@ -1653,7 +1684,8 @@
               'overflow: hidden !important; ' +
               'padding: 0 !important; ' +
               'margin: 0 !important; ' +
-              'transition: all 0.3s ease !important;';
+              'transition: all 0.3s ease !important; ' +
+              'list-style: none !important;';
             
             var subItems = submenu.querySelectorAll('li');
             subItems.forEach(function(subItem) {
@@ -1661,8 +1693,9 @@
                 'display: block !important; ' +
                 'width: 100% !important; ' +
                 'padding: 0 !important; ' +
-                'margin-bottom: 3px !important; ' +
-                'border-bottom: none !important;';
+                'margin-bottom: 5px !important; ' +
+                'border-bottom: none !important; ' +
+                'list-style: none !important;';
               
               var subLink = subItem.querySelector('a');
               if (subLink) {
@@ -1676,7 +1709,8 @@
                   'padding: 12px 15px 12px 35px !important; ' +
                   'border-radius: 6px !important; ' +
                   'transition: all 0.3s ease !important; ' +
-                  'background: transparent !important;';
+                  'background: transparent !important; ' +
+                  'cursor: pointer !important;';
                 
                 // Submenu hover effect
                 subLink.addEventListener('mouseenter', function() {
@@ -1709,7 +1743,17 @@
         console.log(">>> CLOSING MENU <<<");
         isOpen = false;
         
+        // Remove close button
+        var closeBtn = document.querySelector('.mobile-menu-close-btn');
+        if (closeBtn) {
+          closeBtn.remove();
+        }
+        
         if (clonedMenu) {
+          // Remove close button if stored
+          if (clonedMenu.closeBtn) {
+            clonedMenu.closeBtn.remove();
+          }
           clonedMenu.remove();
           clonedMenu = null;
         }
