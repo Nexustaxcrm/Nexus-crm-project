@@ -234,100 +234,133 @@
   function mainNav() {
     // Don't append hamburger if it already exists in HTML
     if ($(".ak-main-header-right .ak-munu_toggle").length === 0) {
-      $(".ak-nav").append('<span class="ak-munu_toggle"><span></span></span>');
+    $(".ak-nav").append('<span class="ak-munu_toggle"><span></span></span>');
     }
     $(".menu-item-has-children").append(
       '<span class="ak-munu_dropdown_toggle"></span>'
     );
 
-    // Function to toggle menu
+    // Function to toggle menu - SIMPLIFIED AND BULLETPROOF
     function toggleMobileMenu() {
       console.log("=== TOGGLE MENU CALLED ===");
       
-      // Find the menu list - search more broadly
-      var $menu = $(".ak-nav_list").first();
+      // Check if cloned menu exists (menu is open)
+      var $clonedMenu = $("#mobile-menu-clone");
+      var $toggle = $(".ak-munu_toggle").first();
       
-      if ($menu.length === 0) {
+      if ($clonedMenu.length > 0) {
+        // CLOSE MENU
+        console.log("CLOSING MENU");
+        $clonedMenu.remove();
+        $toggle.removeClass("ak-toggle_active");
+        $("body").removeClass("menu-open");
+        $("body").css('overflow', '');
+        return;
+      }
+      
+      // OPEN MENU
+      console.log("OPENING MENU");
+      
+      // Find original menu
+      var $originalMenu = $(".ak-nav_list").first();
+      
+      if ($originalMenu.length === 0) {
         console.error("ERROR: Menu list not found!");
         return;
       }
       
-      console.log("Menu found:", $menu.length, $menu[0]);
-      console.log("Menu current classes:", $menu.attr("class"));
-      console.log("Menu current display:", $menu.css("display"));
+      // ALWAYS clone to body (parent is always hidden on mobile)
+      var $menu = $originalMenu.clone(true, true); // Clone with data and events
+      $menu.attr('id', 'mobile-menu-clone');
+      $menu.addClass('active show');
       
-      // Get the hamburger button
-      var $toggle = $(".ak-munu_toggle").first();
+      // Remove any existing clone first
+      $("#mobile-menu-clone").remove();
       
-      // Check if menu is currently visible
-      var isVisible = $menu.hasClass("active") || $menu.hasClass("show");
+      // Append to body
+      $('body').append($menu);
       
-      console.log("Menu is visible:", isVisible);
+      // Force visibility with inline styles
+      $menu.css({
+        'display': 'flex !important',
+        'visibility': 'visible !important',
+        'opacity': '1 !important',
+        'position': 'fixed !important',
+        'left': '0 !important',
+        'top': '0 !important',
+        'width': '100vw !important',
+        'height': '100vh !important',
+        'z-index': '99999999 !important',
+        'background-color': '#ffffff !important',
+        'flex-direction': 'column !important',
+        'align-items': 'flex-start !important',
+        'justify-content': 'flex-start !important',
+        'padding': '80px 0 0 0 !important',
+        'overflow-y': 'auto !important',
+        'margin': '0 !important'
+      });
       
-      if (isVisible) {
-        console.log("CLOSING MENU");
-        // Close menu
-        $menu.removeClass("active show");
-        $menu.css({
-          'display': 'none',
-          'visibility': 'hidden',
-          'opacity': '0'
-        });
-        $toggle.removeClass("ak-toggle_active");
-        $("body").removeClass("menu-open");
-        $("body").css('overflow', '');
-      } else {
-        console.log("OPENING MENU");
-        // Open menu - move to body if parent is hidden, or force visibility
-        var menuParent = $menu.parent();
-        var isParentHidden = menuParent.is('.ak-main-header-center') && menuParent.css('display') === 'none';
-        
-        if (isParentHidden) {
-          // Clone and append to body to bypass hidden parent
-          var $clonedMenu = $menu.clone();
-          $clonedMenu.attr('id', 'mobile-menu-clone');
-          $clonedMenu.addClass('active show');
-          $('body').append($clonedMenu);
-          $menu = $clonedMenu;
-        } else {
-          $menu.addClass("active show");
+      // Show all menu items
+      $menu.find('li').css({
+        'display': 'block !important',
+        'visibility': 'visible !important',
+        'opacity': '1 !important'
+      });
+      
+      // Re-attach dropdown toggles to cloned menu
+      $menu.find(".menu-item-has-children").each(function() {
+        if ($(this).find('.ak-munu_dropdown_toggle').length === 0) {
+          $(this).append('<span class="ak-munu_dropdown_toggle"></span>');
         }
-        
-        // Force it to be visible with inline styles
-        $menu.css({
-          'display': 'flex',
-          'visibility': 'visible',
-          'opacity': '1',
-          'position': 'fixed',
-          'left': '0',
-          'top': '0',
-          'width': '100vw',
-          'height': '100vh',
-          'z-index': '99999999',
-          'background-color': '#ffffff',
-          'flex-direction': 'column',
-          'align-items': 'flex-start',
-          'justify-content': 'flex-start',
-          'padding': '80px 0 0 0',
-          'overflow-y': 'auto',
-          'margin': '0'
-        });
-        
-        $toggle.addClass("ak-toggle_active");
-        $("body").addClass("menu-open");
-        $("body").css('overflow', 'hidden');
-        
-        console.log("Menu opened, classes:", $menu.attr("class"));
-        console.log("Menu style:", $menu.css("display"));
-      }
+      });
+      
+      // Re-attach dropdown click handlers
+      $menu.find(".ak-munu_dropdown_toggle").off("click").on("click", function () {
+      $(this)
+          .toggleClass("active")
+          .siblings("ul")
+          .slideToggle()
+          .parent()
+          .toggleClass("active");
+      });
+      
+      $toggle.addClass("ak-toggle_active");
+      $("body").addClass("menu-open");
+      $("body").css('overflow', 'hidden');
+      
+      console.log("Menu opened successfully!");
     }
 
-    // Attach click handler with multiple methods to ensure it works
+    // Attach click handler - SIMPLIFIED AND BULLETPROOF
     function attachHamburgerHandler() {
       console.log("Attaching hamburger handler...");
       
-      // Method 1: Event delegation on document
-      $(document).off("click touchstart", ".ak-munu_toggle, .ak-munu_toggle *");
+      // Remove ALL existing handlers first
+      $(".ak-munu_toggle").off("click touchstart mousedown");
+      $(".ak-munu_toggle *").off("click touchstart mousedown");
+      $(document).off("click touchstart mousedown", ".ak-munu_toggle, .ak-munu_toggle *");
+      
+      // Simple direct click handler - works on both click and touch
+      $(".ak-munu_toggle").on("click touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log("Hamburger CLICKED!");
+        toggleMobileMenu();
+        return false;
+      });
+      
+      // Also handle clicks on the span inside
+      $(".ak-munu_toggle span").on("click touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log("Hamburger span CLICKED!");
+        toggleMobileMenu();
+        return false;
+      });
+      
+      // Event delegation as backup
       $(document).on("click touchstart", ".ak-munu_toggle, .ak-munu_toggle *", function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -337,31 +370,7 @@
         return false;
       });
       
-      // Method 2: Direct binding to existing elements
-      $(".ak-munu_toggle").off("click touchstart");
-      $(".ak-munu_toggle").on("click touchstart", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        console.log("Hamburger clicked via direct binding!");
-        toggleMobileMenu();
-        return false;
-      });
-      
-      // Method 3: Also bind to the span inside
-      $(".ak-munu_toggle span").off("click touchstart");
-      $(".ak-munu_toggle span").on("click touchstart", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        console.log("Hamburger span clicked!");
-        $(this).closest(".ak-munu_toggle").trigger("click");
-        toggleMobileMenu();
-        return false;
-      });
-      
-      console.log("Hamburger handlers attached. Found", $(".ak-munu_toggle").length, "hamburger buttons");
-      console.log("Menu list found:", $(".ak-nav_list").length);
+      console.log("✓ Hamburger handlers attached. Found", $(".ak-munu_toggle").length, "hamburger buttons");
     }
     
     // Attach immediately when DOM is ready
@@ -383,12 +392,30 @@
       var hamburger = document.querySelector('.ak-munu_toggle');
       if (hamburger) {
         console.log("Native JS: Found hamburger button");
+        
+        // Remove old listeners by cloning
+        var newHamburger = hamburger.cloneNode(true);
+        hamburger.parentNode.replaceChild(newHamburger, hamburger);
+        hamburger = newHamburger;
+        
+        // Add click handler
         hamburger.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation();
           console.log("Native JS: Hamburger clicked!");
           toggleMobileMenu();
-        }, true); // Use capture phase
+          return false;
+        }, true);
+        
+        hamburger.addEventListener('touchstart', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          console.log("Native JS: Hamburger touched!");
+          toggleMobileMenu();
+          return false;
+        }, true);
         
         // Also listen on the span
         var hamburgerSpan = hamburger.querySelector('span');
@@ -396,14 +423,25 @@
           hamburgerSpan.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             console.log("Native JS: Hamburger span clicked!");
             toggleMobileMenu();
+            return false;
+          }, true);
+          
+          hamburgerSpan.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            console.log("Native JS: Hamburger span touched!");
+            toggleMobileMenu();
+            return false;
           }, true);
         }
       } else {
         console.error("Native JS: Hamburger button NOT found!");
       }
-    }, 1500);
+    }, 500);
     
     // Close menu when clicking outside (with delay to avoid conflicts)
     setTimeout(function() {
@@ -414,17 +452,10 @@
           return;
         }
         
-        var $menu = $(".ak-nav_list").first();
         var $clonedMenu = $("#mobile-menu-clone");
-        if (($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) || $clonedMenu.length > 0) {
+        if ($clonedMenu.length > 0) {
           console.log("Closing menu - clicked outside");
-          if ($menu) {
-            $menu.removeClass("active show");
-            $menu.css({'display': 'none', 'visibility': 'hidden', 'opacity': '0'});
-          }
-          if ($clonedMenu.length > 0) {
-            $clonedMenu.remove();
-          }
+          $clonedMenu.remove();
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
           $("body").css('overflow', '');
@@ -435,17 +466,10 @@
     // Close menu when pressing ESC key
     $(document).on("keydown", function(e) {
       if (e.key === "Escape" || e.keyCode === 27) {
-        var $menu = $(".ak-nav_list").first();
         var $clonedMenu = $("#mobile-menu-clone");
-        if (($menu && ($menu.hasClass("active") || $menu.hasClass("show"))) || $clonedMenu.length > 0) {
+        if ($clonedMenu.length > 0) {
           console.log("Closing menu - ESC pressed");
-          if ($menu) {
-            $menu.removeClass("active show");
-            $menu.css({'display': 'none', 'visibility': 'hidden', 'opacity': '0'});
-          }
-          if ($clonedMenu.length > 0) {
-            $clonedMenu.remove();
-          }
+          $clonedMenu.remove();
           $(".ak-munu_toggle").removeClass("ak-toggle_active");
           $("body").removeClass("menu-open");
           $("body").css('overflow', '');
