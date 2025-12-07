@@ -279,50 +279,70 @@
       $("#mobile-menu-clone").remove();
       
       // CRITICAL: Hide ALL submenus by default (Services dropdown collapsed)
-      $menu.find('.menu-item-has-children > ul').css({
-        'display': 'none !important',
-        'visibility': 'hidden !important',
-        'opacity': '0 !important'
+      $menu.find('.menu-item-has-children > ul').each(function() {
+        var $submenu = $(this);
+        $submenu.css({
+          'display': 'none',
+          'visibility': 'hidden',
+          'opacity': '0',
+          'max-height': '0',
+          'overflow': 'hidden',
+          'padding': '0',
+          'margin': '0'
+        });
+        // Also set via attr for extra enforcement
+        $submenu.attr('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; max-height: 0 !important; overflow: hidden !important; padding: 0 !important; margin: 0 !important;');
       });
       
       // Append to body
       $('body').append($menu);
       
-      // Add close button (X) at top right
-      var $closeBtn = $('<button class="mobile-menu-close-btn">✕</button>');
+      // Remove any existing close button first
+      $('.mobile-menu-close-btn').remove();
+      
+      // Add close button (X) at top right - FORCE IT TO BE VISIBLE
+      var $closeBtn = $('<button class="mobile-menu-close-btn" type="button">×</button>');
+      $closeBtn.attr('aria-label', 'Close menu');
+      
+      // Apply styles using both css() and attr() for maximum compatibility
       $closeBtn.css({
-        'position': 'fixed !important',
-        'top': '20px !important',
-        'right': '20px !important',
-        'width': '45px !important',
-        'height': '45px !important',
-        'z-index': '999999999 !important',
-        'background': '#063232 !important',
-        'color': '#ffffff !important',
-        'border': 'none !important',
-        'border-radius': '50% !important',
-        'font-size': '24px !important',
-        'font-weight': 'bold !important',
-        'cursor': 'pointer !important',
-        'display': 'flex !important',
-        'align-items': 'center !important',
-        'justify-content': 'center !important',
-        'box-shadow': '0 2px 10px rgba(0, 0, 0, 0.2) !important',
-        'transition': 'all 0.3s ease !important',
-        'line-height': '1 !important',
-        'padding': '0 !important'
+        'position': 'fixed',
+        'top': '20px',
+        'right': '20px',
+        'width': '45px',
+        'height': '45px',
+        'z-index': '999999999',
+        'background': '#063232',
+        'color': '#ffffff',
+        'border': 'none',
+        'border-radius': '50%',
+        'font-size': '32px',
+        'font-weight': 'bold',
+        'cursor': 'pointer',
+        'display': 'flex',
+        'align-items': 'center',
+        'justify-content': 'center',
+        'box-shadow': '0 2px 10px rgba(0, 0, 0, 0.2)',
+        'transition': 'all 0.3s ease',
+        'line-height': '1',
+        'padding': '0',
+        'margin': '0',
+        'outline': 'none'
       });
+      
+      // Force visibility with inline style attribute
+      $closeBtn.attr('style', $closeBtn.attr('style') + ' position: fixed !important; top: 20px !important; right: 20px !important; width: 45px !important; height: 45px !important; z-index: 999999999 !important; background: #063232 !important; color: #ffffff !important; border: none !important; border-radius: 50% !important; font-size: 32px !important; font-weight: bold !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important; transition: all 0.3s ease !important; line-height: 1 !important; padding: 0 !important; margin: 0 !important; outline: none !important; visibility: visible !important; opacity: 1 !important;');
       
       $closeBtn.on('mouseenter', function() {
         $(this).css({
-          'background': '#030917 !important',
+          'background': '#030917',
           'transform': 'scale(1.1)'
         });
       });
       
       $closeBtn.on('mouseleave', function() {
         $(this).css({
-          'background': '#063232 !important',
+          'background': '#063232',
           'transform': 'scale(1)'
         });
       });
@@ -330,11 +350,16 @@
       $closeBtn.on('click touchstart', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
+        console.log("Close button clicked!");
         toggleMobileMenu();
         return false;
       });
       
+      // Append to body AFTER menu to ensure it's on top
       $('body').append($closeBtn);
+      
+      console.log("Close button added to DOM");
       
       // Style menu container with attractive gradient matching website colors
       $menu.css({
@@ -502,39 +527,68 @@
         $toggle.html('▼');
       });
       
-      // Make Services link toggle dropdown instead of navigating
+      // Make Services link toggle dropdown instead of navigating - BULLETPROOF VERSION
       $menu.find(".menu-item-has-children > a").off("click touchstart").on("click touchstart", function (e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        console.log("Services link clicked!");
         
         var $link = $(this);
-        var $parent = $link.closest('li');
+        var $parent = $link.closest('li.menu-item-has-children');
         var $submenu = $parent.find('> ul').first();
         var $toggle = $link.find('.ak-munu_dropdown_toggle');
         
-        if ($submenu.length > 0) {
-          var isExpanded = $submenu.css('display') !== 'none' && $submenu.css('display') !== '' && $submenu.is(':visible');
-          
-          if (isExpanded) {
-            // Collapse
-            $submenu.slideUp(300);
-            $toggle.css('transform', 'rotate(-90deg)');
-            $parent.removeClass('active');
-          } else {
-            // Expand
-            $submenu.slideDown(300);
-            $toggle.css('transform', 'rotate(0deg)');
-            $parent.addClass('active');
-            
-            // Ensure submenu is visible after slideDown
-            setTimeout(function() {
-              $submenu.css({
-                'display': 'block !important',
-                'visibility': 'visible !important',
-                'opacity': '1 !important'
-              });
-            }, 50);
-          }
+        if ($submenu.length === 0) {
+          console.error("Submenu not found!");
+          return false;
+        }
+        
+        // Check if expanded by looking at display and visibility
+        var currentDisplay = $submenu.css('display');
+        var currentVisibility = $submenu.css('visibility');
+        var isExpanded = (currentDisplay !== 'none' && currentDisplay !== '') || 
+                         (currentVisibility === 'visible') ||
+                         $submenu.is(':visible');
+        
+        console.log("Submenu state - display:", currentDisplay, "visibility:", currentVisibility, "isExpanded:", isExpanded);
+        
+        if (isExpanded) {
+          // COLLAPSE
+          console.log("Collapsing Services dropdown");
+          $submenu.slideUp(300, function() {
+            $submenu.css({
+              'display': 'none',
+              'visibility': 'hidden',
+              'opacity': '0',
+              'max-height': '0',
+              'overflow': 'hidden'
+            });
+            $submenu.attr('style', 'display: none !important; visibility: hidden !important; opacity: 0 !important; max-height: 0 !important; overflow: hidden !important;');
+          });
+          $toggle.css('transform', 'rotate(-90deg)');
+          $parent.removeClass('active');
+        } else {
+          // EXPAND
+          console.log("Expanding Services dropdown");
+          $submenu.css({
+            'display': 'block',
+            'visibility': 'visible',
+            'opacity': '1',
+            'max-height': '2000px',
+            'overflow': 'visible'
+          });
+          $submenu.slideDown(300, function() {
+            $submenu.css({
+              'display': 'block',
+              'visibility': 'visible',
+              'opacity': '1'
+            });
+            $submenu.attr('style', 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: 2000px !important; overflow: visible !important;');
+          });
+          $toggle.css('transform', 'rotate(0deg)');
+          $parent.addClass('active');
         }
         
         return false;
