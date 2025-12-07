@@ -2477,6 +2477,33 @@ kbd {
   overflow: visible;
   max-width: 100%;
 }
+
+/* Hide navigation center on mobile - show hamburger instead */
+@media screen and (max-width: 1199px) {
+  .ak-site_header.ak-style1 .ak-main-header-center {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    width: auto !important;
+    padding-right: 15px !important;
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
 /* Ensure navigation links don't wrap and auto-adjust spacing */
 .ak-nav .ak-nav_list {
   display: flex;
@@ -3129,6 +3156,17 @@ kbd {
   }
   
   /* Completely hide navigation list in header center on mobile */
+  .ak-site_header.ak-style1 .ak-main-header-center .ak-nav {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+  }
+  
   .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list {
     display: none !important;
     visibility: hidden !important;
@@ -3138,6 +3176,10 @@ kbd {
     width: 0 !important;
     height: 0 !important;
     overflow: hidden !important;
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list li {
+    display: none !important;
   }
   
   /* Only show navigation items when menu is active (full-screen menu) */
@@ -3478,6 +3520,16 @@ kbd {
     margin: 0 !important;
     flex-shrink: 0 !important;
   }
+  
+  /* Ensure hamburger button is always visible in header right */
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    width: 30px !important;
+    height: 27px !important;
+  }
   .ak-munu_toggle span,
   .ak-munu_toggle span:before,
   .ak-munu_toggle span:after {
@@ -3510,9 +3562,10 @@ kbd {
     transition-delay: 0.2s, 0s;
   }
   .ak-site_header.ak-style1 .ak-munu_toggle {
-    top: 50%;
-    right: 0px;
-    margin-top: -13px;
+    top: auto !important;
+    right: auto !important;
+    margin-top: 0 !important;
+    position: relative !important;
   }
   .ak-toggle_active span {
     background-color: rgba(0, 0, 0, 0);
@@ -3549,15 +3602,7 @@ kbd {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
-  }
-  
-  /* Hide navigation list items in header center on mobile - they should only appear in full-screen menu */
-  .ak-site_header.ak-style1 .ak-main-header-center .ak-nav .ak-nav_list {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
+    display: none !important; /* Hide entire center section on mobile */
   }
   
   /* Show hamburger menu button */
@@ -3565,6 +3610,10 @@ kbd {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: auto !important;
+    width: auto !important;
+    padding-right: 15px !important;
   }
   
   .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
@@ -3575,10 +3624,10 @@ kbd {
     top: auto !important;
     right: auto !important;
     margin: 0 !important;
-  }
-  .ak-site_header.ak-style1 .ak-main-header-right {
-    flex: 0 0 auto;
-    min-width: 180px;
+    width: 30px !important;
+    height: 27px !important;
+    cursor: pointer !important;
+    z-index: 100000000 !important;
   }
   .ak-nav .ak-nav_list li a {
     padding: 20px 30px !important;
