@@ -3857,7 +3857,10 @@ kbd {
 ----------------------------------------------------------------*/
 .footer-bg {
   background-color: #030917;
+  padding: clamp(20px, 3vw, 40px) clamp(15px, 2vw, 30px) 0 clamp(15px, 2vw, 30px);
+  box-sizing: border-box;
 }
+
 .footer-bg .ak-footer-container {
   position: relative;
 }
@@ -3875,6 +3878,8 @@ kbd {
   display: flex;
   align-items: center;
   gap: 110px;
+  padding: 0 clamp(10px, 1.5vw, 20px);
+  box-sizing: border-box;
 }
 .ak-footer.style-1 .footer-content .company-info {
   max-width: 336px;
@@ -4017,8 +4022,10 @@ kbd {
 }
 .ak-footer.style-1 .copy-right {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 25px 0px;
+  padding: 25px clamp(15px, 2vw, 30px);
   text-align: center;
+  margin: 0 clamp(-15px, -2vw, -30px);
+  box-sizing: border-box;
 }
 .footer-legal-links {
   margin-bottom: 12px;
@@ -4046,11 +4053,22 @@ kbd {
 }
 
 @media screen and (max-width: 1199px) {
+  .footer-bg {
+    padding: clamp(15px, 2.5vw, 30px) clamp(12px, 1.8vw, 25px) 0 clamp(12px, 1.8vw, 25px);
+  }
+  
   .ak-footer.style-1 .footer-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 50px;
+    padding: 0 clamp(8px, 1.2vw, 15px);
   }
+  
+  .ak-footer.style-1 .copy-right {
+    padding: 25px clamp(12px, 1.8vw, 25px);
+    margin: 0 clamp(-12px, -1.8vw, -25px);
+  }
+  
   .ak-footer.style-1 .footer-content .footer-nav {
     width: 100%;
   }
@@ -8636,6 +8654,19 @@ iframe {
 }
 
 @media screen and (max-width: 767px) {
+  .footer-bg {
+    padding: clamp(15px, 3vw, 25px) clamp(10px, 2.5vw, 20px) 0 clamp(10px, 2.5vw, 20px);
+  }
+  
+  .ak-footer.style-1 .footer-content {
+    padding: 0 clamp(8px, 1.2vw, 12px);
+  }
+  
+  .ak-footer.style-1 .copy-right {
+    padding: 20px clamp(10px, 2.5vw, 20px);
+    margin: 0 clamp(-10px, -2.5vw, -20px);
+  }
+  
   .ak-footer.style-1 .footer-content .company-info .text {
     font-size: clamp(13px, 3vw, 15px) !important;
     line-height: 1.6 !important;
@@ -8663,6 +8694,21 @@ iframe {
   
   .copyright-text {
     font-size: clamp(11px, 2.5vw, 13px) !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .footer-bg {
+    padding: clamp(12px, 2.5vw, 20px) clamp(8px, 2vw, 15px) 0 clamp(8px, 2vw, 15px);
+  }
+  
+  .ak-footer.style-1 .footer-content {
+    padding: 0 clamp(6px, 1vw, 10px);
+  }
+  
+  .ak-footer.style-1 .copy-right {
+    padding: 18px clamp(8px, 2vw, 15px);
+    margin: 0 clamp(-8px, -2vw, -15px);
   }
 }
 
