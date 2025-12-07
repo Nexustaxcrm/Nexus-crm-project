@@ -3119,10 +3119,12 @@ kbd {
     top: 15px;
     left: 100%;
   }
-  .ak-munu_toggle,
+  /* Hide hamburger on desktop only - show on mobile */
   .ak-munu_dropdown_toggle {
     display: none;
   }
+  
+  /* Don't hide ak-munu_toggle here - it should be visible on mobile */
   .ak-nav_black_section ul {
     position: relative;
     list-style: none;
@@ -3551,6 +3553,7 @@ kbd {
     opacity: 1 !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
+    background: transparent !important;
   }
   
   /* Ensure hamburger button is always visible in header right */
@@ -3561,14 +3564,31 @@ kbd {
     position: relative !important;
     width: 30px !important;
     height: 27px !important;
+    background: transparent !important;
+  }
+  
+  /* Ensure the hamburger icon lines are visible */
+  .ak-munu_toggle span {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .ak-munu_toggle span:before,
+  .ak-munu_toggle span:after {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   .ak-munu_toggle span,
   .ak-munu_toggle span:before,
   .ak-munu_toggle span:after {
-    width: 100%;
-    height: 2px;
-    background-color: var(--black-color);
-    display: block;
+    width: 100% !important;
+    height: 2px !important;
+    background-color: #063232 !important; /* Dark color for visibility */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   .ak-munu_toggle span {
     margin: 0 auto;
@@ -4103,8 +4123,29 @@ kbd {
   }
   
   .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     position: relative !important;
+    width: 30px !important;
+    height: 27px !important;
     z-index: 100000004 !important; /* Even higher to ensure visibility */
+    background: transparent !important;
+    cursor: pointer !important;
+  }
+  
+  /* Ensure the hamburger icon lines are visible */
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span:before,
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle span:after {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }
 
