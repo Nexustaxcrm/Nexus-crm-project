@@ -1937,7 +1937,7 @@ kbd {
 /* Top Bar Styles */
 .ak-top-bar {
   background-color: #030917;
-  padding: 8px 0;
+  padding: 4px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   z-index: 100000;
@@ -2000,10 +2000,10 @@ kbd {
   transform: scale(1.15);
 }
 .top-bar-btn {
-  padding: 5px 16px;
+  padding: 3px 12px;
   border-radius: 4px;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   transition: all 0.3s ease;
   display: inline-flex;
