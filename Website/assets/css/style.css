@@ -2171,6 +2171,17 @@ kbd {
     z-index: 100002;
   }
   
+  /* Ensure hamburger button container is above header */
+  .ak-site_header.ak-style1 .ak-main-header-right {
+    position: relative !important;
+    z-index: 100000003 !important; /* Higher than header z-index */
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    position: relative !important;
+    z-index: 100000004 !important; /* Even higher to ensure visibility */
+  }
+  
   /* Body overlay when menu is open */
   body.menu-open {
     overflow: hidden;
@@ -2715,6 +2726,19 @@ kbd {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   transition: background-color 0.4s ease;
+}
+
+/* Ensure hamburger button is always above header on mobile */
+@media screen and (max-width: 1199px) {
+  .ak-sticky_header .ak-main-header-right {
+    position: relative !important;
+    z-index: 100000003 !important; /* Higher than header z-index */
+  }
+  
+  .ak-sticky_header .ak-main-header-right .ak-munu_toggle {
+    position: relative !important;
+    z-index: 100000004 !important; /* Even higher to ensure visibility */
+  }
 }
 
 /* Solid line under navbar */
@@ -3622,6 +3646,8 @@ kbd {
     min-width: auto !important;
     width: auto !important;
     padding-right: 15px !important;
+    position: relative !important;
+    z-index: 100000003 !important; /* Higher than header z-index */
   }
   
   .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
@@ -3635,7 +3661,7 @@ kbd {
     width: 30px !important;
     height: 27px !important;
     cursor: pointer !important;
-    z-index: 100000000 !important;
+    z-index: 100000004 !important; /* Even higher to ensure visibility */
   }
   .ak-nav .ak-nav_list li a {
     padding: 20px 30px !important;
@@ -3677,6 +3703,13 @@ kbd {
     min-width: auto !important;
     width: auto !important;
     padding-right: 15px !important;
+    position: relative !important;
+    z-index: 100000003 !important; /* Higher than header z-index */
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    position: relative !important;
+    z-index: 100000004 !important; /* Even higher to ensure visibility */
   }
 }
 @media screen and (max-width: 991px) {
@@ -4065,8 +4098,13 @@ kbd {
     min-width: auto !important;
     width: auto !important;
     padding-right: 15px !important;
-    position: relative;
-    z-index: 100000000;
+    position: relative !important;
+    z-index: 100000003 !important; /* Higher than header z-index */
+  }
+  
+  .ak-site_header.ak-style1 .ak-main-header-right .ak-munu_toggle {
+    position: relative !important;
+    z-index: 100000004 !important; /* Even higher to ensure visibility */
   }
 }
 
