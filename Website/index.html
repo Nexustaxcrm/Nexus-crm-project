@@ -1404,7 +1404,7 @@
     <!-- Standalone Hamburger Fix - Loads LAST to override everything -->
     <script src="assets/js/hamburger-fix.js"></script>
     
-    <!-- INLINE HAMBURGER FIX - THE REAL FIX -->
+    <!-- INLINE HAMBURGER FIX - ATTRACTIVE DESIGN WITH DROPDOWN SUPPORT -->
     <script>
     (function() {
       console.log("=== HAMBURGER FIX: STARTING ===");
@@ -1427,6 +1427,80 @@
         return hamburger && originalMenu;
       }
       
+      function setupDropdowns(menu) {
+        // Find all menu items with children (dropdowns)
+        var parentItems = menu.querySelectorAll('li.menu-item-has-children');
+        
+        parentItems.forEach(function(parentItem) {
+          var parentLink = parentItem.querySelector('> a');
+          var submenu = parentItem.querySelector('> ul');
+          
+          if (!submenu) return;
+          
+          // Hide submenu by default
+          submenu.style.cssText = 
+            'display: none !important; ' +
+            'visibility: hidden !important; ' +
+            'opacity: 0 !important; ' +
+            'max-height: 0 !important; ' +
+            'overflow: hidden !important; ' +
+            'transition: all 0.3s ease !important;';
+          
+          // Add dropdown indicator to parent link
+          if (parentLink && !parentLink.querySelector('.dropdown-arrow')) {
+            var arrow = document.createElement('span');
+            arrow.className = 'dropdown-arrow';
+            arrow.innerHTML = '▼';
+            arrow.style.cssText = 
+              'display: inline-block !important; ' +
+              'margin-left: 8px !important; ' +
+              'font-size: 12px !important; ' +
+              'transition: transform 0.3s ease !important; ' +
+              'color: #063232 !important;';
+            parentLink.appendChild(arrow);
+          }
+          
+          // Make parent link clickable for dropdown toggle
+          if (parentLink) {
+            parentLink.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              var isExpanded = submenu.style.display === 'flex';
+              
+              if (isExpanded) {
+                // Collapse
+                submenu.style.cssText = 
+                  'display: none !important; ' +
+                  'visibility: hidden !important; ' +
+                  'opacity: 0 !important; ' +
+                  'max-height: 0 !important; ' +
+                  'overflow: hidden !important; ' +
+                  'transition: all 0.3s ease !important;';
+                var arrow = parentLink.querySelector('.dropdown-arrow');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+                parentItem.classList.remove('dropdown-open');
+              } else {
+                // Expand
+                submenu.style.cssText = 
+                  'display: flex !important; ' +
+                  'visibility: visible !important; ' +
+                  'opacity: 1 !important; ' +
+                  'max-height: 1000px !important; ' +
+                  'overflow: visible !important; ' +
+                  'flex-direction: column !important; ' +
+                  'padding-left: 20px !important; ' +
+                  'margin-top: 10px !important; ' +
+                  'transition: all 0.3s ease !important;';
+                var arrow = parentLink.querySelector('.dropdown-arrow');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+                parentItem.classList.add('dropdown-open');
+              }
+            });
+          }
+        });
+      }
+      
       function openMenu() {
         if (!originalMenu) return;
         
@@ -1443,7 +1517,7 @@
         clonedMenu.classList.add('active', 'show');
         document.body.appendChild(clonedMenu);
         
-        // Style the cloned menu
+        // Style the cloned menu with attractive design matching website colors
         clonedMenu.style.cssText = 
           'display: flex !important; ' +
           'visibility: visible !important; ' +
@@ -1454,36 +1528,108 @@
           'width: 100vw !important; ' +
           'height: 100vh !important; ' +
           'z-index: 99999999 !important; ' +
-          'background-color: #ffffff !important; ' +
+          'background: linear-gradient(135deg, #fdfbf7 0%, #f4ffff 100%) !important; ' +
           'flex-direction: column !important; ' +
           'align-items: flex-start !important; ' +
           'justify-content: flex-start !important; ' +
-          'padding: 80px 20px 0 20px !important; ' +
+          'padding: 100px 30px 30px 30px !important; ' +
           'overflow-y: auto !important; ' +
           'margin: 0 !important; ' +
-          'list-style: none !important;';
+          'list-style: none !important; ' +
+          'box-shadow: -5px 0 30px rgba(3, 9, 23, 0.1) !important;';
         
-        // Show all menu items
-        var items = clonedMenu.querySelectorAll('li');
+        // Style all menu items attractively
+        var items = clonedMenu.querySelectorAll('> li');
         for (var i = 0; i < items.length; i++) {
-          items[i].style.cssText = 
+          var item = items[i];
+          var isParent = item.classList.contains('menu-item-has-children');
+          
+          item.style.cssText = 
             'display: block !important; ' +
             'visibility: visible !important; ' +
             'opacity: 1 !important; ' +
             'width: 100% !important; ' +
-            'padding: 15px 0 !important; ' +
-            'border-bottom: 1px solid #eee !important;';
+            'padding: 0 !important; ' +
+            'margin-bottom: 5px !important; ' +
+            'border-bottom: 1px solid rgba(6, 50, 50, 0.1) !important;';
           
-          var link = items[i].querySelector('a');
+          var link = item.querySelector('> a');
           if (link) {
             link.style.cssText = 
-              'display: block !important; ' +
+              'display: flex !important; ' +
+              'align-items: center !important; ' +
+              'justify-content: space-between !important; ' +
               'color: #063232 !important; ' +
               'text-decoration: none !important; ' +
-              'font-size: 18px !important; ' +
-              'font-weight: 500 !important;';
+              'font-size: 20px !important; ' +
+              'font-weight: 600 !important; ' +
+              'font-family: "Lato", sans-serif !important; ' +
+              'padding: 18px 15px !important; ' +
+              'border-radius: 8px !important; ' +
+              'transition: all 0.3s ease !important; ' +
+              'background: transparent !important;';
+            
+            // Hover effect
+            link.addEventListener('mouseenter', function() {
+              if (!this.closest('li').classList.contains('dropdown-open')) {
+                this.style.background = 'rgba(249, 214, 124, 0.15) !important';
+                this.style.color = '#030917 !important';
+              }
+            });
+            
+            link.addEventListener('mouseleave', function() {
+              if (!this.closest('li').classList.contains('dropdown-open')) {
+                this.style.background = 'transparent !important';
+                this.style.color = '#063232 !important';
+              }
+            });
+          }
+          
+          // Style submenu items
+          var submenu = item.querySelector('> ul');
+          if (submenu) {
+            var subItems = submenu.querySelectorAll('li');
+            subItems.forEach(function(subItem) {
+              subItem.style.cssText = 
+                'display: block !important; ' +
+                'width: 100% !important; ' +
+                'padding: 0 !important; ' +
+                'margin-bottom: 3px !important; ' +
+                'border-bottom: none !important;';
+              
+              var subLink = subItem.querySelector('a');
+              if (subLink) {
+                subLink.style.cssText = 
+                  'display: block !important; ' +
+                  'color: #485b60 !important; ' +
+                  'text-decoration: none !important; ' +
+                  'font-size: 16px !important; ' +
+                  'font-weight: 500 !important; ' +
+                  'font-family: "DM Sans", sans-serif !important; ' +
+                  'padding: 12px 15px 12px 35px !important; ' +
+                  'border-radius: 6px !important; ' +
+                  'transition: all 0.3s ease !important; ' +
+                  'background: transparent !important;';
+                
+                // Submenu hover effect
+                subLink.addEventListener('mouseenter', function() {
+                  this.style.background = 'rgba(249, 214, 124, 0.2) !important';
+                  this.style.color = '#030917 !important';
+                  this.style.paddingLeft = '40px !important';
+                });
+                
+                subLink.addEventListener('mouseleave', function() {
+                  this.style.background = 'transparent !important';
+                  this.style.color = '#485b60 !important';
+                  this.style.paddingLeft = '35px !important';
+                });
+              }
+            });
           }
         }
+        
+        // Setup dropdown functionality
+        setupDropdowns(clonedMenu);
         
         if (hamburger) hamburger.classList.add('ak-toggle_active');
         document.body.classList.add('menu-open');
