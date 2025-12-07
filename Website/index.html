@@ -1404,77 +1404,206 @@
     <!-- Standalone Hamburger Fix - Loads LAST to override everything -->
     <script src="assets/js/hamburger-fix.js"></script>
     
-    <!-- INLINE HAMBURGER FIX - GUARANTEED TO RUN -->
+    <!-- INLINE HAMBURGER FIX - THE REAL FIX -->
     <script>
     (function() {
-      console.log("=== INLINE HAMBURGER FIX STARTING ===");
+      console.log("=== HAMBURGER FIX: STARTING ===");
       
-      function initHamburger() {
-        var h = document.querySelector('.ak-munu_toggle');
-        var m = document.querySelector('.ak-nav_list');
+      var hamburger = null;
+      var originalMenu = null;
+      var clonedMenu = null;
+      var isOpen = false;
+      
+      function findElements() {
+        hamburger = document.querySelector('.ak-munu_toggle');
+        originalMenu = document.querySelector('.ak-nav_list');
         
-        if (!h || !m) {
-          console.log("Elements not ready, retrying...");
-          setTimeout(initHamburger, 200);
-          return;
+        if (hamburger) console.log("✓ Hamburger found");
+        else console.error("✗ Hamburger NOT found");
+        
+        if (originalMenu) console.log("✓ Original menu found");
+        else console.error("✗ Original menu NOT found");
+        
+        return hamburger && originalMenu;
+      }
+      
+      function openMenu() {
+        if (!originalMenu) return;
+        
+        console.log(">>> OPENING MENU <<<");
+        isOpen = true;
+        
+        // Clone the menu and append to body (bypasses hidden parent)
+        if (clonedMenu) {
+          clonedMenu.remove();
         }
         
-        console.log("✓ Found hamburger and menu");
+        clonedMenu = originalMenu.cloneNode(true);
+        clonedMenu.id = 'mobile-menu-clone';
+        clonedMenu.classList.add('active', 'show');
+        document.body.appendChild(clonedMenu);
         
-        var isOpen = false;
+        // Style the cloned menu
+        clonedMenu.style.cssText = 
+          'display: flex !important; ' +
+          'visibility: visible !important; ' +
+          'opacity: 1 !important; ' +
+          'position: fixed !important; ' +
+          'left: 0 !important; ' +
+          'top: 0 !important; ' +
+          'width: 100vw !important; ' +
+          'height: 100vh !important; ' +
+          'z-index: 99999999 !important; ' +
+          'background-color: #ffffff !important; ' +
+          'flex-direction: column !important; ' +
+          'align-items: flex-start !important; ' +
+          'justify-content: flex-start !important; ' +
+          'padding: 80px 20px 0 20px !important; ' +
+          'overflow-y: auto !important; ' +
+          'margin: 0 !important; ' +
+          'list-style: none !important;';
         
-        function toggle() {
-          console.log("TOGGLE CALLED, isOpen:", isOpen);
-          isOpen = !isOpen;
+        // Show all menu items
+        var items = clonedMenu.querySelectorAll('li');
+        for (var i = 0; i < items.length; i++) {
+          items[i].style.cssText = 
+            'display: block !important; ' +
+            'visibility: visible !important; ' +
+            'opacity: 1 !important; ' +
+            'width: 100% !important; ' +
+            'padding: 15px 0 !important; ' +
+            'border-bottom: 1px solid #eee !important;';
           
-          if (isOpen) {
-            console.log("OPENING");
-            m.classList.add('active', 'show');
-            m.style.cssText = 'display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:100vh!important;z-index:99999999!important;background:#fff!important;flex-direction:column!important;padding:80px 0 0 0!important;overflow-y:auto!important;';
-            h.classList.add('ak-toggle_active');
-            document.body.classList.add('menu-open');
-          } else {
-            console.log("CLOSING");
-            m.classList.remove('active', 'show');
-            m.style.cssText = 'display:none!important;visibility:hidden!important;opacity:0!important;';
-            h.classList.remove('ak-toggle_active');
-            document.body.classList.remove('menu-open');
+          var link = items[i].querySelector('a');
+          if (link) {
+            link.style.cssText = 
+              'display: block !important; ' +
+              'color: #063232 !important; ' +
+              'text-decoration: none !important; ' +
+              'font-size: 18px !important; ' +
+              'font-weight: 500 !important;';
           }
         }
         
-        h.style.cssText = 'pointer-events:auto!important;cursor:pointer!important;z-index:99999999!important;position:relative!important;display:inline-block!important;';
+        if (hamburger) hamburger.classList.add('ak-toggle_active');
+        document.body.classList.add('menu-open');
+        document.body.style.overflow = 'hidden';
         
-        h.onclick = function(e) {
-          console.log("CLICKED!");
-          e.preventDefault();
-          e.stopPropagation();
-          toggle();
-          return false;
-        };
+        console.log("✓ Menu opened and visible!");
+      }
+      
+      function closeMenu() {
+        console.log(">>> CLOSING MENU <<<");
+        isOpen = false;
         
-        var s = h.querySelector('span');
-        if (s) {
-          s.onclick = function(e) {
-            console.log("SPAN CLICKED!");
-            e.preventDefault();
-            e.stopPropagation();
-            toggle();
-            return false;
-          };
+        if (clonedMenu) {
+          clonedMenu.remove();
+          clonedMenu = null;
         }
         
-        console.log("✓ Hamburger initialized!");
+        if (hamburger) hamburger.classList.remove('ak-toggle_active');
+        document.body.classList.remove('menu-open');
+        document.body.style.overflow = '';
+        
+        console.log("✓ Menu closed!");
       }
       
+      function handleClick(e) {
+        console.log("*** HAMBURGER CLICKED! ***");
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        if (isOpen) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+        
+        return false;
+      }
+      
+      function init() {
+        console.log("=== INITIALIZING ===");
+        
+        if (!findElements()) {
+          console.log("Elements not ready, retrying...");
+          setTimeout(init, 200);
+          return;
+        }
+        
+        // Make hamburger clickable
+        hamburger.style.cssText = 
+          'pointer-events: auto !important; ' +
+          'cursor: pointer !important; ' +
+          'z-index: 99999999 !important; ' +
+          'position: relative !important; ' +
+          'display: inline-block !important; ' +
+          'visibility: visible !important; ' +
+          'opacity: 1 !important;';
+        
+        // Remove old handlers by cloning
+        var newHamburger = hamburger.cloneNode(true);
+        hamburger.parentNode.replaceChild(newHamburger, hamburger);
+        hamburger = newHamburger;
+        
+        // Re-apply styles
+        hamburger.style.cssText = 
+          'pointer-events: auto !important; ' +
+          'cursor: pointer !important; ' +
+          'z-index: 99999999 !important; ' +
+          'position: relative !important; ' +
+          'display: inline-block !important; ' +
+          'visibility: visible !important; ' +
+          'opacity: 1 !important;';
+        
+        // Attach click handlers
+        hamburger.addEventListener('click', handleClick, true);
+        hamburger.addEventListener('touchstart', handleClick, true);
+        
+        var span = hamburger.querySelector('span');
+        if (span) {
+          span.addEventListener('click', handleClick, true);
+          span.addEventListener('touchstart', handleClick, true);
+          span.style.pointerEvents = 'auto';
+        }
+        
+        // Close on outside click
+        document.addEventListener('click', function(e) {
+          if (isOpen && clonedMenu) {
+            if (!hamburger.contains(e.target) && !clonedMenu.contains(e.target)) {
+              closeMenu();
+            }
+          }
+        }, true);
+        
+        // Close on ESC
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && isOpen) {
+            closeMenu();
+          }
+        });
+        
+        console.log("✓✓✓ HAMBURGER MENU INITIALIZED ✓✓✓");
+      }
+      
+      // Start initialization
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initHamburger);
+        document.addEventListener('DOMContentLoaded', init);
       } else {
-        initHamburger();
+        init();
       }
       
-      setTimeout(initHamburger, 500);
-      setTimeout(initHamburger, 1000);
-      setTimeout(initHamburger, 2000);
+      // Retry multiple times
+      setTimeout(init, 100);
+      setTimeout(init, 500);
+      setTimeout(init, 1000);
+      setTimeout(init, 2000);
+      
+      // Also try after window load
+      window.addEventListener('load', function() {
+        setTimeout(init, 100);
+      });
     })();
     </script>
   <!-- Fixed WhatsApp Button -->
