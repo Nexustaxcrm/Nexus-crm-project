@@ -4983,6 +4983,15 @@ function openUpdateStatusModal(customerId) {
     document.getElementById('updateCustomerStatus').value = customer.status || '';
     document.getElementById('updateComments').value = customer.comments || '';
     
+    // CRITICAL: Store original updated_at for optimistic locking (concurrent operation protection)
+    // This prevents data loss when multiple users update the same customer simultaneously
+    const originalUpdatedAt = customer.updated_at || customer.updatedAt || null;
+    document.getElementById('updateCustomerId').setAttribute('data-original-updated-at', originalUpdatedAt || '');
+    
+    // Store original comments for appending (preserve existing comments)
+    const originalComments = customer.comments || customer.notes || '';
+    document.getElementById('updateCustomerId').setAttribute('data-original-comments', originalComments);
+    
     // Load refund status from sessionStorage (clears when browser closes)
     const refundStatusKey = `customerRefundStatus_${customer.email || customerId}`;
     const savedRefundStatus = sessionStorage.getItem(refundStatusKey);
@@ -6716,17 +6725,68 @@ function goBackToCalendar() {
     }
 }
 
+// Debounce timer for rapid updates
+let statusUpdateDebounceTimer = null;
+
 async function saveStatusUpdate() {
+    // Clear any pending debounce
+    if (statusUpdateDebounceTimer) {
+        clearTimeout(statusUpdateDebounceTimer);
+    }
+    
+    // Debounce: Wait 300ms before executing (prevents rapid-fire updates)
+    return new Promise((resolve, reject) => {
+        statusUpdateDebounceTimer = setTimeout(async () => {
+            try {
+                await executeStatusUpdate();
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        }, 300);
+    });
+}
+
+async function executeStatusUpdate() {
     const customerId = parseInt(document.getElementById('updateCustomerId').value);
     const status = document.getElementById('updateCustomerStatus').value;
-    const comments = document.getElementById('updateComments').value;
+    const newComments = document.getElementById('updateComments').value.trim();
+    
+    // Get original updated_at for optimistic locking
+    const originalUpdatedAt = document.getElementById('updateCustomerId').getAttribute('data-original-updated-at') || null;
+    const originalComments = document.getElementById('updateCustomerId').getAttribute('data-original-comments') || '';
     
     const customer = customers.find(c => c.id === customerId);
     if (customer) {
-        customer.status = status;
-        customer.comments = comments;
+        // CRITICAL: Don't update local state until API call succeeds
+        // This prevents showing incorrect data if the update fails
+        
+        // Handle comment appending: If new comment is different from original, append it
+        // This preserves existing comments when multiple users update simultaneously
+        let finalComments = newComments;
+        if (newComments && originalComments && newComments !== originalComments) {
+            // Check if the new comment is already in the original (to avoid duplicates)
+            if (!originalComments.includes(newComments)) {
+                // Append new comment with timestamp and author
+                const timestamp = new Date().toLocaleString();
+                const author = currentUser ? currentUser.username : 'Unknown';
+                finalComments = originalComments 
+                    ? `${originalComments}\n\n[${timestamp}] ${author}: ${newComments}`
+                    : `[${timestamp}] ${author}: ${newComments}`;
+            } else {
+                // Comment already exists, use as-is
+                finalComments = newComments;
+            }
+        } else if (!newComments && originalComments) {
+            // User cleared the comment field, but preserve original if it exists
+            finalComments = originalComments;
+        }
+        
+        // Store the final comments for display (but don't update customer object yet)
+        const commentsToSave = finalComments;
         
         // Save phone, email, address fields if they were edited (only for admin)
+        // CRITICAL: Don't update customer object yet - only prepare data for API call
         const isAdmin = currentUser && currentUser.role === 'admin';
         const phoneField = document.getElementById('updateCustomerPhone');
         const emailField = document.getElementById('updateCustomerEmail');
@@ -6735,23 +6795,28 @@ async function saveStatusUpdate() {
         const stateField = document.getElementById('updateCustomerState');
         const zipCodeField = document.getElementById('updateCustomerZipCode');
         
+        // Prepare phone, email, and state values (don't update customer object yet)
+        let updatedPhone = customer.phone || '';
+        let updatedEmail = customer.email || '';
+        let updatedState = customer.state || '';
+        
         if (isAdmin) {
             // Only update if field is in edit mode (not readonly/disabled)
             if (!phoneField.readOnly) {
-                customer.phone = phoneField.value || '';
+                updatedPhone = phoneField.value || '';
             }
             if (!emailField.readOnly) {
-                customer.email = emailField.value || '';
+                updatedEmail = emailField.value || '';
             }
             // Save state code if field was edited (not disabled)
             if (!stateField.disabled) {
-                customer.state = stateField.value || '';
+                updatedState = stateField.value || '';
             }
         } else {
             // For non-admin users, preserve existing state or extract from address
-            if (!customer.state) {
+            if (!updatedState) {
                 const stateFromAddress = extractStateFromAddress(customer.address);
-                customer.state = stateFromAddress ? getStateCode(stateFromAddress) : '';
+                updatedState = stateFromAddress ? getStateCode(stateFromAddress) : '';
             }
         }
         
@@ -6761,14 +6826,13 @@ async function saveStatusUpdate() {
         if (address1Field.value) addressParts.push(address1Field.value);
         if (cityField.value) addressParts.push(cityField.value);
         // Use state code for address string
-        const stateCode = stateField.value || customer.state || '';
+        const stateCode = stateField.value || updatedState || '';
         if (stateCode) {
             const stateName = getStateName(stateCode);
             addressParts.push(stateName || stateCode);
         }
         if (zipCodeField.value) addressParts.push(zipCodeField.value);
         const updatedAddress = addressParts.join(', ') || '';
-        customer.address = updatedAddress;
         
         // CRITICAL: Preserve address separately from comments
         // The database only has a 'notes' field, but we need to keep address and comments separate
@@ -6841,11 +6905,12 @@ async function saveStatusUpdate() {
         const finalStatus = refundStatus || status;
         const customerData = {
             name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
-            email: customer.email || null,
-            phone: customer.phone || null,
+            email: updatedEmail || null,  // Use prepared email value
+            phone: updatedPhone || null,  // Use prepared phone value
             status: finalStatus,
             assigned_to: customer.assignedTo || customer.assigned_to || null,
-            notes: comments || null  // Only send comments, NOT address
+            notes: commentsToSave || null,  // Only send comments, NOT address
+            updated_at: originalUpdatedAt  // CRITICAL: Send original updated_at for optimistic locking
         };
         
         try {
@@ -6860,7 +6925,8 @@ async function saveStatusUpdate() {
             
             if (response.ok) {
                 const updated = await response.json();
-                // Update local array
+                
+                // Update local array ONLY after successful API response
                 const index = customers.findIndex(c => c.id === customerId);
                 if (index !== -1) {
                     // CRITICAL: Preserve address separately from comments
@@ -6871,36 +6937,107 @@ async function saveStatusUpdate() {
                         ...customers[index], 
                         ...updated, 
                         status, 
-                        comments: comments,
-                        address: existingAddress  // Always preserve existing address, never overwrite with notes
+                        comments: commentsToSave,
+                        address: existingAddress,  // Always preserve existing address, never overwrite with notes
+                        phone: updatedPhone || customers[index].phone || '',  // Update phone only after success
+                        email: updatedEmail || customers[index].email || '',  // Update email only after success
+                        state: updatedState || customers[index].state || '',  // Update state only after success
+                        updated_at: updated.updated_at || updated.updatedAt || originalUpdatedAt  // Update timestamp
                     };
+                    
+                    // Update the stored original updated_at for next edit
+                    document.getElementById('updateCustomerId').setAttribute('data-original-updated-at', customers[index].updated_at || '');
                 }
         
-        const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
-        modal.hide();
-        
-        loadAssignWorkTable();
-        // Refresh archive modal if it's open
-        const archiveModalEl = document.getElementById('archiveModal');
-        if (archiveModalEl && archiveModalEl.classList.contains('show')) {
-            renderArchiveModal();
-        }
-        loadDashboard();
-        
-        // Refresh Top 20 States chart if Progress tab is visible
-        const progressTab = document.getElementById('progressTab');
-        if (progressTab && progressTab.style.display !== 'none') {
-            loadTrafficSection();
-        }
-        
-        showNotification('success', 'Status Updated', 'Customer status has been updated successfully!');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                modal.hide();
+                
+                loadAssignWorkTable();
+                // Refresh archive modal if it's open
+                const archiveModalEl = document.getElementById('archiveModal');
+                if (archiveModalEl && archiveModalEl.classList.contains('show')) {
+                    renderArchiveModal();
+                }
+                loadDashboard();
+                
+                // Refresh Top 20 States chart if Progress tab is visible
+                const progressTab = document.getElementById('progressTab');
+                if (progressTab && progressTab.style.display !== 'none') {
+                    loadTrafficSection();
+                }
+                
+                showNotification('success', 'Status Updated', 'Customer status has been updated successfully!');
             } else {
-                const error = await response.json();
-                showNotification('error', 'Error', error.error || 'Failed to update customer');
+                // Handle different error status codes
+                const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+                
+                // CRITICAL: Handle 409 Conflict (optimistic locking failure)
+                if (response.status === 409) {
+                    console.warn('⚠️ Conflict detected: Customer was updated by another user');
+                    
+                    // Reload customer data from server to get latest version
+                    await loadCustomers();
+                    
+                    // Find the updated customer
+                    const updatedCustomer = customers.find(c => c.id === customerId);
+                    if (updatedCustomer) {
+                        // Show conflict warning with detailed information
+                        const currentStatus = updatedCustomer.status || 'N/A';
+                        const currentComments = (updatedCustomer.comments || updatedCustomer.notes || 'None').substring(0, 150);
+                        const conflictMessage = `This customer was updated by another user while you were editing.\n\n` +
+                            `Current Status: ${currentStatus}\n` +
+                            `Current Comments: ${currentComments}${currentComments.length >= 150 ? '...' : ''}\n\n` +
+                            `Your changes were not saved. Please review the latest data and try again.`;
+                        
+                        showNotification('warning', 'Conflict Detected - Update Not Saved', conflictMessage, 8000);
+                        
+                        // Reload the modal with latest data
+                        setTimeout(() => {
+                            // Close current modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('updateStatusModal'));
+                            if (modal) modal.hide();
+                            
+                            // Reopen with latest data
+                            setTimeout(() => {
+                                openUpdateStatusModal(customerId);
+                                showNotification('info', 'Data Refreshed', 'The customer data has been refreshed with the latest information.', 4000);
+                            }, 500);
+                        }, 2000);
+                    } else {
+                        showNotification('warning', 'Conflict Detected', 
+                            'This customer was updated by another user. Refreshing data...', 5000);
+                        // Refresh the page after a short delay
+                        setTimeout(() => {
+                            loadAssignWorkTable();
+                            loadDashboard();
+                        }, 2000);
+                    }
+                } else if (response.status === 401) {
+                    showNotification('error', 'Authentication Error', 
+                        'Your session has expired. Please log in again.');
+                    // Redirect to login after delay
+                    setTimeout(() => {
+                        logout();
+                    }, 2000);
+                } else if (response.status === 403) {
+                    showNotification('error', 'Access Denied', 
+                        error.error || 'You do not have permission to update this customer.');
+                } else {
+                    showNotification('error', 'Update Failed', 
+                        error.error || error.message || 'Failed to update customer. Please try again.');
+                }
             }
         } catch (error) {
             console.error('Error updating customer:', error);
-            showNotification('error', 'Error', 'Failed to update customer. Please try again.');
+            
+            // Check if it's a network error
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                showNotification('error', 'Connection Error', 
+                    'Unable to connect to server. Please check your internet connection and try again.');
+            } else {
+                showNotification('error', 'Update Failed', 
+                    'An unexpected error occurred. Please try again.');
+            }
         }
     }
 }
