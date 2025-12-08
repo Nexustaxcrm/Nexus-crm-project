@@ -991,6 +991,7 @@ console.log('✅ API routes registered:');
 console.log('  - /api/auth');
 console.log('  - /api/customers');
 console.log('  - /api/users');
+console.log('  - /api/users/password/:username (GET - password retrieval)');
 console.log('  - /api/contact');
 
 // Health check route at /api (must come before catch-all)

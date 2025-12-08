@@ -8612,43 +8612,100 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
             // First, try the dedicated password endpoint
             // Using /password/:username pattern to avoid route conflicts
             console.log('📡 Trying password endpoint:', API_BASE_URL + `/users/password/${username}`);
+            
+            // Get CSRF token for the request
+            let csrf = getCSRFToken();
+            if (!csrf) {
+                console.log('⚠️ No CSRF token, fetching...');
+                csrf = await fetchCSRFToken();
+            }
+            
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            };
+            
+            // Add CSRF token if available (required for protected routes)
+            if (csrf) {
+                headers['X-CSRF-Token'] = csrf;
+                console.log('✅ CSRF token added to request');
+            } else {
+                console.warn('⚠️ No CSRF token available for request');
+            }
+            
             const response = await fetch(API_BASE_URL + `/users/password/${username}`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: headers
             });
             
-            console.log('📥 Password endpoint response:', { status: response.status, ok: response.ok });
+            console.log('📥 Password endpoint response:', { 
+                status: response.status, 
+                statusText: response.statusText,
+                ok: response.ok,
+                url: response.url,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+            
+            // Get response text for debugging
+            const responseText = await response.text();
+            console.log('📄 Response body:', responseText);
             
             if (response.ok) {
-                const data = await response.json();
-                if (data.password) {
-                    password = data.password;
-                    console.log('✅ Password retrieved from API endpoint (cached:', data.cached || false, ')');
-                } else {
-                    console.log('⚠️ API returned OK but no password in response');
+                try {
+                    const data = JSON.parse(responseText);
+                    if (data.password) {
+                        password = data.password;
+                        console.log('✅ Password retrieved from API endpoint (cached:', data.cached || false, ')');
+                    } else {
+                        console.log('⚠️ API returned OK but no password in response:', data);
+                    }
+                } catch (parseError) {
+                    console.error('❌ Failed to parse response JSON:', parseError);
+                    console.log('Raw response:', responseText);
                 }
             } else if (response.status === 404) {
                 // Check if it's a "password not available" response
-                const errorData = await response.json().catch(() => ({}));
+                let errorData = {};
+                try {
+                    errorData = JSON.parse(responseText);
+                } catch (e) {
+                    console.warn('⚠️ Could not parse 404 response as JSON:', responseText);
+                    errorData = { error: 'Route not found', raw: responseText };
+                }
+                
                 if (errorData.hashed) {
                     // Password is hashed in database - cannot retrieve
                     console.log('⚠️ Password is hashed in database, cannot retrieve');
                     showNotification('warning', 'Password Not Available', 
                         errorData.message || 'Password is hashed in the database and cannot be retrieved. Only passwords for newly created users (within 24 hours) are available.');
                     return;
+                } else if (errorData.error === 'Route not found' || errorData.error === 'API endpoint not found') {
+                    // Route doesn't exist - backend might not have the route registered
+                    console.error('❌ Route not found on backend! The password endpoint may not be registered.');
+                    console.error('❌ Full URL attempted:', API_BASE_URL + `/users/password/${username}`);
+                    showNotification('error', 'Route Not Found', 
+                        'The password endpoint is not available on the server. Please ensure the backend has been restarted with the latest code.');
+                    return;
                 } else {
                     // User not found or other 404
                     console.log('⚠️ Password endpoint returned 404:', errorData);
                 }
             } else if (response.status === 403) {
-                const errorData = await response.json().catch(() => ({}));
+                let errorData = {};
+                try {
+                    errorData = JSON.parse(responseText);
+                } catch (e) {
+                    errorData = { error: 'Access denied' };
+                }
                 console.error('❌ Access denied:', errorData);
                 showNotification('error', 'Access Denied', errorData.error || 'Only administrators can view passwords.');
                 return;
             } else {
-                const errorData = await response.json().catch(() => ({}));
+                let errorData = {};
+                try {
+                    errorData = JSON.parse(responseText);
+                } catch (e) {
+                    errorData = { error: 'Server error', raw: responseText };
+                }
                 console.error('❌ Password endpoint error:', response.status, errorData);
             }
         } catch (error) {

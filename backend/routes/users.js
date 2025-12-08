@@ -100,6 +100,17 @@ setInterval(() => {
     }
 }, 60 * 60 * 1000); // Check every hour
 
+// Test route to verify routing is working
+router.get('/test-password-route', (req, res) => {
+    console.log('✅ Password route test endpoint hit!');
+    res.json({ 
+        message: 'Password route test successful',
+        path: req.path,
+        originalUrl: req.originalUrl,
+        method: req.method
+    });
+});
+
 // Get all users (requires authentication)
 router.get('/', authenticateToken, async (req, res) => {
     try {
@@ -122,19 +133,32 @@ router.get('/', authenticateToken, async (req, res) => {
 // This endpoint returns the password if it's in the temporary cache
 // For existing users with hashed passwords, it returns an error
 router.get('/password/:username', authenticateToken, async (req, res) => {
+    console.log('🔍 Password route hit!', {
+        method: req.method,
+        path: req.path,
+        originalUrl: req.originalUrl,
+        params: req.params,
+        username: req.params.username
+    });
+    
     try {
         const dbPool = pool || req.app.locals.pool;
         if (!dbPool) {
+            console.error('❌ Database pool not initialized');
             return res.status(500).json({ error: 'Database not initialized' });
         }
         
         // Check if requester is admin
         if (!req.user || req.user.role !== 'admin') {
+            console.log('❌ Unauthorized access attempt:', {
+                user: req.user ? req.user.username : 'none',
+                role: req.user ? req.user.role : 'none'
+            });
             return res.status(403).json({ error: 'Only administrators can view passwords' });
         }
         
         const { username } = req.params;
-        console.log(`📡 Password request for user: ${username}`);
+        console.log(`📡 Password request for user: ${username} by admin: ${req.user.username}`);
         
         // Check if password is in temporary cache (for newly created users)
         const cachedPassword = passwordCache.get(username.toLowerCase());
