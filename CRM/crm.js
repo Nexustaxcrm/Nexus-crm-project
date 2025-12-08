@@ -7829,45 +7829,6 @@ function exportCallReportWithFilters(startDate, endDate, format, includeCharts) 
 function exportCallReport() {
     exportCallReportWithFilters(null, null, 'csv', true);
 }
-    showNotification('info', 'Call Report', 'Generating call activity report...');
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "CALL ACTIVITY REPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
-    
-    // Call Status Distribution
-    csvContent += "CALL STATUS DISTRIBUTION\n";
-    csvContent += "Call Status,Count,Percentage\n";
-    const callStatusCounts = {
-        'not_called': customers.filter(c => !c.callStatus || c.callStatus === 'not_called').length,
-        'called': customers.filter(c => c.callStatus === 'called').length,
-        'voice_mail': customers.filter(c => c.callStatus === 'voice_mail').length,
-        'new': customers.filter(c => c.callStatus === 'new').length
-    };
-    const total = customers.length;
-    Object.keys(callStatusCounts).forEach(status => {
-        const count = callStatusCounts[status];
-        const percentage = total > 0 ? ((count / total) * 100).toFixed(2) : '0.00';
-        const displayName = status === 'not_called' ? 'Not Called' : status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
-        csvContent += `"${displayName}",${count},${percentage}%\n`;
-    });
-    csvContent += `"Total",${total},100.00%\n\n`;
-    
-    // Customers by Call Status
-    csvContent += "CUSTOMERS BY CALL STATUS\n";
-    csvContent += "Name,Phone,Email,Call Status,Last Contact\n";
-    customers.forEach(c => {
-        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
-        const callStatus = c.callStatus || 'not_called';
-        const displayStatus = callStatus === 'not_called' ? 'Not Called' : callStatus.charAt(0).toUpperCase() + callStatus.slice(1).replace('_', ' ');
-        csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${displayStatus}","${c.lastContact || 'N/A'}"\n`;
-    });
-    
-    downloadCSVFile(csvContent, `Call_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    setTimeout(() => {
-        showNotification('success', 'Report Generated', 'Call report exported successfully!');
-    }, 500);
-}
 
 // Export Performance Report (with filters)
 function exportPerformanceReportWithFilters(startDate, endDate, selectedEmployees, format, includeCharts) {
@@ -7960,57 +7921,6 @@ function exportPerformanceReportWithFilters(startDate, endDate, selectedEmployee
 // Export Performance Report (legacy - no filters)
 function exportPerformanceReport() {
     exportPerformanceReportWithFilters(null, null, null, 'csv', true);
-}
-    showNotification('info', 'Performance Report', 'Generating team performance report...');
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "TEAM PERFORMANCE REPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
-    
-    // Employee Performance
-    csvContent += "EMPLOYEE PERFORMANCE\n";
-    csvContent += "Employee,Assigned Customers,Completed,In Progress,Pending\n";
-    
-    const employeeStats = {};
-    customers.forEach(c => {
-        const assignedTo = c.assignedTo || 'Unassigned';
-        if (!employeeStats[assignedTo]) {
-            employeeStats[assignedTo] = {
-                total: 0,
-                completed: 0,
-                inProgress: 0,
-                pending: 0
-            };
-        }
-        employeeStats[assignedTo].total++;
-        const status = c.status || 'pending';
-        if (status === 'w2_received' || status === 'citizen') {
-            employeeStats[assignedTo].completed++;
-        } else if (status === 'follow_up' || status === 'call_back' || status === 'interested') {
-            employeeStats[assignedTo].inProgress++;
-        } else {
-            employeeStats[assignedTo].pending++;
-        }
-    });
-    
-    Object.keys(employeeStats).sort().forEach(employee => {
-        const stats = employeeStats[employee];
-        csvContent += `"${employee}",${stats.total},${stats.completed},${stats.inProgress},${stats.pending}\n`;
-    });
-    csvContent += "\n";
-    
-    // Overall Statistics
-    csvContent += "OVERALL STATISTICS\n";
-    csvContent += "Metric,Value\n";
-    csvContent += `"Total Customers",${customers.length}\n`;
-    csvContent += `"Total Employees",${Object.keys(employeeStats).filter(e => e !== 'Unassigned').length}\n`;
-    csvContent += `"Unassigned Customers",${employeeStats['Unassigned'] ? employeeStats['Unassigned'].total : 0}\n`;
-    csvContent += `"Assigned Customers",${customers.filter(c => c.assignedTo).length}\n`;
-    
-    downloadCSVFile(csvContent, `Performance_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    setTimeout(() => {
-        showNotification('success', 'Report Generated', 'Performance report exported successfully!');
-    }, 500);
 }
 
 function generateQuickReport(reportType) {
@@ -8510,41 +8420,6 @@ function exportMonthlySummaryReportWithFilters(startDate, endDate, format, inclu
 function exportMonthlySummaryReport() {
     exportMonthlySummaryReportWithFilters(null, null, 'csv', true);
 }
-    showNotification('info', 'Monthly Report', 'Generating monthly summary report...');
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "MONTHLY SUMMARY REPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
-    
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const monthlyData = {};
-    
-    customers.forEach(c => {
-        const dateField = c.createdAt || c.createdDate;
-        if (dateField) {
-            const date = new Date(dateField);
-            if (!isNaN(date.getTime())) {
-                const month = date.getMonth();
-                const monthName = months[month];
-                if (!monthlyData[monthName]) {
-                    monthlyData[monthName] = 0;
-                }
-                monthlyData[monthName]++;
-            }
-        }
-    });
-    
-    csvContent += "Month,Customer Count\n";
-    months.forEach(month => {
-        csvContent += `"${month}",${monthlyData[month] || 0}\n`;
-    });
-    csvContent += `"Total",${customers.length}\n`;
-    
-    downloadCSVFile(csvContent, `Monthly_Summary_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    setTimeout(() => {
-        showNotification('success', 'Report Ready', 'Monthly summary report exported successfully!');
-    }, 500);
-}
 
 // Export Employee Performance Report
 function exportEmployeePerformanceReport(selectedEmployees = null, startDate = null, endDate = null) {
@@ -8682,29 +8557,6 @@ function exportAllDataWithFilters(startDate, endDate, format, includeCharts) {
 // Export All Data (legacy - no filters)
 function exportAllData() {
     exportAllDataWithFilters(null, null, 'csv', true);
-}
-    showNotification('info', 'Data Export', 'Preparing data export...');
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "COMPLETE DATA EXPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
-    
-    csvContent += "Name,Phone,Email,Address,Status,Call Status,Assigned To,Comments,Refund Status\n";
-    customers.forEach(c => {
-        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
-        const refundStatusKey = `customerRefundStatus_${c.email || c.id}`;
-        let refundStatus = sessionStorage.getItem(refundStatusKey);
-        if (!refundStatus) {
-            refundStatus = sessionStorage.getItem('customerRefundStatus');
-        }
-        const refundStatusDisplay = refundStatus ? getRefundStatusDisplayName(refundStatus) : '';
-        csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}","${getStatusDisplayName(c.status || 'pending')}","${c.callStatus || 'not_called'}","${c.assignedTo || 'Unassigned'}","${(c.comments || '').replace(/"/g, '""')}","${refundStatusDisplay}"\n`;
-    });
-    
-    downloadCSVFile(csvContent, `Complete_Data_Export_${new Date().toISOString().split('T')[0]}.csv`);
-    setTimeout(() => {
-        showNotification('success', 'Export Ready', 'Complete data export completed successfully!');
-    }, 500);
 }
 
 function generateCustomReport() {
