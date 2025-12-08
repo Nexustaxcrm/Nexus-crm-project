@@ -7765,41 +7765,6 @@ function exportCustomerReportWithFilters(startDate, endDate, selectedStatuses, f
 function exportCustomerReport() {
     exportCustomerReportWithFilters(null, null, null, 'csv', true);
 }
-    showNotification('info', 'Customer Report', 'Generating customer analysis report...');
-    
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "CUSTOMER ANALYSIS REPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
-    
-    // Customer Status Distribution
-    csvContent += "CUSTOMER STATUS DISTRIBUTION\n";
-    csvContent += "Status,Count,Percentage\n";
-    const statusCounts = {};
-    customers.forEach(c => {
-        const status = c.status || 'pending';
-        statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
-    const totalCustomers = customers.length;
-    Object.keys(statusCounts).sort().forEach(status => {
-        const count = statusCounts[status];
-        const percentage = totalCustomers > 0 ? ((count / totalCustomers) * 100).toFixed(2) : '0.00';
-        csvContent += `"${getStatusDisplayName(status)}",${count},${percentage}%\n`;
-    });
-    csvContent += `"Total",${totalCustomers},100.00%\n\n`;
-    
-    // Customer Details
-    csvContent += "CUSTOMER DETAILS\n";
-    csvContent += "Name,Phone,Email,Address,Status,Call Status,Assigned To,Comments\n";
-    customers.forEach(c => {
-        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
-        csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}","${getStatusDisplayName(c.status || 'pending')}","${c.callStatus || 'not_called'}","${c.assignedTo || 'Unassigned'}","${(c.comments || '').replace(/"/g, '""')}"\n`;
-    });
-    
-    downloadCSVFile(csvContent, `Customer_Report_${new Date().toISOString().split('T')[0]}.csv`);
-    setTimeout(() => {
-        showNotification('success', 'Report Generated', 'Customer report exported successfully!');
-    }, 500);
-}
 
 // Export Call Report (with filters)
 function exportCallReportWithFilters(startDate, endDate, format, includeCharts) {
