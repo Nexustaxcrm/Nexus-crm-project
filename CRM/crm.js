@@ -8622,28 +8622,33 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
             
             if (response.ok) {
                 const data = await response.json();
-                password = data.password;
-                console.log('✅ Password retrieved from API endpoint');
-            } else if (response.status === 404) {
-                // Endpoint doesn't exist, try fetching full user details
-                console.log('⚠️ Password endpoint not found (404), trying to fetch user details...');
-                const userResponse = await fetch(API_BASE_URL + `/users?username=${username}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                if (userResponse.ok) {
-                    const usersData = await userResponse.json();
-                    const userArray = Array.isArray(usersData) ? usersData : (usersData.users || []);
-                    const user = userArray.find(u => u.username === username);
-                    console.log('👤 User from API:', user ? 'Found' : 'Not found');
-                    if (user && user.password) {
-                        password = user.password;
-                        console.log('✅ Password found in user data from API');
-                    }
+                if (data.password) {
+                    password = data.password;
+                    console.log('✅ Password retrieved from API endpoint (cached:', data.cached || false, ')');
+                } else {
+                    console.log('⚠️ API returned OK but no password in response');
                 }
+            } else if (response.status === 404) {
+                // Check if it's a "password not available" response
+                const errorData = await response.json().catch(() => ({}));
+                if (errorData.hashed) {
+                    // Password is hashed in database - cannot retrieve
+                    console.log('⚠️ Password is hashed in database, cannot retrieve');
+                    showNotification('warning', 'Password Not Available', 
+                        errorData.message || 'Password is hashed in the database and cannot be retrieved. Only passwords for newly created users (within 24 hours) are available.');
+                    return;
+                } else {
+                    // User not found or other 404
+                    console.log('⚠️ Password endpoint returned 404:', errorData);
+                }
+            } else if (response.status === 403) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('❌ Access denied:', errorData);
+                showNotification('error', 'Access Denied', errorData.error || 'Only administrators can view passwords.');
+                return;
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('❌ Password endpoint error:', response.status, errorData);
             }
         } catch (error) {
             console.log('⚠️ Password endpoint error:', error);

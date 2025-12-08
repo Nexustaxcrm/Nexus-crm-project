@@ -75,6 +75,31 @@ const validateUserInput = (req, res, next) => {
     next();
 };
 
+// Temporary password storage (in-memory cache)
+// This stores passwords temporarily when users are created
+// Passwords are cleared after 24 hours for security
+const passwordCache = new Map();
+const PASSWORD_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+// Store password in cache when user is created
+function cacheUserPassword(username, password) {
+    passwordCache.set(username.toLowerCase(), {
+        password: password,
+        timestamp: Date.now()
+    });
+    console.log(`✅ Password cached for user: ${username}`);
+}
+
+// Clean up expired passwords periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [username, data] of passwordCache.entries()) {
+        if (now - data.timestamp > PASSWORD_CACHE_TTL) {
+            passwordCache.delete(username);
+        }
+    }
+}, 60 * 60 * 1000); // Check every hour
+
 // Get all users (requires authentication)
 router.get('/', authenticateToken, async (req, res) => {
     try {
@@ -119,6 +144,11 @@ router.post('/', authenticateToken, validateUserInput, async (req, res) => {
             'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role, locked',
             [username.trim(), hashedPassword, role]
         );
+        
+        // CRITICAL: Cache the plain text password temporarily for viewing
+        // This allows admins to view passwords for newly created users
+        cacheUserPassword(username.trim(), password);
+        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error creating user:', error);
@@ -193,5 +223,74 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+// Get user password (requires admin authentication)
+// This endpoint returns the password if it's in the temporary cache
+// For existing users with hashed passwords, it returns an error
+router.get('/:username/password', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        // Check if requester is admin
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only administrators can view passwords' });
+        }
+        
+        const { username } = req.params;
+        
+        // Check if password is in temporary cache (for newly created users)
+        const cachedPassword = passwordCache.get(username.toLowerCase());
+        if (cachedPassword) {
+            // Check if cache entry is still valid
+            const now = Date.now();
+            if (now - cachedPassword.timestamp <= PASSWORD_CACHE_TTL) {
+                return res.json({ 
+                    password: cachedPassword.password,
+                    cached: true,
+                    message: 'Password retrieved from temporary cache'
+                });
+            } else {
+                // Cache expired, remove it
+                passwordCache.delete(username.toLowerCase());
+            }
+        }
+        
+        // Password not in cache - check if user exists
+        const userResult = await dbPool.query(
+            'SELECT id, username, role FROM users WHERE LOWER(username) = $1',
+            [username.toLowerCase()]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // User exists but password is hashed in database
+        // Cannot retrieve original password
+        return res.status(404).json({ 
+            error: 'Password not available',
+            message: 'Password is hashed in the database and cannot be retrieved. Only passwords for newly created users (within 24 hours) are available.',
+            hashed: true
+        });
+    } catch (error) {
+        console.error('Error fetching user password:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Store password in cache when user is created (called from POST /users)
+function cacheUserPassword(username, password) {
+    passwordCache.set(username.toLowerCase(), {
+        password: password,
+        timestamp: Date.now()
+    });
+    console.log(`✅ Password cached for user: ${username}`);
+}
+
+// Export the cache function for use in POST /users route
+router.cacheUserPassword = cacheUserPassword;
 
 module.exports = router;
