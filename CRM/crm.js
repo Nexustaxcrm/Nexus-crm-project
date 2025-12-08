@@ -8610,8 +8610,9 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
         
         try {
             // First, try the dedicated password endpoint
-            console.log('📡 Trying password endpoint:', API_BASE_URL + `/users/${username}/password`);
-            const response = await fetch(API_BASE_URL + `/users/${username}/password`, {
+            // Using /password/:username pattern to avoid route conflicts
+            console.log('📡 Trying password endpoint:', API_BASE_URL + `/users/password/${username}`);
+            const response = await fetch(API_BASE_URL + `/users/password/${username}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`

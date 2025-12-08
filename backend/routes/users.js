@@ -116,6 +116,72 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
+// Get user password (requires admin authentication)
+// CRITICAL: This route MUST be defined BEFORE /:id routes to avoid route conflicts
+// Using a more specific route pattern to ensure proper matching
+// This endpoint returns the password if it's in the temporary cache
+// For existing users with hashed passwords, it returns an error
+router.get('/password/:username', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        // Check if requester is admin
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only administrators can view passwords' });
+        }
+        
+        const { username } = req.params;
+        console.log(`📡 Password request for user: ${username}`);
+        
+        // Check if password is in temporary cache (for newly created users)
+        const cachedPassword = passwordCache.get(username.toLowerCase());
+        if (cachedPassword) {
+            // Check if cache entry is still valid
+            const now = Date.now();
+            if (now - cachedPassword.timestamp <= PASSWORD_CACHE_TTL) {
+                console.log(`✅ Password found in cache for user: ${username}`);
+                return res.json({ 
+                    password: cachedPassword.password,
+                    cached: true,
+                    message: 'Password retrieved from temporary cache'
+                });
+            } else {
+                // Cache expired, remove it
+                console.log(`⚠️ Password cache expired for user: ${username}`);
+                passwordCache.delete(username.toLowerCase());
+            }
+        } else {
+            console.log(`⚠️ Password not found in cache for user: ${username}`);
+        }
+        
+        // Password not in cache - check if user exists
+        const userResult = await dbPool.query(
+            'SELECT id, username, role FROM users WHERE LOWER(username) = $1',
+            [username.toLowerCase()]
+        );
+        
+        if (userResult.rows.length === 0) {
+            console.log(`❌ User not found: ${username}`);
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // User exists but password is hashed in database
+        // Cannot retrieve original password
+        console.log(`❌ Password not available for user: ${username} (hashed in database)`);
+        return res.status(404).json({ 
+            error: 'Password not available',
+            message: 'Password is hashed in the database and cannot be retrieved. Only passwords for newly created users (within 24 hours) are available.',
+            hashed: true
+        });
+    } catch (error) {
+        console.error('Error fetching user password:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Create user (requires authentication - only admins should create users)
 router.post('/', authenticateToken, validateUserInput, async (req, res) => {
     try {
@@ -190,6 +256,15 @@ router.put('/:id', authenticateToken, validateUserInput, async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, 10);
             query = 'UPDATE users SET username=$1, password=$2, role=$3, locked=$4 WHERE id=$5 RETURNING id, username, role, locked';
             params = [username ? username.trim() : null, hashedPassword, role, locked, id];
+            
+            // CRITICAL: Cache the plain text password temporarily when password is updated
+            // This allows admins to view passwords after they've been reset
+            const updatedUser = await dbPool.query('SELECT username FROM users WHERE id = $1', [id]);
+            if (updatedUser.rows.length > 0) {
+                const userUsername = updatedUser.rows[0].username;
+                cacheUserPassword(userUsername, password);
+                console.log(`✅ Password cached after update for user: ${userUsername}`);
+            }
         } else {
             query = 'UPDATE users SET username=$1, role=$2, locked=$3 WHERE id=$4 RETURNING id, username, role, locked';
             params = [username ? username.trim() : null, role, locked, id];
@@ -223,74 +298,5 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
-// Get user password (requires admin authentication)
-// This endpoint returns the password if it's in the temporary cache
-// For existing users with hashed passwords, it returns an error
-router.get('/:username/password', authenticateToken, async (req, res) => {
-    try {
-        const dbPool = pool || req.app.locals.pool;
-        if (!dbPool) {
-            return res.status(500).json({ error: 'Database not initialized' });
-        }
-        
-        // Check if requester is admin
-        if (!req.user || req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Only administrators can view passwords' });
-        }
-        
-        const { username } = req.params;
-        
-        // Check if password is in temporary cache (for newly created users)
-        const cachedPassword = passwordCache.get(username.toLowerCase());
-        if (cachedPassword) {
-            // Check if cache entry is still valid
-            const now = Date.now();
-            if (now - cachedPassword.timestamp <= PASSWORD_CACHE_TTL) {
-                return res.json({ 
-                    password: cachedPassword.password,
-                    cached: true,
-                    message: 'Password retrieved from temporary cache'
-                });
-            } else {
-                // Cache expired, remove it
-                passwordCache.delete(username.toLowerCase());
-            }
-        }
-        
-        // Password not in cache - check if user exists
-        const userResult = await dbPool.query(
-            'SELECT id, username, role FROM users WHERE LOWER(username) = $1',
-            [username.toLowerCase()]
-        );
-        
-        if (userResult.rows.length === 0) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        // User exists but password is hashed in database
-        // Cannot retrieve original password
-        return res.status(404).json({ 
-            error: 'Password not available',
-            message: 'Password is hashed in the database and cannot be retrieved. Only passwords for newly created users (within 24 hours) are available.',
-            hashed: true
-        });
-    } catch (error) {
-        console.error('Error fetching user password:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Store password in cache when user is created (called from POST /users)
-function cacheUserPassword(username, password) {
-    passwordCache.set(username.toLowerCase(), {
-        password: password,
-        timestamp: Date.now()
-    });
-    console.log(`✅ Password cached for user: ${username}`);
-}
-
-// Export the cache function for use in POST /users route
-router.cacheUserPassword = cacheUserPassword;
 
 module.exports = router;
