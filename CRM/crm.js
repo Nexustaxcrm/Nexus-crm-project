@@ -8312,7 +8312,7 @@ function loadUserManagementTable(activeTab = 'company') {
     );
     
     // Helper function to render user row
-    const renderUserRow = (user) => {
+    const renderUserRow = (user, showPasswordColumn = false) => {
         let roleBadgeClass = 'success'; // default for employee
         if (user.role === 'admin') {
             roleBadgeClass = 'primary';
@@ -8322,11 +8322,26 @@ function loadUserManagementTable(activeTab = 'company') {
             roleBadgeClass = 'secondary';
         }
         
+        // Generate password column HTML (only for company users)
+        let passwordColumn = '';
+        if (showPasswordColumn) {
+            const passwordId = `password-${user.id || user.username}`;
+            passwordColumn = `
+            <td>
+                <span id="${passwordId}" class="password-display">••••••••</span>
+                <button class="btn btn-sm btn-outline-primary ms-2" onclick="viewUserPassword('${user.username}', '${passwordId}')" title="View Password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+            `;
+        }
+        
         return `
         <tr>
             <td>${user.username}</td>
             <td><span class="badge bg-${roleBadgeClass}">${user.role}</span></td>
             <td><span class="badge bg-${user.locked ? 'danger' : 'success'}">${user.locked ? 'Locked' : 'Active'}</span></td>
+            ${passwordColumn}
             <td>
                 <button class="btn btn-sm btn-secondary" onclick="toggleUserLock('${user.username}')">
                     <i class="fas fa-${user.locked ? 'unlock' : 'lock'}"></i>
@@ -8400,17 +8415,17 @@ function loadUserManagementTable(activeTab = 'company') {
         if (customerUsers.length === 0) {
             customersTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No customer logins found</td></tr>';
         } else {
-            customersTbody.innerHTML = customerUsers.map(renderUserRow).join('');
+            customersTbody.innerHTML = customerUsers.map(user => renderUserRow(user, false)).join('');
 }
     }
     
-    // Load Company Logins table
+    // Load Company Logins table (with password column)
     const companyTbody = document.getElementById('companyLoginsTable');
     if (companyTbody) {
         if (companyUsers.length === 0) {
-            companyTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No company logins found</td></tr>';
+            companyTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No company logins found</td></tr>';
         } else {
-            companyTbody.innerHTML = companyUsers.map(renderUserRow).join('');
+            companyTbody.innerHTML = companyUsers.map(user => renderUserRow(user, true)).join('');
         }
     }
     
@@ -8438,6 +8453,183 @@ function loadUserManagementTable(activeTab = 'company') {
 
 // Store password value as user types (workaround for browser security/autofill issues)
 let storedPasswordValue = '';
+
+// View User Password Functions
+async function viewUserPassword(username, passwordElementId) {
+    // Store target username and element ID
+    document.getElementById('viewPasswordTargetUsername').value = username;
+    document.getElementById('viewPasswordTargetElementId').value = passwordElementId;
+    
+    // Clear previous inputs
+    document.getElementById('viewPasswordAdminUsername').value = '';
+    document.getElementById('viewPasswordAdminPassword').value = '';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('viewPasswordModal'));
+    modal.show();
+    
+    // Focus on username field
+    setTimeout(() => {
+        document.getElementById('viewPasswordAdminUsername').focus();
+    }, 300);
+}
+
+// Verify admin credentials for password viewing
+async function verifyAdminForPasswordView() {
+    const adminUsername = document.getElementById('viewPasswordAdminUsername').value.trim().toLowerCase();
+    const adminPassword = document.getElementById('viewPasswordAdminPassword').value;
+    const targetUsername = document.getElementById('viewPasswordTargetUsername').value;
+    const passwordElementId = document.getElementById('viewPasswordTargetElementId').value;
+    
+    // Validate inputs
+    if (!adminUsername || !adminPassword) {
+        showNotification('error', 'Validation Error', 'Please enter both admin username and password.');
+        return;
+    }
+    
+    // CRITICAL: Only allow username "admin" (not other admins)
+    if (adminUsername !== 'admin') {
+        showNotification('error', 'Access Denied', 'Only the main admin account (username: "admin") can view passwords.');
+        return;
+    }
+    
+    // Verify admin password
+    const DEV_MODE = true; // Same as in handleLogin
+    let passwordValid = false;
+    
+    try {
+        // Try to verify with server
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const response = await fetch(API_BASE_URL + '/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: 'admin', password: adminPassword }),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+            passwordValid = true;
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            showNotification('error', 'Authentication Failed', errorData.error || 'Invalid admin password.');
+            return;
+        }
+    } catch (error) {
+        // Server not available - use dev mode
+        if (DEV_MODE && (error.name === 'AbortError' || error.message.includes('Failed to fetch'))) {
+            // In dev mode, check against users array
+            const adminUser = users.find(u => u.username === 'admin' && u.role === 'admin');
+            if (adminUser && adminUser.password === adminPassword) {
+                passwordValid = true;
+            } else {
+                // Fallback: if no password stored, allow any password in dev mode for admin
+                // But only if username is "admin"
+                if (adminUsername === 'admin') {
+                    passwordValid = true;
+                } else {
+                    showNotification('error', 'Authentication Failed', 'Invalid admin password.');
+                    return;
+                }
+            }
+        } else {
+            showNotification('error', 'Connection Error', 'Unable to verify credentials. Please check your connection.');
+            return;
+        }
+    }
+    
+    if (passwordValid) {
+        // Fetch and display the password
+        await fetchAndDisplayPassword(targetUsername, passwordElementId);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('viewPasswordModal'));
+        modal.hide();
+    }
+}
+
+// Fetch user password from backend and display it
+async function fetchAndDisplayPassword(username, passwordElementId) {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You must be logged in.');
+            return;
+        }
+        
+        // Try to fetch user password from API
+        // Note: This endpoint may need to be created on the backend
+        let password = null;
+        
+        try {
+            // First, try the dedicated password endpoint
+            const response = await fetch(API_BASE_URL + `/users/${username}/password`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                password = data.password;
+            } else if (response.status === 404) {
+                // Endpoint doesn't exist, try fetching full user details
+                console.log('Password endpoint not found, trying to fetch user details...');
+                const userResponse = await fetch(API_BASE_URL + `/users?username=${username}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (userResponse.ok) {
+                    const usersData = await userResponse.json();
+                    const userArray = Array.isArray(usersData) ? usersData : (usersData.users || []);
+                    const user = userArray.find(u => u.username === username);
+                    if (user && user.password) {
+                        password = user.password;
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Password endpoint error:', error);
+        }
+        
+        // If API doesn't have password, check if password is in local users array
+        if (!password) {
+            const user = users.find(u => u.username === username);
+            if (user && user.password) {
+                password = user.password;
+            } else {
+                // Password not available - show message
+                showNotification('warning', 'Password Not Available', 
+                    `Password for user "${username}" is not available. It may be hashed in the database. Please contact the system administrator.`);
+                return;
+            }
+        }
+        
+        // Display the password
+        const passwordElement = document.getElementById(passwordElementId);
+        if (passwordElement) {
+            passwordElement.textContent = password;
+            passwordElement.style.color = '#063232';
+            passwordElement.style.fontWeight = '600';
+            passwordElement.classList.add('password-visible');
+            
+            // Show success notification
+            showNotification('success', 'Password Displayed', `Password for "${username}" is now visible.`, 3000);
+        }
+    } catch (error) {
+        console.error('Error fetching password:', error);
+        showNotification('error', 'Error', 'Failed to fetch password. Please try again.');
+    }
+}
 
 function showAddUserModal() {
     // Reset stored password

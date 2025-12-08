@@ -7943,6 +7943,7 @@
                                         <th>Username</th>
                                         <th>Role</th>
                                         <th>Status</th>
+                                        <th>Passwords</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -8525,6 +8526,40 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="verifyAdminPassword()">Verify</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Password Modal -->
+    <div class="modal fade" id="viewPasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-lock"></i> View User Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Security Notice:</strong> Only the main admin account can view user passwords.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Username</label>
+                        <input type="text" class="form-control" id="viewPasswordAdminUsername" placeholder="Enter admin username" autocomplete="username">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Password</label>
+                        <input type="password" class="form-control" id="viewPasswordAdminPassword" placeholder="Enter admin password" autocomplete="current-password" onkeypress="if(event.key === 'Enter') verifyAdminForPasswordView()">
+                    </div>
+                    <input type="hidden" id="viewPasswordTargetUsername">
+                    <input type="hidden" id="viewPasswordTargetElementId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="verifyAdminForPasswordView()">
+                        <i class="fas fa-eye"></i> View Password
+                    </button>
                 </div>
             </div>
         </div>
