@@ -7692,21 +7692,79 @@ function getChartOptions(chartType, dataType) {
 
 // Reports Functions
 function generateReport(reportType) {
-    switch(reportType) {
-        case 'customer':
-            exportCustomerReport();
-            break;
-        case 'call':
-            exportCallReport();
-            break;
-        case 'performance':
-            exportPerformanceReport();
-            break;
-    }
+    // Open export filter modal instead of directly downloading
+    showExportFilterModal(reportType);
 }
 
-// Export Customer Report to Excel
+// Export Customer Report (with filters)
+function exportCustomerReportWithFilters(startDate, endDate, selectedStatuses, format, includeCharts) {
+    showNotification('info', 'Customer Report', 'Generating customer analysis report...');
+    
+    // Filter customers
+    let filteredCustomers = [...customers];
+    
+    // Filter by date range
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
+    
+    // Filter by selected statuses
+    if (selectedStatuses && selectedStatuses.length > 0) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const status = c.status || 'pending';
+            return selectedStatuses.includes(status);
+        });
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "CUSTOMER ANALYSIS REPORT\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    csvContent += "\n";
+    
+    // Customer Status Distribution
+    csvContent += "CUSTOMER STATUS DISTRIBUTION\n";
+    csvContent += "Status,Count,Percentage\n";
+    const statusCounts = {};
+    filteredCustomers.forEach(c => {
+        const status = c.status || 'pending';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    const totalCustomers = filteredCustomers.length;
+    Object.keys(statusCounts).sort().forEach(status => {
+        const count = statusCounts[status];
+        const percentage = totalCustomers > 0 ? ((count / totalCustomers) * 100).toFixed(2) : '0.00';
+        csvContent += `"${getStatusDisplayName(status)}",${count},${percentage}%\n`;
+    });
+    csvContent += `"Total",${totalCustomers},100.00%\n\n`;
+    
+    // Customer Details
+    csvContent += "CUSTOMER DETAILS\n";
+    csvContent += "Name,Phone,Email,Address,Status,Call Status,Assigned To,Comments\n";
+    filteredCustomers.forEach(c => {
+        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+        csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}","${getStatusDisplayName(c.status || 'pending')}","${c.callStatus || 'not_called'}","${c.assignedTo || 'Unassigned'}","${(c.comments || '').replace(/"/g, '""')}"\n`;
+    });
+    
+    const filename = `Customer_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSVFile(csvContent, filename);
+    setTimeout(() => {
+        showNotification('success', 'Report Generated', 'Customer report exported successfully!');
+    }, 500);
+}
+
+// Export Customer Report (legacy - no filters)
 function exportCustomerReport() {
+    exportCustomerReportWithFilters(null, null, null, 'csv', true);
+}
     showNotification('info', 'Customer Report', 'Generating customer analysis report...');
     
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -7743,8 +7801,69 @@ function exportCustomerReport() {
     }, 500);
 }
 
-// Export Call Report to Excel
+// Export Call Report (with filters)
+function exportCallReportWithFilters(startDate, endDate, format, includeCharts) {
+    showNotification('info', 'Call Report', 'Generating call activity report...');
+    
+    // Filter customers by date range
+    let filteredCustomers = [...customers];
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "CALL ACTIVITY REPORT\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    csvContent += "\n";
+    
+    // Call Status Distribution
+    csvContent += "CALL STATUS DISTRIBUTION\n";
+    csvContent += "Call Status,Count,Percentage\n";
+    const callStatusCounts = {
+        'not_called': filteredCustomers.filter(c => !c.callStatus || c.callStatus === 'not_called').length,
+        'called': filteredCustomers.filter(c => c.callStatus === 'called').length,
+        'voice_mail': filteredCustomers.filter(c => c.callStatus === 'voice_mail').length,
+        'new': filteredCustomers.filter(c => c.callStatus === 'new').length
+    };
+    const total = filteredCustomers.length;
+    Object.keys(callStatusCounts).forEach(status => {
+        const count = callStatusCounts[status];
+        const percentage = total > 0 ? ((count / total) * 100).toFixed(2) : '0.00';
+        const displayName = status === 'not_called' ? 'Not Called' : status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+        csvContent += `"${displayName}",${count},${percentage}%\n`;
+    });
+    csvContent += `"Total",${total},100.00%\n\n`;
+    
+    // Customers by Call Status
+    csvContent += "CUSTOMERS BY CALL STATUS\n";
+    csvContent += "Name,Phone,Email,Call Status,Last Contact\n";
+    filteredCustomers.forEach(c => {
+        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+        const callStatus = c.callStatus || 'not_called';
+        const displayStatus = callStatus === 'not_called' ? 'Not Called' : callStatus.charAt(0).toUpperCase() + callStatus.slice(1).replace('_', ' ');
+        csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${displayStatus}","${c.lastContact || 'N/A'}"\n`;
+    });
+    
+    const filename = `Call_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSVFile(csvContent, filename);
+    setTimeout(() => {
+        showNotification('success', 'Report Generated', 'Call report exported successfully!');
+    }, 500);
+}
+
+// Export Call Report (legacy - no filters)
 function exportCallReport() {
+    exportCallReportWithFilters(null, null, 'csv', true);
+}
     showNotification('info', 'Call Report', 'Generating call activity report...');
     
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -7785,8 +7904,98 @@ function exportCallReport() {
     }, 500);
 }
 
-// Export Performance Report to Excel
+// Export Performance Report (with filters)
+function exportPerformanceReportWithFilters(startDate, endDate, selectedEmployees, format, includeCharts) {
+    showNotification('info', 'Performance Report', 'Generating team performance report...');
+    
+    // Filter customers
+    let filteredCustomers = [...customers];
+    
+    // Filter by date range
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
+    
+    // Filter by selected employees
+    if (selectedEmployees && selectedEmployees.length > 0) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const assignedTo = c.assignedTo || 'Unassigned';
+            return selectedEmployees.includes(assignedTo);
+        });
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "TEAM PERFORMANCE REPORT\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    if (selectedEmployees && selectedEmployees.length > 0) {
+        csvContent += `Selected Employees: ${selectedEmployees.join(', ')}\n`;
+    }
+    csvContent += "\n";
+    
+    // Employee Performance
+    csvContent += "EMPLOYEE PERFORMANCE\n";
+    csvContent += "Employee,Assigned Customers,Completed,In Progress,Pending\n";
+    
+    const employeeStats = {};
+    filteredCustomers.forEach(c => {
+        const assignedTo = c.assignedTo || 'Unassigned';
+        if (!employeeStats[assignedTo]) {
+            employeeStats[assignedTo] = {
+                total: 0,
+                completed: 0,
+                inProgress: 0,
+                pending: 0
+            };
+        }
+        employeeStats[assignedTo].total++;
+        const status = c.status || 'pending';
+        if (status === 'w2_received' || status === 'citizen') {
+            employeeStats[assignedTo].completed++;
+        } else if (status === 'follow_up' || status === 'call_back' || status === 'interested') {
+            employeeStats[assignedTo].inProgress++;
+        } else {
+            employeeStats[assignedTo].pending++;
+        }
+    });
+    
+    const employeesToReport = selectedEmployees && selectedEmployees.length > 0
+        ? selectedEmployees.filter(emp => employeeStats[emp])
+        : Object.keys(employeeStats).sort();
+    
+    employeesToReport.forEach(employee => {
+        const stats = employeeStats[employee];
+        csvContent += `"${employee}",${stats.total},${stats.completed},${stats.inProgress},${stats.pending}\n`;
+    });
+    csvContent += "\n";
+    
+    // Overall Statistics
+    csvContent += "OVERALL STATISTICS\n";
+    csvContent += "Metric,Value\n";
+    csvContent += `"Total Customers",${filteredCustomers.length}\n`;
+    csvContent += `"Total Employees",${employeesToReport.filter(e => e !== 'Unassigned').length}\n`;
+    csvContent += `"Unassigned Customers",${employeeStats['Unassigned'] ? employeeStats['Unassigned'].total : 0}\n`;
+    csvContent += `"Assigned Customers",${filteredCustomers.filter(c => c.assignedTo).length}\n`;
+    
+    const filename = `Performance_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSVFile(csvContent, filename);
+    setTimeout(() => {
+        showNotification('success', 'Report Generated', 'Performance report exported successfully!');
+    }, 500);
+}
+
+// Export Performance Report (legacy - no filters)
 function exportPerformanceReport() {
+    exportPerformanceReportWithFilters(null, null, null, 'csv', true);
+}
     showNotification('info', 'Performance Report', 'Generating team performance report...');
     
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -7840,19 +8049,12 @@ function exportPerformanceReport() {
 }
 
 function generateQuickReport(reportType) {
-    switch(reportType) {
-        case 'status':
-            exportStatusDistributionReport();
-            break;
-        case 'monthly':
-            exportMonthlySummaryReport();
-            break;
-        case 'employee':
-            showEmployeePerformanceModal();
-            break;
-        case 'export':
-            exportAllData();
-            break;
+    // Open export filter modal instead of directly downloading
+    // Employee performance already has its own modal, so keep that
+    if (reportType === 'employee') {
+        showEmployeePerformanceModal();
+    } else {
+        showExportFilterModal(reportType);
     }
 }
 
@@ -8000,21 +8202,271 @@ function generateEmployeePerformanceReport() {
     exportEmployeePerformanceReport(selectedEmployees, start, end);
 }
 
-// Export Status Distribution Report
-function exportStatusDistributionReport() {
+// Show Export Filter Modal
+function showExportFilterModal(reportType) {
+    // Set report type
+    document.getElementById('exportReportType').value = reportType;
+    
+    // Set report title
+    const reportTitles = {
+        'customer': 'Customer Report',
+        'call': 'Call Report',
+        'performance': 'Performance Report',
+        'status': 'Status Distribution',
+        'monthly': 'Monthly Summary',
+        'export': 'Export All Data'
+    };
+    document.getElementById('exportReportTitle').textContent = reportTitles[reportType] || 'Report';
+    
+    // Show/hide filters based on report type
+    const statusFilterContainer = document.getElementById('statusFilterContainer');
+    const employeeFilterContainer = document.getElementById('employeeFilterContainer');
+    
+    // Show status filter for status distribution and customer reports
+    if (reportType === 'status' || reportType === 'customer') {
+        statusFilterContainer.style.display = 'block';
+        loadStatusFilters();
+    } else {
+        statusFilterContainer.style.display = 'none';
+    }
+    
+    // Show employee filter for performance reports
+    if (reportType === 'performance') {
+        employeeFilterContainer.style.display = 'block';
+        loadEmployeeFilters();
+    } else {
+        employeeFilterContainer.style.display = 'none';
+    }
+    
+    // Set default date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    document.getElementById('exportEndDate').value = endDate.toISOString().split('T')[0];
+    document.getElementById('exportStartDate').value = startDate.toISOString().split('T')[0];
+    
+    // Reset format to CSV
+    document.getElementById('exportFormat').value = 'csv';
+    
+    // Handle date range change (remove old listener if exists, then add new one)
+    const dateRangeSelect = document.getElementById('exportDateRange');
+    const newDateRangeSelect = dateRangeSelect.cloneNode(true);
+    dateRangeSelect.parentNode.replaceChild(newDateRangeSelect, dateRangeSelect);
+    
+    newDateRangeSelect.addEventListener('change', function() {
+        const customContainer = document.getElementById('customDateRangeContainer');
+        if (this.value === 'custom') {
+            customContainer.style.display = 'block';
+        } else {
+            customContainer.style.display = 'none';
+            // Set dates based on selection
+            const end = new Date();
+            const start = new Date();
+            switch(this.value) {
+                case 'last7':
+                    start.setDate(start.getDate() - 7);
+                    break;
+                case 'last30':
+                    start.setDate(start.getDate() - 30);
+                    break;
+                case 'last3months':
+                    start.setMonth(start.getMonth() - 3);
+                    break;
+                case 'last6months':
+                    start.setMonth(start.getMonth() - 6);
+                    break;
+                case 'lastyear':
+                    start.setFullYear(start.getFullYear() - 1);
+                    break;
+                default:
+                    start.setFullYear(2000); // All time
+            }
+            document.getElementById('exportStartDate').value = start.toISOString().split('T')[0];
+            document.getElementById('exportEndDate').value = end.toISOString().split('T')[0];
+        }
+    });
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('exportFilterModal'));
+    modal.show();
+}
+
+// Load status filters
+function loadStatusFilters() {
+    const statusFilterList = document.getElementById('statusFilterList');
+    const statuses = ['pending', 'follow_up', 'call_back', 'interested', 'w2_received', 'citizen', 'not_interested'];
+    
+    statusFilterList.innerHTML = statuses.map(status => {
+        return `
+            <div class="form-check mb-2">
+                <input class="form-check-input export-status-checkbox" type="checkbox" value="${status}" id="status_${status}" checked>
+                <label class="form-check-label" for="status_${status}">
+                    ${getStatusDisplayName(status)}
+                </label>
+            </div>
+        `;
+    }).join('');
+    
+    // Handle "All Statuses" checkbox
+    document.getElementById('exportStatusAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.export-status-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+}
+
+// Load employee filters
+function loadEmployeeFilters() {
+    const employeeFilterList = document.getElementById('employeeFilterList');
+    const employeeUsers = users.filter(u => (u.role === 'employee' || u.role === 'preparation') && !u.locked);
+    
+    if (employeeUsers.length === 0) {
+        employeeFilterList.innerHTML = '<p class="text-muted small">No employees available</p>';
+    } else {
+        employeeFilterList.innerHTML = employeeUsers.map(user => {
+            return `
+                <div class="form-check mb-2">
+                    <input class="form-check-input export-employee-checkbox" type="checkbox" value="${user.username}" id="emp_${user.username}" checked>
+                    <label class="form-check-label" for="emp_${user.username}">
+                        <i class="fas fa-user"></i> ${user.username}
+                    </label>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Handle "All Employees" checkbox
+    document.getElementById('exportEmployeeAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.export-employee-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+}
+
+// Execute Export with filters
+function executeExport() {
+    const reportType = document.getElementById('exportReportType').value;
+    const dateRange = document.getElementById('exportDateRange').value;
+    const format = document.getElementById('exportFormat').value;
+    const includeCharts = document.getElementById('exportIncludeCharts').checked;
+    
+    // Get date range
+    let startDate = null;
+    let endDate = null;
+    
+    if (dateRange === 'custom') {
+        startDate = new Date(document.getElementById('exportStartDate').value);
+        endDate = new Date(document.getElementById('exportEndDate').value);
+        endDate.setHours(23, 59, 59, 999);
+    } else if (dateRange !== 'all') {
+        endDate = new Date();
+        startDate = new Date();
+        switch(dateRange) {
+            case 'last7':
+                startDate.setDate(startDate.getDate() - 7);
+                break;
+            case 'last30':
+                startDate.setDate(startDate.getDate() - 30);
+                break;
+            case 'last3months':
+                startDate.setMonth(startDate.getMonth() - 3);
+                break;
+            case 'last6months':
+                startDate.setMonth(startDate.getMonth() - 6);
+                break;
+            case 'lastyear':
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                break;
+        }
+        endDate.setHours(23, 59, 59, 999);
+    }
+    
+    // Get selected statuses
+    let selectedStatuses = null;
+    if (document.getElementById('statusFilterContainer').style.display !== 'none') {
+        const statusAllChecked = document.getElementById('exportStatusAll').checked;
+        if (!statusAllChecked) {
+            selectedStatuses = Array.from(document.querySelectorAll('.export-status-checkbox:checked'))
+                .map(cb => cb.value);
+        }
+    }
+    
+    // Get selected employees
+    let selectedEmployees = null;
+    if (document.getElementById('employeeFilterContainer').style.display !== 'none') {
+        const employeeAllChecked = document.getElementById('exportEmployeeAll').checked;
+        if (!employeeAllChecked) {
+            selectedEmployees = Array.from(document.querySelectorAll('.export-employee-checkbox:checked'))
+                .map(cb => cb.value);
+        }
+    }
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('exportFilterModal'));
+    if (modal) modal.hide();
+    
+    // Execute export based on report type
+    switch(reportType) {
+        case 'customer':
+            exportCustomerReportWithFilters(startDate, endDate, selectedStatuses, format, includeCharts);
+            break;
+        case 'call':
+            exportCallReportWithFilters(startDate, endDate, format, includeCharts);
+            break;
+        case 'performance':
+            exportPerformanceReportWithFilters(startDate, endDate, selectedEmployees, format, includeCharts);
+            break;
+        case 'status':
+            exportStatusDistributionReportWithFilters(startDate, endDate, selectedStatuses, format, includeCharts);
+            break;
+        case 'monthly':
+            exportMonthlySummaryReportWithFilters(startDate, endDate, format, includeCharts);
+            break;
+        case 'export':
+            exportAllDataWithFilters(startDate, endDate, format, includeCharts);
+            break;
+    }
+}
+
+// Export Status Distribution Report (with filters)
+function exportStatusDistributionReportWithFilters(startDate, endDate, selectedStatuses, format, includeCharts) {
     showNotification('info', 'Status Report', 'Generating status distribution report...');
+    
+    // Filter customers
+    let filteredCustomers = [...customers];
+    
+    // Filter by date range
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
+    
+    // Filter by selected statuses
+    if (selectedStatuses && selectedStatuses.length > 0) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const status = c.status || 'pending';
+            return selectedStatuses.includes(status);
+        });
+    }
     
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "STATUS DISTRIBUTION REPORT\n";
-    csvContent += "Generated: " + new Date().toLocaleString() + "\n\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    csvContent += "\n";
     
     csvContent += "Status,Count,Percentage\n";
     const statusCounts = {};
-    customers.forEach(c => {
+    filteredCustomers.forEach(c => {
         const status = c.status || 'pending';
         statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-    const total = customers.length;
+    const total = filteredCustomers.length;
     Object.keys(statusCounts).sort().forEach(status => {
         const count = statusCounts[status];
         const percentage = total > 0 ? ((count / total) * 100).toFixed(2) : '0.00';
@@ -8022,14 +8474,77 @@ function exportStatusDistributionReport() {
     });
     csvContent += `"Total",${total},100.00%\n`;
     
-    downloadCSVFile(csvContent, `Status_Distribution_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    const filename = `Status_Distribution_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSVFile(csvContent, filename);
     setTimeout(() => {
         showNotification('success', 'Report Ready', 'Status distribution report exported successfully!');
     }, 500);
 }
 
-// Export Monthly Summary Report
+// Export Status Distribution Report (legacy - no filters)
+function exportStatusDistributionReport() {
+    exportStatusDistributionReportWithFilters(null, null, null, 'csv', true);
+}
+
+// Export Monthly Summary Report (with filters)
+function exportMonthlySummaryReportWithFilters(startDate, endDate, format, includeCharts) {
+    showNotification('info', 'Monthly Report', 'Generating monthly summary report...');
+    
+    // Filter customers by date range
+    let filteredCustomers = [...customers];
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "MONTHLY SUMMARY REPORT\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    csvContent += "\n";
+    
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const monthlyData = {};
+    
+    filteredCustomers.forEach(c => {
+        const dateField = c.createdAt || c.createdDate || c.created_at;
+        if (dateField) {
+            const date = new Date(dateField);
+            if (!isNaN(date.getTime())) {
+                const month = date.getMonth();
+                const monthName = months[month];
+                if (!monthlyData[monthName]) {
+                    monthlyData[monthName] = 0;
+                }
+                monthlyData[monthName]++;
+            }
+        }
+    });
+    
+    csvContent += "Month,Customer Count\n";
+    months.forEach(month => {
+        csvContent += `"${month}",${monthlyData[month] || 0}\n`;
+    });
+    csvContent += `"Total",${filteredCustomers.length}\n`;
+    
+    const filename = `Monthly_Summary_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSVFile(csvContent, filename);
+    setTimeout(() => {
+        showNotification('success', 'Report Ready', 'Monthly summary report exported successfully!');
+    }, 500);
+}
+
+// Export Monthly Summary Report (legacy - no filters)
 function exportMonthlySummaryReport() {
+    exportMonthlySummaryReportWithFilters(null, null, 'csv', true);
+}
     showNotification('info', 'Monthly Report', 'Generating monthly summary report...');
     
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -8156,8 +8671,53 @@ function exportEmployeePerformanceReport(selectedEmployees = null, startDate = n
     }, 500);
 }
 
-// Export All Data
+// Export All Data (with filters)
+function exportAllDataWithFilters(startDate, endDate, format, includeCharts) {
+    showNotification('info', 'Data Export', 'Preparing data export...');
+    
+    // Filter customers by date range
+    let filteredCustomers = [...customers];
+    if (startDate && endDate) {
+        filteredCustomers = filteredCustomers.filter(c => {
+            const dateField = c.created_at || c.createdAt || c.createdDate;
+            if (!dateField) return false;
+            const customerDate = new Date(dateField);
+            if (isNaN(customerDate.getTime())) return false;
+            return customerDate >= startDate && customerDate <= endDate;
+        });
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "COMPLETE DATA EXPORT\n";
+    csvContent += "Generated: " + new Date().toLocaleString() + "\n";
+    if (startDate && endDate) {
+        csvContent += `Date Range: ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}\n`;
+    }
+    csvContent += "\n";
+    
+    csvContent += "Name,Phone,Email,Address,Status,Call Status,Assigned To,Comments,Refund Status\n";
+    filteredCustomers.forEach(c => {
+        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+        const refundStatusKey = `customerRefundStatus_${c.email || c.id}`;
+        let refundStatus = sessionStorage.getItem(refundStatusKey);
+        if (!refundStatus) {
+            refundStatus = sessionStorage.getItem('customerRefundStatus');
+        }
+        const refundStatusDisplay = refundStatus ? getRefundStatusDisplayName(refundStatus) : '';
+        csvContent += `"${name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}","${getStatusDisplayName(c.status || 'pending')}","${c.callStatus || 'not_called'}","${c.assignedTo || 'Unassigned'}","${(c.comments || '').replace(/"/g, '""')}","${refundStatusDisplay}"\n`;
+    });
+    
+    const filename = `Complete_Data_Export_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSVFile(csvContent, filename);
+    setTimeout(() => {
+        showNotification('success', 'Export Ready', 'Complete data export completed successfully!');
+    }, 500);
+}
+
+// Export All Data (legacy - no filters)
 function exportAllData() {
+    exportAllDataWithFilters(null, null, 'csv', true);
+}
     showNotification('info', 'Data Export', 'Preparing data export...');
     
     let csvContent = "data:text/csv;charset=utf-8,";

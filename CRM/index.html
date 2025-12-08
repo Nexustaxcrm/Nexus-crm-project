@@ -8609,6 +8609,99 @@
         </div>
     </div>
 
+    <!-- Export Filter Modal -->
+    <div class="modal fade" id="exportFilterModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-filter"></i> Export Report - <span id="exportReportTitle">Report</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="exportReportType" value="">
+                    
+                    <!-- Date Range Filter -->
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-calendar-alt"></i> Date Range</label>
+                        <select class="form-select" id="exportDateRange">
+                            <option value="all">All Time</option>
+                            <option value="last7">Last 7 days</option>
+                            <option value="last30" selected>Last 30 days</option>
+                            <option value="last3months">Last 3 months</option>
+                            <option value="last6months">Last 6 months</option>
+                            <option value="lastyear">Last year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Custom Date Range (shown when "Custom Range" is selected) -->
+                    <div class="mb-3" id="customDateRangeContainer" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="exportStartDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="exportEndDate">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Filter (for Status Distribution and Customer Reports) -->
+                    <div class="mb-3" id="statusFilterContainer" style="display: none;">
+                        <label class="form-label"><i class="fas fa-tags"></i> Filter by Status</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="exportStatusAll" checked>
+                            <label class="form-check-label" for="exportStatusAll">
+                                All Statuses
+                            </label>
+                        </div>
+                        <div id="statusFilterList" class="ms-4 mt-2"></div>
+                    </div>
+                    
+                    <!-- Employee Filter (for Employee Performance and Performance Reports) -->
+                    <div class="mb-3" id="employeeFilterContainer" style="display: none;">
+                        <label class="form-label"><i class="fas fa-users"></i> Filter by Employee</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="exportEmployeeAll" checked>
+                            <label class="form-check-label" for="exportEmployeeAll">
+                                All Employees
+                            </label>
+                        </div>
+                        <div id="employeeFilterList" class="ms-4 mt-2"></div>
+                    </div>
+                    
+                    <!-- Format Selection -->
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-file"></i> Export Format</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="csv" selected>CSV</option>
+                            <option value="excel">Excel (XLSX)</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Include Charts Option -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="exportIncludeCharts" checked>
+                            <label class="form-check-label" for="exportIncludeCharts">
+                                Include Charts/Visualizations
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="executeExport()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Date Picker Modal (for Follow-up Date) -->
     <div class="modal fade" id="datePickerModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered win11-calendar-modal">
