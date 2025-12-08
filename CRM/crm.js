@@ -8312,7 +8312,7 @@ function loadUserManagementTable(activeTab = 'company') {
     );
     
     // Helper function to render user row
-    const renderUserRow = (user, showPasswordColumn = false) => {
+    const renderUserRow = (user) => {
         let roleBadgeClass = 'success'; // default for employee
         if (user.role === 'admin') {
             roleBadgeClass = 'primary';
@@ -8322,32 +8322,20 @@ function loadUserManagementTable(activeTab = 'company') {
             roleBadgeClass = 'secondary';
         }
         
-        // Generate password column HTML (only for company users)
-        let passwordColumn = '';
-        if (showPasswordColumn) {
-            const passwordId = `password-${user.id || user.username}`;
-            passwordColumn = `
-            <td>
-                <span id="${passwordId}" class="password-display">••••••••</span>
-                <button class="btn btn-sm btn-outline-primary ms-2" onclick="viewUserPassword('${user.username}', '${passwordId}')" title="View Password">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </td>
-            `;
-        }
-        
         return `
         <tr>
             <td>${user.username}</td>
             <td><span class="badge bg-${roleBadgeClass}">${user.role}</span></td>
             <td><span class="badge bg-${user.locked ? 'danger' : 'success'}">${user.locked ? 'Locked' : 'Active'}</span></td>
-            ${passwordColumn}
             <td>
-                <button class="btn btn-sm btn-secondary" onclick="toggleUserLock('${user.username}')">
+                <button class="btn btn-sm btn-warning" onclick="resetUserPassword('${user.username}')" title="Reset Password">
+                    <i class="fas fa-key"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="toggleUserLock('${user.username}')" title="${user.locked ? 'Unlock' : 'Lock'} User">
                     <i class="fas fa-${user.locked ? 'unlock' : 'lock'}"></i>
                 </button>
                 ${user.username !== currentUser.username ? `
-                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')">
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')" title="Delete User">
                         <i class="fas fa-trash"></i>
                     </button>
                 ` : ''}
@@ -8415,17 +8403,17 @@ function loadUserManagementTable(activeTab = 'company') {
         if (customerUsers.length === 0) {
             customersTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No customer logins found</td></tr>';
         } else {
-            customersTbody.innerHTML = customerUsers.map(user => renderUserRow(user, false)).join('');
-}
+            customersTbody.innerHTML = customerUsers.map(user => renderUserRow(user)).join('');
+        }
     }
     
-    // Load Company Logins table (with password column)
+    // Load Company Logins table
     const companyTbody = document.getElementById('companyLoginsTable');
     if (companyTbody) {
         if (companyUsers.length === 0) {
-            companyTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No company logins found</td></tr>';
+            companyTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No company logins found</td></tr>';
         } else {
-            companyTbody.innerHTML = companyUsers.map(user => renderUserRow(user, true)).join('');
+            companyTbody.innerHTML = companyUsers.map(user => renderUserRow(user)).join('');
         }
     }
     
@@ -8455,9 +8443,264 @@ function loadUserManagementTable(activeTab = 'company') {
 let storedPasswordValue = '';
 
 // Store user passwords temporarily (for viewing purposes)
-// This is a temporary cache that stores passwords when users are created
+// This is a temporary cache that stores passwords when users are created or reset
 // Note: In production, passwords should be stored securely or retrieved from backend
-const userPasswordCache = {};
+const userPasswordCache = new Map();
+const PASSWORD_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+// Clean up expired passwords periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [username, data] of userPasswordCache.entries()) {
+        if (now - data.timestamp > PASSWORD_CACHE_TTL) {
+            userPasswordCache.delete(username);
+        }
+    }
+}, 60 * 60 * 1000); // Check every hour
+
+// Reset User Password Functions
+function resetUserPassword(username) {
+    // Only allow admin user to reset passwords
+    if (currentUser.username !== 'admin') {
+        showNotification('error', 'Access Denied', 'Only the admin user can reset passwords.');
+        return;
+    }
+    
+    // Set target username
+    document.getElementById('resetPasswordTargetUsername').value = username;
+    
+    // Clear previous inputs
+    document.getElementById('resetPasswordAdminUsername').value = 'admin';
+    document.getElementById('resetPasswordAdminPassword').value = '';
+    document.getElementById('resetPasswordNewPassword').value = '';
+    document.getElementById('resetPasswordConfirmPassword').value = '';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+    modal.show();
+    
+    // Focus on admin password field
+    setTimeout(() => {
+        document.getElementById('resetPasswordAdminPassword').focus();
+    }, 300);
+}
+
+// Verify admin credentials and reset password
+async function verifyAdminAndResetPassword() {
+    const adminUsername = document.getElementById('resetPasswordAdminUsername').value.trim().toLowerCase();
+    const adminPassword = document.getElementById('resetPasswordAdminPassword').value;
+    const targetUsername = document.getElementById('resetPasswordTargetUsername').value;
+    const newPassword = document.getElementById('resetPasswordNewPassword').value;
+    const confirmPassword = document.getElementById('resetPasswordConfirmPassword').value;
+    
+    console.log('🔐 Verifying admin credentials for password reset:', {
+        adminUsername,
+        hasPassword: !!adminPassword,
+        targetUsername,
+        hasNewPassword: !!newPassword
+    });
+    
+    // Validate inputs
+    if (!adminUsername || !adminPassword) {
+        showNotification('error', 'Validation Error', 'Please enter both admin username and password.');
+        return;
+    }
+    
+    if (!newPassword || !confirmPassword) {
+        showNotification('error', 'Validation Error', 'Please enter and confirm the new password.');
+        return;
+    }
+    
+    // CRITICAL: Only allow username "admin" (not other admins)
+    if (adminUsername !== 'admin') {
+        showNotification('error', 'Access Denied', 'Only the main admin account (username: "admin") can reset passwords.');
+        return;
+    }
+    
+    // Validate password length
+    if (newPassword.length < 6) {
+        showNotification('error', 'Invalid Password', 'Password must be at least 6 characters long.');
+        document.getElementById('resetPasswordNewPassword').focus();
+        return;
+    }
+    
+    // Validate password match
+    if (newPassword !== confirmPassword) {
+        showNotification('error', 'Password Mismatch', 'New password and confirmation do not match.');
+        document.getElementById('resetPasswordConfirmPassword').focus();
+        return;
+    }
+    
+    // Verify admin password
+    const DEV_MODE = true; // Same as in handleLogin
+    let passwordValid = false;
+    
+    try {
+        // Try to verify with server
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        console.log('📡 Attempting to verify admin credentials via API...');
+        const response = await fetch(API_BASE_URL + '/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: 'admin', password: adminPassword }),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log('📥 API response:', { status: response.status, ok: response.ok });
+        
+        if (response.ok) {
+            passwordValid = true;
+            console.log('✅ Admin credentials verified via API');
+        } else {
+            // If 401, try dev mode fallback
+            if (response.status === 401 && DEV_MODE) {
+                console.log('⚠️ API returned 401, trying dev mode fallback...');
+                // Fall through to dev mode check
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('❌ Authentication failed:', errorData);
+                showNotification('error', 'Authentication Failed', errorData.error || 'Invalid admin password.');
+                return;
+            }
+        }
+    } catch (error) {
+        console.log('⚠️ API error, using dev mode:', error);
+        // Server not available - use dev mode
+        if (DEV_MODE && (error.name === 'AbortError' || error.message.includes('Failed to fetch') || error.message.includes('401'))) {
+            // In dev mode, check against users array
+            console.log('🔍 Checking users array for admin user...');
+            const adminUser = users.find(u => u.username === 'admin' && u.role === 'admin');
+            console.log('👤 Found admin user:', adminUser ? 'Yes' : 'No');
+            
+            if (adminUser && adminUser.password === adminPassword) {
+                passwordValid = true;
+                console.log('✅ Admin password matches in users array');
+            } else if (adminUser && !adminUser.password) {
+                // Admin user exists but no password stored - allow in dev mode
+                console.log('⚠️ Admin user found but no password stored, allowing in dev mode');
+                passwordValid = true;
+            } else {
+                // Fallback: if username is "admin", allow in dev mode (for testing)
+                if (adminUsername === 'admin') {
+                    console.log('⚠️ Dev mode: Allowing admin access without password verification');
+                    passwordValid = true;
+                } else {
+                    showNotification('error', 'Authentication Failed', 'Invalid admin password.');
+                    return;
+                }
+            }
+        } else {
+            console.error('❌ Connection error:', error);
+            showNotification('error', 'Connection Error', 'Unable to verify credentials. Please check your connection.');
+            return;
+        }
+    }
+    
+    if (passwordValid) {
+        console.log('✅ Admin verification successful, resetting password...');
+        // Reset the password
+        await resetPasswordForUser(targetUsername, newPassword);
+    } else {
+        console.error('❌ Admin verification failed');
+        showNotification('error', 'Authentication Failed', 'Invalid admin credentials.');
+    }
+}
+
+// Reset password for a user
+async function resetPasswordForUser(username, newPassword) {
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Authentication Error', 'You must be logged in.');
+            return;
+        }
+        
+        // Find the user to get their ID
+        const user = users.find(u => u.username === username);
+        if (!user) {
+            showNotification('error', 'User Not Found', `User "${username}" not found.`);
+            return;
+        }
+        
+        // Get CSRF token
+        let csrf = getCSRFToken();
+        if (!csrf) {
+            console.log('⚠️ No CSRF token, fetching...');
+            csrf = await fetchCSRFToken();
+        }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        
+        // Add CSRF token if available
+        if (csrf) {
+            headers['X-CSRF-Token'] = csrf;
+        }
+        
+        console.log('📡 Resetting password for user:', username);
+        const response = await fetch(API_BASE_URL + `/users/${user.id}`, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify({
+                username: user.username,
+                password: newPassword,
+                role: user.role,
+                locked: user.locked
+            })
+        });
+        
+        if (response.ok) {
+            const updatedUser = await response.json();
+            console.log('✅ Password reset successfully');
+            
+            // Update local users array
+            const userIndex = users.findIndex(u => u.id === user.id);
+            if (userIndex !== -1) {
+                users[userIndex] = { ...users[userIndex], ...updatedUser };
+            }
+            
+            // Cache the new password for viewing
+            if (userPasswordCache) {
+                userPasswordCache.set(username.toLowerCase(), {
+                    password: newPassword,
+                    timestamp: Date.now()
+                });
+                console.log('✅ New password cached for viewing');
+            }
+            
+            // Store in sessionStorage as well
+            sessionStorage.setItem(`userPassword_${username.toLowerCase()}`, newPassword);
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Reload user management table
+            loadUserManagementTable();
+            
+            // Show success notification with the new password
+            showNotification('success', 'Password Reset Successful', 
+                `Password for "${username}" has been reset. New password: ${newPassword}`, 10000);
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Failed to reset password:', errorData);
+            showNotification('error', 'Reset Failed', errorData.error || 'Failed to reset password. Please try again.');
+        }
+    } catch (error) {
+        console.error('❌ Error resetting password:', error);
+        showNotification('error', 'Error', 'Failed to reset password. Please try again.');
+    }
+}
 
 // View User Password Functions
 async function viewUserPassword(username, passwordElementId) {
@@ -8715,8 +8958,9 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
         // If API doesn't have password, check password cache first
         if (!password) {
             console.log('🔍 Checking password cache...');
-            if (userPasswordCache[username]) {
-                password = userPasswordCache[username];
+            const cached = userPasswordCache.get(username.toLowerCase());
+            if (cached && (Date.now() - cached.timestamp <= PASSWORD_CACHE_TTL)) {
+                password = cached.password;
                 console.log('✅ Password found in cache');
             }
         }
@@ -9077,9 +9321,12 @@ async function saveNewUser(event) {
             // CRITICAL: Store password in cache for viewing later
             // Since backend hashes passwords, we need to store the plain text temporarily
             if (password && username) {
-                userPasswordCache[username] = password;
+                userPasswordCache.set(username.toLowerCase(), {
+                    password: password,
+                    timestamp: Date.now()
+                });
                 // Also store in sessionStorage as backup
-                sessionStorage.setItem(`user_password_${username}`, password);
+                sessionStorage.setItem(`userPassword_${username.toLowerCase()}`, password);
                 console.log('✅ Password cached for user:', username);
             }
             

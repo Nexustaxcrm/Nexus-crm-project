@@ -7943,7 +7943,6 @@
                                         <th>Username</th>
                                         <th>Role</th>
                                         <th>Status</th>
-                                        <th>Passwords</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -8559,6 +8558,51 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="verifyAdminForPasswordView()">
                         <i class="fas fa-eye"></i> View Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset User Password Modal -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-key"></i> Reset User Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Security Notice:</strong> Only the 'admin' user can reset passwords. Please verify your admin credentials.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">User to Reset</label>
+                        <input type="text" class="form-control" id="resetPasswordTargetUsername" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Username</label>
+                        <input type="text" class="form-control" id="resetPasswordAdminUsername" placeholder="Enter admin username" autocomplete="username" value="admin">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Admin Password</label>
+                        <input type="password" class="form-control" id="resetPasswordAdminPassword" placeholder="Enter admin password" autocomplete="current-password" onkeypress="if(event.key === 'Enter') verifyAdminAndResetPassword()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="resetPasswordNewPassword" placeholder="Enter new password for user" autocomplete="new-password">
+                        <small class="form-text text-muted">Password must be at least 6 characters long.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="resetPasswordConfirmPassword" placeholder="Confirm new password" autocomplete="new-password" onkeypress="if(event.key === 'Enter') verifyAdminAndResetPassword()">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="verifyAdminAndResetPassword()">
+                        <i class="fas fa-key"></i> Reset Password
                     </button>
                 </div>
             </div>
