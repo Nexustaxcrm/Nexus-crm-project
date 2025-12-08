@@ -3115,17 +3115,34 @@ window.deleteSelectedCustomers = async function deleteSelectedCustomers() {
             return;
         }
         
+        // Get CSRF token
+        let csrfToken = getCSRFToken();
+        if (!csrfToken) {
+            console.warn('⚠️ No CSRF token available, fetching...');
+            csrfToken = await fetchCSRFToken();
+        }
+        
         // Show loading state
         showNotification('info', 'Deleting...', `Deleting ${selectedCustomers.length} customer(s). This may take a moment...`);
         console.log('Making POST request to:', API_BASE_URL + '/customers/bulk-delete');
         console.log('Customer IDs to delete:', selectedIds);
         
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+        
+        // Add CSRF token if available
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+            console.log('✅ CSRF token added to request');
+        } else {
+            console.warn('⚠️ No CSRF token available for request');
+        }
+        
         const response = await fetch(API_BASE_URL + '/customers/bulk-delete', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
             body: JSON.stringify({ customerIds: selectedIds })
         });
         
@@ -4689,13 +4706,27 @@ async function confirmDeleteByStatus() {
             return;
         }
         
+        // Get CSRF token
+        let csrfToken = getCSRFToken();
+        if (!csrfToken) {
+            console.warn('⚠️ No CSRF token available, fetching...');
+            csrfToken = await fetchCSRFToken();
+        }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        
+        // Add CSRF token if available
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         // Use bulk delete API
         const response = await fetch(API_BASE_URL + '/customers/bulk-delete', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: headers,
             body: JSON.stringify({ customerIds })
         });
         
@@ -4809,13 +4840,27 @@ async function confirmDeleteAll() {
             return;
         }
         
+        // Get CSRF token
+        let csrfToken = getCSRFToken();
+        if (!csrfToken) {
+            console.warn('⚠️ No CSRF token available, fetching...');
+            csrfToken = await fetchCSRFToken();
+        }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        
+        // Add CSRF token if available
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         // Delete all customers from server using bulk delete
         const deleteResponse = await fetch(API_BASE_URL + '/customers/bulk-delete', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: headers,
             body: JSON.stringify({ customerIds })
         });
         
