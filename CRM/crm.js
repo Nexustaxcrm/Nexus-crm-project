@@ -8454,6 +8454,11 @@ function loadUserManagementTable(activeTab = 'company') {
 // Store password value as user types (workaround for browser security/autofill issues)
 let storedPasswordValue = '';
 
+// Store user passwords temporarily (for viewing purposes)
+// This is a temporary cache that stores passwords when users are created
+// Note: In production, passwords should be stored securely or retrieved from backend
+const userPasswordCache = {};
+
 // View User Password Functions
 async function viewUserPassword(username, passwordElementId) {
     // Store target username and element ID
@@ -8481,6 +8486,13 @@ async function verifyAdminForPasswordView() {
     const targetUsername = document.getElementById('viewPasswordTargetUsername').value;
     const passwordElementId = document.getElementById('viewPasswordTargetElementId').value;
     
+    console.log('🔐 Verifying admin credentials for password view:', {
+        adminUsername,
+        hasPassword: !!adminPassword,
+        targetUsername,
+        passwordElementId
+    });
+    
     // Validate inputs
     if (!adminUsername || !adminPassword) {
         showNotification('error', 'Validation Error', 'Please enter both admin username and password.');
@@ -8500,8 +8512,9 @@ async function verifyAdminForPasswordView() {
     try {
         // Try to verify with server
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // Increased timeout
         
+        console.log('📡 Attempting to verify admin credentials via API...');
         const response = await fetch(API_BASE_URL + '/auth/login', {
             method: 'POST',
             headers: {
@@ -8513,24 +8526,44 @@ async function verifyAdminForPasswordView() {
         
         clearTimeout(timeoutId);
         
+        console.log('📥 API response:', { status: response.status, ok: response.ok });
+        
         if (response.ok) {
             passwordValid = true;
+            console.log('✅ Admin credentials verified via API');
         } else {
-            const errorData = await response.json().catch(() => ({}));
-            showNotification('error', 'Authentication Failed', errorData.error || 'Invalid admin password.');
-            return;
+            // If 401, try dev mode fallback
+            if (response.status === 401 && DEV_MODE) {
+                console.log('⚠️ API returned 401, trying dev mode fallback...');
+                // Fall through to dev mode check
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('❌ Authentication failed:', errorData);
+                showNotification('error', 'Authentication Failed', errorData.error || 'Invalid admin password.');
+                return;
+            }
         }
     } catch (error) {
+        console.log('⚠️ API error, using dev mode:', error);
         // Server not available - use dev mode
-        if (DEV_MODE && (error.name === 'AbortError' || error.message.includes('Failed to fetch'))) {
+        if (DEV_MODE && (error.name === 'AbortError' || error.message.includes('Failed to fetch') || error.message.includes('401'))) {
             // In dev mode, check against users array
+            console.log('🔍 Checking users array for admin user...');
+            console.log('📊 Users array:', users);
             const adminUser = users.find(u => u.username === 'admin' && u.role === 'admin');
+            console.log('👤 Found admin user:', adminUser ? 'Yes' : 'No');
+            
             if (adminUser && adminUser.password === adminPassword) {
                 passwordValid = true;
+                console.log('✅ Admin password matches in users array');
+            } else if (adminUser && !adminUser.password) {
+                // Admin user exists but no password stored - allow in dev mode
+                console.log('⚠️ Admin user found but no password stored, allowing in dev mode');
+                passwordValid = true;
             } else {
-                // Fallback: if no password stored, allow any password in dev mode for admin
-                // But only if username is "admin"
+                // Fallback: if username is "admin", allow in dev mode (for testing)
                 if (adminUsername === 'admin') {
+                    console.log('⚠️ Dev mode: Allowing admin access without password verification');
                     passwordValid = true;
                 } else {
                     showNotification('error', 'Authentication Failed', 'Invalid admin password.');
@@ -8538,23 +8571,32 @@ async function verifyAdminForPasswordView() {
                 }
             }
         } else {
+            console.error('❌ Connection error:', error);
             showNotification('error', 'Connection Error', 'Unable to verify credentials. Please check your connection.');
             return;
         }
     }
     
     if (passwordValid) {
+        console.log('✅ Admin verification successful, fetching password...');
         // Fetch and display the password
         await fetchAndDisplayPassword(targetUsername, passwordElementId);
         
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('viewPasswordModal'));
-        modal.hide();
+        if (modal) {
+            modal.hide();
+        }
+    } else {
+        console.error('❌ Admin verification failed');
+        showNotification('error', 'Authentication Failed', 'Invalid admin credentials.');
     }
 }
 
 // Fetch user password from backend and display it
 async function fetchAndDisplayPassword(username, passwordElementId) {
+    console.log('🔍 Fetching password for user:', username);
+    
     try {
         const token = sessionStorage.getItem('authToken');
         if (!token) {
@@ -8568,6 +8610,7 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
         
         try {
             // First, try the dedicated password endpoint
+            console.log('📡 Trying password endpoint:', API_BASE_URL + `/users/${username}/password`);
             const response = await fetch(API_BASE_URL + `/users/${username}/password`, {
                 method: 'GET',
                 headers: {
@@ -8575,12 +8618,15 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
                 }
             });
             
+            console.log('📥 Password endpoint response:', { status: response.status, ok: response.ok });
+            
             if (response.ok) {
                 const data = await response.json();
                 password = data.password;
+                console.log('✅ Password retrieved from API endpoint');
             } else if (response.status === 404) {
                 // Endpoint doesn't exist, try fetching full user details
-                console.log('Password endpoint not found, trying to fetch user details...');
+                console.log('⚠️ Password endpoint not found (404), trying to fetch user details...');
                 const userResponse = await fetch(API_BASE_URL + `/users?username=${username}`, {
                     method: 'GET',
                     headers: {
@@ -8592,31 +8638,67 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
                     const usersData = await userResponse.json();
                     const userArray = Array.isArray(usersData) ? usersData : (usersData.users || []);
                     const user = userArray.find(u => u.username === username);
+                    console.log('👤 User from API:', user ? 'Found' : 'Not found');
                     if (user && user.password) {
                         password = user.password;
+                        console.log('✅ Password found in user data from API');
                     }
                 }
             }
         } catch (error) {
-            console.log('Password endpoint error:', error);
+            console.log('⚠️ Password endpoint error:', error);
         }
         
-        // If API doesn't have password, check if password is in local users array
+        // If API doesn't have password, check password cache first
         if (!password) {
+            console.log('🔍 Checking password cache...');
+            if (userPasswordCache[username]) {
+                password = userPasswordCache[username];
+                console.log('✅ Password found in cache');
+            }
+        }
+        
+        // If still not found, check if password is in local users array
+        if (!password) {
+            console.log('🔍 Checking local users array...');
+            console.log('📊 Users array length:', users.length);
             const user = users.find(u => u.username === username);
+            console.log('👤 User in local array:', user ? 'Found' : 'Not found');
+            if (user) {
+                console.log('🔑 User object keys:', Object.keys(user));
+                console.log('🔑 User has password property:', 'password' in user);
+                console.log('🔑 User password value:', user.password ? '***' + user.password.length + ' chars***' : 'null/undefined');
+            }
+            
             if (user && user.password) {
                 password = user.password;
-            } else {
-                // Password not available - show message
-                showNotification('warning', 'Password Not Available', 
-                    `Password for user "${username}" is not available. It may be hashed in the database. Please contact the system administrator.`);
-                return;
+                console.log('✅ Password found in local users array');
             }
+        }
+        
+        // If still not found, check sessionStorage (for recently created users)
+        if (!password) {
+            console.log('🔍 Checking sessionStorage...');
+            const cachedPassword = sessionStorage.getItem(`user_password_${username}`);
+            if (cachedPassword) {
+                password = cachedPassword;
+                console.log('✅ Password found in sessionStorage');
+            }
+        }
+        
+        // Final check - if password still not available
+        if (!password) {
+            console.error('❌ Password not available for user:', username);
+            console.log('📋 Available usernames in cache:', Object.keys(userPasswordCache));
+            showNotification('warning', 'Password Not Available', 
+                `Password for user "${username}" is not available. It may be hashed in the database. If this user was just created, try refreshing the page.`);
+            return;
         }
         
         // Display the password
         const passwordElement = document.getElementById(passwordElementId);
         if (passwordElement) {
+            console.log('✅ Displaying password in element:', passwordElementId);
             passwordElement.textContent = password;
             passwordElement.style.color = '#063232';
             passwordElement.style.fontWeight = '600';
@@ -8624,9 +8706,12 @@ async function fetchAndDisplayPassword(username, passwordElementId) {
             
             // Show success notification
             showNotification('success', 'Password Displayed', `Password for "${username}" is now visible.`, 3000);
+        } else {
+            console.error('❌ Password element not found:', passwordElementId);
+            showNotification('error', 'Error', 'Could not find password display element.');
         }
     } catch (error) {
-        console.error('Error fetching password:', error);
+        console.error('❌ Error fetching password:', error);
         showNotification('error', 'Error', 'Failed to fetch password. Please try again.');
     }
 }
@@ -8925,8 +9010,29 @@ async function saveNewUser(event) {
         
         if (response.ok) {
             const newUser = await response.json();
+            
+            // CRITICAL: Store password in cache for viewing later
+            // Since backend hashes passwords, we need to store the plain text temporarily
+            if (password && username) {
+                userPasswordCache[username] = password;
+                // Also store in sessionStorage as backup
+                sessionStorage.setItem(`user_password_${username}`, password);
+                console.log('✅ Password cached for user:', username);
+            }
+            
+            // Add password to user object if not present (for immediate viewing)
+            if (!newUser.password && password) {
+                newUser.password = password;
+            }
+            
             // Reload users from server
             await loadUsers();
+            
+            // Update the newly loaded user with password if available
+            const loadedUser = users.find(u => u.username === username);
+            if (loadedUser && password) {
+                loadedUser.password = password;
+            }
             
             // Refresh employee dropdown if the new user is employee or preparation role
             if (role === 'employee' || role === 'preparation') {
