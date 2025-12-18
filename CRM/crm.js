@@ -3941,7 +3941,32 @@ document.addEventListener('click', function(e) {
     if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
         dropdown.style.display = 'none';
     }
+    
+    // Close Delete Options dropdown when clicking outside
+    const deleteDropdown = document.getElementById('deleteOptionsDropdown');
+    const deleteBtn = document.getElementById('deleteOptionsBtn');
+    if (deleteDropdown && deleteBtn && !deleteDropdown.contains(e.target) && !deleteBtn.contains(e.target)) {
+        deleteDropdown.style.display = 'none';
+    }
 });
+
+// Toggle Delete Options Dropdown
+function toggleDeleteOptionsDropdown(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const dropdown = document.getElementById('deleteOptionsDropdown');
+    if (dropdown) {
+        const isVisible = dropdown.style.display === 'block';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+        
+        // Close Move To dropdown if open
+        const moveToDropdown = document.getElementById('moveToStatusDropdown');
+        if (moveToDropdown) {
+            moveToDropdown.style.display = 'none';
+        }
+    }
+}
 
 async function renderAssignWorkPage() {
     const tbody = document.getElementById('assignWorkTable');

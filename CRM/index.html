@@ -1750,6 +1750,83 @@
         }
 
         /* Assign Work toolbar unified sizing */
+        .delete-bin-btn {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .delete-bin-btn:hover {
+            background: rgba(220, 53, 69, 0.1) !important;
+            transform: scale(1.1);
+        }
+        
+        .delete-bin-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .delete-options-container {
+            display: inline-block;
+        }
+        
+        .delete-options-dropdown {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 180px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .delete-option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: #dc3545;
+            text-decoration: none;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .delete-option-item:last-child {
+            border-bottom: none;
+        }
+        
+        .delete-option-item:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #c82333;
+        }
+        
+        .delete-option-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        [data-theme="dark"] .delete-options-dropdown {
+            background: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .delete-option-item {
+            border-bottom-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .delete-option-item:hover {
+            background: rgba(220, 53, 69, 0.2);
+        }
+        
+        .delete-option-item i {
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+        
         .assign-toolbar-btn {
             height: 38px;
             padding: 8px 16px !important;
@@ -7491,14 +7568,6 @@
                                         <li><a class="dropdown-item" href="#" onclick="assignToUnassigned()">
                                             <i class="fas fa-user-slash"></i> Mark as Unassigned
                                         </a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteSelectedCustomers()" id="deleteSelectedOption">
-                                            <i class="fas fa-trash"></i> Delete Selected
-                                        </a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="openDeleteAllModal()">
-                                            <i class="fas fa-trash-alt"></i> Delete All
-                                        </a></li>
                                     </ul>
                                 </div>
                                     <div class="excel-filter-container" style="display:none;" id="moveToContainer">
@@ -7557,6 +7626,20 @@
                                             <div class="filter-dropdown-footer">
                                                 <button class="btn btn-sm btn-primary" onclick="moveSelectedCustomersToStatus()">Move</button>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <!-- Delete Options - Red Bin Icon -->
+                                    <div class="delete-options-container" style="position: relative;">
+                                        <button class="btn btn-sm assign-toolbar-btn delete-bin-btn" id="deleteOptionsBtn" onclick="toggleDeleteOptionsDropdown(event)" style="background: transparent; border: none; padding: 6px 10px; color: #dc3545; cursor: pointer;">
+                                            <i class="fas fa-trash" style="font-size: 16px;"></i>
+                                        </button>
+                                        <div class="delete-options-dropdown" id="deleteOptionsDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: #ffffff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px; margin-top: 5px;">
+                                            <a class="delete-option-item" href="#" onclick="deleteSelectedCustomers(); toggleDeleteOptionsDropdown(event); return false;" id="deleteSelectedOption">
+                                                <i class="fas fa-trash"></i> Delete Selected
+                                            </a>
+                                            <a class="delete-option-item" href="#" onclick="openDeleteAllModal(); toggleDeleteOptionsDropdown(event); return false;">
+                                                <i class="fas fa-trash-alt"></i> Delete All
+                                            </a>
                                         </div>
                                     </div>
                                     <button id="restoreSelectedBtn" class="btn btn-sm btn-outline-success assign-toolbar-btn" style="display:none;" onclick="restoreFromArchiveSelected()">
