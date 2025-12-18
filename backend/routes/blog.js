@@ -234,6 +234,118 @@ router.get('/posts/:id', async (req, res) => {
     }
 });
 
+// Update blog post (admin only)
+router.put('/posts/:id', verifyAdmin, upload.single('featuredImage'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, shortDescription, content } = req.body;
+        
+        // Check if post exists
+        const postResult = await pool.query('SELECT * FROM blog_posts WHERE id = $1', [id]);
+        if (postResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Blog post not found' });
+        }
+        
+        const existingPost = postResult.rows[0];
+        let featuredImage = existingPost.featured_image; // Keep existing image by default
+        
+        // Handle new image upload if provided
+        if (req.file) {
+            // Delete old image if exists
+            if (existingPost.featured_image) {
+                const oldImagePath = existingPost.featured_image;
+                
+                // Check if it's an S3 key
+                if (s3Storage.isS3Configured() && oldImagePath.startsWith(BLOG_S3_PREFIX + '/')) {
+                    try {
+                        await s3Storage.deleteFromS3(oldImagePath);
+                        console.log(`✅ Old blog image deleted from S3: ${oldImagePath}`);
+                    } catch (s3Error) {
+                        console.error('❌ Error deleting old blog image from S3:', s3Error);
+                    }
+                } else {
+                    // Delete from local storage
+                    const localPath = path.join(__dirname, '..', oldImagePath);
+                    if (fs.existsSync(localPath)) {
+                        fs.unlinkSync(localPath);
+                        console.log(`✅ Old blog image deleted from local storage: ${oldImagePath}`);
+                    }
+                }
+            }
+            
+            // Upload new image
+            const fileName = req.file.originalname;
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            const ext = path.extname(fileName);
+            const storedFileName = `blog-${uniqueSuffix}${ext}`;
+            
+            if (s3Storage.isS3Configured()) {
+                try {
+                    const fileBuffer = req.file.buffer;
+                    const s3Key = `${BLOG_S3_PREFIX}/${storedFileName}`;
+                    
+                    const AWS = require('aws-sdk');
+                    const s3 = new AWS.S3({
+                        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+                        region: process.env.AWS_REGION || 'us-east-1'
+                    });
+                    
+                    const contentType = s3Storage.getContentType(fileName);
+                    const params = {
+                        Bucket: process.env.AWS_S3_BUCKET_NAME,
+                        Key: s3Key,
+                        Body: fileBuffer,
+                        ContentType: contentType,
+                        Metadata: {
+                            'original-name': fileName
+                        }
+                    };
+                    
+                    await s3.upload(params).promise();
+                    console.log(`✅ New blog image uploaded to S3: ${s3Key}`);
+                    featuredImage = s3Key;
+                } catch (s3Error) {
+                    console.error('❌ Error uploading blog image to S3:', s3Error);
+                    // Fallback to local storage
+                    const localPath = path.join(blogUploadsDir, storedFileName);
+                    fs.writeFileSync(localPath, req.file.buffer);
+                    featuredImage = `/blog_uploads/${storedFileName}`;
+                    console.log(`⚠️ Blog image saved to local storage: ${featuredImage}`);
+                }
+            } else {
+                // Use local storage if S3 is not configured
+                const localPath = path.join(blogUploadsDir, storedFileName);
+                fs.writeFileSync(localPath, req.file.buffer);
+                featuredImage = `/blog_uploads/${storedFileName}`;
+                console.log(`📁 Blog image saved to local storage: ${featuredImage}`);
+            }
+        }
+        
+        if (!title || !shortDescription || !content) {
+            return res.status(400).json({ error: 'Title, short description, and content are required' });
+        }
+        
+        // Update post in database
+        const result = await pool.query(
+            `UPDATE blog_posts 
+             SET title = $1, short_description = $2, content = $3, featured_image = $4, updated_at = NOW()
+             WHERE id = $5
+             RETURNING *`,
+            [title, shortDescription, content, featuredImage, id]
+        );
+        
+        res.json({ 
+            success: true, 
+            post: result.rows[0],
+            message: 'Blog post updated successfully' 
+        });
+    } catch (error) {
+        console.error('Update blog post error:', error);
+        res.status(500).json({ error: 'Failed to update blog post' });
+    }
+});
+
 // Delete blog post (admin only)
 router.delete('/posts/:id', verifyAdmin, async (req, res) => {
     try {

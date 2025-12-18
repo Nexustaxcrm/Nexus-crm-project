@@ -160,6 +160,81 @@
         height: 100%;
         border: 1px solid rgba(6, 50, 50, 0.1);
         max-width: 100%;
+        position: relative;
+      }
+      
+      .blog-menu-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(6, 50, 50, 0.1);
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .blog-menu-button:hover {
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: scale(1.1);
+      }
+      
+      .blog-menu-button i {
+        color: #063232;
+        font-size: 18px;
+      }
+      
+      .blog-menu-dropdown {
+        position: absolute;
+        top: 45px;
+        right: 10px;
+        background: #ffffff;
+        border: 1px solid rgba(6, 50, 50, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 150px;
+        z-index: 100;
+        display: none;
+        overflow: hidden;
+      }
+      
+      .blog-menu-dropdown.show {
+        display: block;
+      }
+      
+      .blog-menu-item {
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #063232;
+        font-weight: 500;
+      }
+      
+      .blog-menu-item:hover {
+        background: #f0f0f0;
+      }
+      
+      .blog-menu-item i {
+        font-size: 14px;
+      }
+      
+      .blog-menu-item.delete {
+        color: #dc3545;
+      }
+      
+      .blog-menu-item.delete:hover {
+        background: #fee;
       }
       
       .blog-card-box:hover {
@@ -868,6 +943,113 @@
       </div>
     </div>
 
+    <!-- Edit Blog Post Modal -->
+    <div class="modal fade" id="editBlogModal" tabindex="-1" aria-labelledby="editBlogModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+          <div class="modal-header" style="border-bottom: 2px solid #f0f0f0; padding: 20px 30px;">
+            <h5 class="modal-title" id="editBlogModalLabel" style="font-weight: 600; color: #063232;">
+              <i class="fas fa-edit"></i> Edit Blog Post
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 30px;">
+            <!-- Admin Authentication Section -->
+            <div id="editBlogAuthSection">
+              <div class="alert alert-warning">
+                <i class="fas fa-lock"></i> <strong>Admin Authentication Required</strong>
+              </div>
+              <form id="editBlogAuthForm">
+                <div class="mb-3">
+                  <label class="form-label">Admin Username</label>
+                  <input type="text" class="form-control" id="editBlogAdminUsername" placeholder="Enter admin username" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Admin Password</label>
+                  <input type="password" class="form-control" id="editBlogAdminPassword" placeholder="Enter admin password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Authenticate</button>
+              </form>
+            </div>
+            
+            <!-- Edit Form Section (hidden until authenticated) -->
+            <div id="editBlogFormSection" style="display: none;">
+              <form id="editBlogForm">
+                <input type="hidden" id="editBlogPostId">
+                <div class="mb-3">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-control" id="editBlogTitle" required placeholder="Enter blog post title">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Short Description</label>
+                  <textarea class="form-control" id="editBlogShortDescription" rows="3" required placeholder="Enter short description"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Content</label>
+                  <textarea class="form-control" id="editBlogContent" rows="10" required placeholder="Enter blog content"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Featured Image</label>
+                  <input type="file" class="form-control" id="editBlogFeaturedImage" accept="image/*">
+                  <small class="form-text text-muted">Leave empty to keep current image, or upload a new one to replace it.</small>
+                  <div id="editImagePreview" style="margin-top: 15px; display: none;">
+                    <img id="editPreviewImg" src="" alt="Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #ddd;">
+                  </div>
+                </div>
+                <div id="editBlogError" class="alert alert-danger" style="display: none;"></div>
+                <div id="editBlogSuccess" class="alert alert-success" style="display: none;"></div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer" id="editBlogModalFooter">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="editBlogSubmitBtn" onclick="submitEditBlog()" style="display: none;">Update Blog Post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Blog Post Modal -->
+    <div class="modal fade" id="deleteBlogModal" tabindex="-1" aria-labelledby="deleteBlogModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+          <div class="modal-header" style="border-bottom: 2px solid #f0f0f0; padding: 20px 30px;">
+            <h5 class="modal-title" id="deleteBlogModalLabel" style="font-weight: 600; color: #dc3545;">
+              <i class="fas fa-trash"></i> Delete Blog Post
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 30px;">
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i> <strong>Warning:</strong> This action cannot be undone!
+            </div>
+            <p>Are you sure you want to delete this blog post?</p>
+            <div id="deleteBlogPostInfo" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <strong id="deleteBlogPostTitle"></strong>
+            </div>
+            <div class="alert alert-info">
+              <i class="fas fa-lock"></i> <strong>Admin Authentication Required</strong>
+            </div>
+            <form id="deleteBlogAuthForm">
+              <div class="mb-3">
+                <label class="form-label">Admin Username</label>
+                <input type="text" class="form-control" id="deleteBlogAdminUsername" placeholder="Enter admin username" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Admin Password</label>
+                <input type="password" class="form-control" id="deleteBlogAdminPassword" placeholder="Enter admin password" required>
+              </div>
+              <div id="deleteBlogError" class="alert alert-danger" style="display: none;"></div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteBlog()">Delete Blog Post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Blog JavaScript -->
     <script>
       const API_BASE_URL = window.location.origin;
@@ -1071,6 +1253,19 @@
           
           return `
             <article class="blog-card-box">
+              <div class="blog-menu-button" onclick="toggleBlogMenu(${post.id}, event)">
+                <i class="fas fa-ellipsis-v"></i>
+              </div>
+              <div class="blog-menu-dropdown" id="blogMenu_${post.id}">
+                <div class="blog-menu-item" onclick="openEditBlogModal(${post.id})">
+                  <i class="fas fa-edit"></i>
+                  <span>Edit</span>
+                </div>
+                <div class="blog-menu-item delete" onclick="openDeleteBlogModal(${post.id})">
+                  <i class="fas fa-trash"></i>
+                  <span>Delete</span>
+                </div>
+              </div>
               ${post.featured_image ? `
                 <div class="blog-img-box">
                   <img src="${imageUrl}" alt="${post.title}">
@@ -1110,7 +1305,7 @@
             if (imageUrl && imageUrl !== 'assets/img/bg/common-bg.png') {
               content += `<div class="mb-4"><img src="${imageUrl}" alt="${post.title}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;"></div>`;
             }
-            content += `<div class="blog-meta mb-3"><span>${formattedDate}</span>${post.created_by ? `<span> • </span><span>By ${post.created_by}</span>` : ''}</div>`;
+            content += `<div class="blog-meta mb-3"><span>${formattedDate}</span><span> • </span><span>Posted by Admin</span></div>`;
             content += `<div class="blog-content" style="line-height: 1.8; color: #545454;">${post.content}</div>`;
             
             document.getElementById('blogPostDetailContent').innerHTML = content;
@@ -1146,6 +1341,318 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+      }
+      
+      // Toggle blog menu dropdown
+      function toggleBlogMenu(postId, event) {
+        event.stopPropagation();
+        const menu = document.getElementById(`blogMenu_${postId}`);
+        const allMenus = document.querySelectorAll('.blog-menu-dropdown');
+        
+        // Close all other menus
+        allMenus.forEach(m => {
+          if (m.id !== `blogMenu_${postId}`) {
+            m.classList.remove('show');
+          }
+        });
+        
+        // Toggle current menu
+        menu.classList.toggle('show');
+      }
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!event.target.closest('.blog-menu-button') && !event.target.closest('.blog-menu-dropdown')) {
+          document.querySelectorAll('.blog-menu-dropdown').forEach(menu => {
+            menu.classList.remove('show');
+          });
+        }
+      });
+      
+      // Open Edit Blog Modal
+      async function openEditBlogModal(postId) {
+        // Close menu
+        document.querySelectorAll('.blog-menu-dropdown').forEach(menu => {
+          menu.classList.remove('show');
+        });
+        
+        // Store post ID
+        document.getElementById('editBlogPostId').value = postId;
+        
+        // Reset form
+        document.getElementById('editBlogAuthForm').reset();
+        document.getElementById('editBlogForm').reset();
+        document.getElementById('editBlogError').style.display = 'none';
+        document.getElementById('editBlogSuccess').style.display = 'none';
+        document.getElementById('editImagePreview').style.display = 'none';
+        
+        // Show auth section, hide form section
+        document.getElementById('editBlogAuthSection').style.display = 'block';
+        document.getElementById('editBlogFormSection').style.display = 'none';
+        document.getElementById('editBlogSubmitBtn').style.display = 'none';
+        
+        // Load blog post data
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`);
+          const data = await response.json();
+          
+          if (response.ok && data.post) {
+            const post = data.post;
+            // Store post data for later use
+            window.currentEditPost = post;
+            
+            // Show current image if exists
+            if (post.featured_image) {
+              const imageUrl = getBlogImageUrl(post.featured_image);
+              document.getElementById('editPreviewImg').src = imageUrl;
+              document.getElementById('editImagePreview').style.display = 'block';
+            }
+          }
+        } catch (error) {
+          console.error('Error loading blog post:', error);
+        }
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('editBlogModal'));
+        modal.show();
+      }
+      
+      // Authenticate admin for edit
+      let editBlogAuthToken = null;
+      document.getElementById('editBlogAuthForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('editBlogAdminUsername').value.trim();
+        const password = document.getElementById('editBlogAdminPassword').value;
+        
+        if (!username || !password) {
+          document.getElementById('editBlogError').textContent = 'Please enter both username and password.';
+          document.getElementById('editBlogError').style.display = 'block';
+          return;
+        }
+        
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.token) {
+            editBlogAuthToken = data.token;
+            
+            // Check if user is admin
+            if (data.user && data.user.role === 'admin') {
+              // Hide auth section, show form section
+              document.getElementById('editBlogAuthSection').style.display = 'none';
+              document.getElementById('editBlogFormSection').style.display = 'block';
+              document.getElementById('editBlogSubmitBtn').style.display = 'block';
+              
+              // Populate form with current post data
+              if (window.currentEditPost) {
+                document.getElementById('editBlogTitle').value = window.currentEditPost.title || '';
+                document.getElementById('editBlogShortDescription').value = window.currentEditPost.short_description || '';
+                document.getElementById('editBlogContent').value = window.currentEditPost.content || '';
+                
+                // Show current image if exists
+                if (window.currentEditPost.featured_image) {
+                  const imageUrl = getBlogImageUrl(window.currentEditPost.featured_image);
+                  document.getElementById('editPreviewImg').src = imageUrl;
+                  document.getElementById('editImagePreview').style.display = 'block';
+                }
+              }
+              
+              // Image preview handler
+              document.getElementById('editBlogFeaturedImage').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = function(e) {
+                    document.getElementById('editPreviewImg').src = e.target.result;
+                    document.getElementById('editImagePreview').style.display = 'block';
+                  };
+                  reader.readAsDataURL(file);
+                }
+              });
+            } else {
+              document.getElementById('editBlogError').textContent = 'Only administrators can edit blog posts.';
+              document.getElementById('editBlogError').style.display = 'block';
+            }
+          } else {
+            document.getElementById('editBlogError').textContent = data.error || 'Invalid credentials.';
+            document.getElementById('editBlogError').style.display = 'block';
+          }
+        } catch (error) {
+          document.getElementById('editBlogError').textContent = 'Authentication failed. Please try again.';
+          document.getElementById('editBlogError').style.display = 'block';
+        }
+      });
+      
+      // Submit Edit Blog
+      async function submitEditBlog() {
+        const postId = document.getElementById('editBlogPostId').value;
+        const title = document.getElementById('editBlogTitle').value.trim();
+        const shortDescription = document.getElementById('editBlogShortDescription').value.trim();
+        const content = document.getElementById('editBlogContent').value.trim();
+        const imageFile = document.getElementById('editBlogFeaturedImage').files[0];
+        
+        const errorDiv = document.getElementById('editBlogError');
+        const successDiv = document.getElementById('editBlogSuccess');
+        
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+        
+        if (!title || !shortDescription || !content) {
+          errorDiv.textContent = 'Please fill in all required fields.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        
+        if (!editBlogAuthToken) {
+          errorDiv.textContent = 'Please authenticate first.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        
+        try {
+          const formData = new FormData();
+          formData.append('title', title);
+          formData.append('shortDescription', shortDescription);
+          formData.append('content', content);
+          if (imageFile) {
+            formData.append('featuredImage', imageFile);
+          }
+          
+          const response = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${editBlogAuthToken}`
+            },
+            body: formData
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.success) {
+            successDiv.textContent = 'Blog post updated successfully!';
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+              const modal = bootstrap.Modal.getInstance(document.getElementById('editBlogModal'));
+              modal.hide();
+              loadBlogPosts();
+            }, 1500);
+          } else {
+            errorDiv.textContent = data.error || 'Failed to update blog post';
+            errorDiv.style.display = 'block';
+          }
+        } catch (error) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.style.display = 'block';
+        }
+      }
+      
+      // Open Delete Blog Modal
+      async function openDeleteBlogModal(postId) {
+        // Close menu
+        document.querySelectorAll('.blog-menu-dropdown').forEach(menu => {
+          menu.classList.remove('show');
+        });
+        
+        // Store post ID
+        document.getElementById('deleteBlogModal').setAttribute('data-post-id', postId);
+        
+        // Reset form
+        document.getElementById('deleteBlogAuthForm').reset();
+        document.getElementById('deleteBlogError').style.display = 'none';
+        
+        // Load blog post title
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`);
+          const data = await response.json();
+          
+          if (response.ok && data.post) {
+            document.getElementById('deleteBlogPostTitle').textContent = data.post.title || 'Untitled Post';
+          }
+        } catch (error) {
+          console.error('Error loading blog post:', error);
+        }
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('deleteBlogModal'));
+        modal.show();
+      }
+      
+      // Confirm Delete Blog
+      async function confirmDeleteBlog() {
+        const postId = document.getElementById('deleteBlogModal').getAttribute('data-post-id');
+        const username = document.getElementById('deleteBlogAdminUsername').value.trim();
+        const password = document.getElementById('deleteBlogAdminPassword').value;
+        
+        const errorDiv = document.getElementById('deleteBlogError');
+        errorDiv.style.display = 'none';
+        
+        if (!username || !password) {
+          errorDiv.textContent = 'Please enter both username and password.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+        
+        try {
+          // Authenticate admin
+          const authResponse = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+          });
+          
+          const authData = await authResponse.json();
+          
+          if (!authResponse.ok || !authData.token) {
+            errorDiv.textContent = authData.error || 'Invalid credentials.';
+            errorDiv.style.display = 'block';
+            return;
+          }
+          
+          // Check if user is admin
+          if (!authData.user || authData.user.role !== 'admin') {
+            errorDiv.textContent = 'Only administrators can delete blog posts.';
+            errorDiv.style.display = 'block';
+            return;
+          }
+          
+          // Delete blog post
+          const deleteResponse = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${authData.token}`
+            }
+          });
+          
+          const deleteData = await deleteResponse.json();
+          
+          if (deleteResponse.ok && deleteData.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteBlogModal'));
+            modal.hide();
+            
+            // Reload blog posts
+            loadBlogPosts();
+            
+            // Show success notification
+            alert('Blog post deleted successfully!');
+          } else {
+            errorDiv.textContent = deleteData.error || 'Failed to delete blog post';
+            errorDiv.style.display = 'block';
+          }
+        } catch (error) {
+          errorDiv.textContent = 'An error occurred. Please try again.';
+          errorDiv.style.display = 'block';
+        }
       }
     </script>
 
