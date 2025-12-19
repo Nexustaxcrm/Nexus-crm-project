@@ -940,6 +940,7 @@
       var $window = $(window);
       var lastScrollTop = 0;
       var $header = $(".ak-sticky_header");
+      var $topBar = $(".ak-top-bar");
       var scrollThreshold = 10; // Small threshold to start hide/show behavior
       var ticking = false;
       var isMobile = $(window).width() <= 1199;
@@ -951,6 +952,12 @@
         if (isMobile) {
           $header.removeClass("ak-gescout_sticky");
           $header.removeClass("ak-gescout_show");
+          // On mobile, hide top bar when scrolling down
+          if (windowTop > scrollThreshold && windowTop > lastScrollTop) {
+            $topBar.addClass("ak-top-bar-hidden");
+          } else {
+            $topBar.removeClass("ak-top-bar-hidden");
+          }
           lastScrollTop = windowTop;
           return;
         }
@@ -961,16 +968,19 @@
           
           // Hide/show based on scroll direction
           if (windowTop < lastScrollTop) {
-            // Scrolling up - show navbar
+            // Scrolling up - show navbar and top bar
             $header.addClass("ak-gescout_show");
+            $topBar.removeClass("ak-top-bar-hidden");
           } else if (windowTop > lastScrollTop && windowTop > scrollThreshold) {
-            // Scrolling down - hide navbar immediately
+            // Scrolling down - hide navbar and top bar immediately
             $header.removeClass("ak-gescout_show");
+            $topBar.addClass("ak-top-bar-hidden");
           }
           } else {
-          // At top of page - always show navbar
+          // At top of page - always show navbar and top bar
           $header.removeClass("ak-gescout_sticky");
-            $header.removeClass("ak-gescout_show");
+          $header.removeClass("ak-gescout_show");
+          $topBar.removeClass("ak-top-bar-hidden");
         }
 
         lastScrollTop = windowTop;
@@ -981,6 +991,14 @@
         if (!ticking) {
           window.requestAnimationFrame(updateHeader);
           ticking = true;
+        }
+      });
+
+      // Handle window resize to update mobile detection
+      $(window).on("resize", function () {
+        isMobile = $(window).width() <= 1199;
+        if (isMobile && $window.scrollTop() <= scrollThreshold) {
+          $topBar.removeClass("ak-top-bar-hidden");
         }
       });
     }
