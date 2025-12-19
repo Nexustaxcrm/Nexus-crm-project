@@ -962,22 +962,22 @@
           return;
         }
 
-        // Start hide/show behavior after small scroll threshold (desktop only)
+        // Desktop: Always keep navbar visible, only hide/show top bar
         if (windowTop >= scrollThreshold) {
+          // Make navbar sticky and always visible
           $header.addClass("ak-gescout_sticky");
+          $header.addClass("ak-gescout_show"); // Always show navbar
           
-          // Hide/show based on scroll direction
+          // Hide/show top bar based on scroll direction
           if (windowTop < lastScrollTop) {
-            // Scrolling up - show navbar and top bar
-            $header.addClass("ak-gescout_show");
+            // Scrolling up - show top bar
             $topBar.removeClass("ak-top-bar-hidden");
           } else if (windowTop > lastScrollTop && windowTop > scrollThreshold) {
-            // Scrolling down - hide navbar and top bar immediately
-            $header.removeClass("ak-gescout_show");
+            // Scrolling down - hide top bar
             $topBar.addClass("ak-top-bar-hidden");
           }
-          } else {
-          // At top of page - always show navbar and top bar
+        } else {
+          // At top of page - show both navbar and top bar
           $header.removeClass("ak-gescout_sticky");
           $header.removeClass("ak-gescout_show");
           $topBar.removeClass("ak-top-bar-hidden");
