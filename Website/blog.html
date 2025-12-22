@@ -256,9 +256,19 @@
       .blog-img-box img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        transition: transform 0.3s ease;
+        object-fit: cover;
+        transition: transform 0.3s ease, opacity 0.3s ease;
         display: block;
+      }
+      
+      /* Lazy loading image styles */
+      .blog-lazy-image {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .blog-lazy-image.loaded {
+        opacity: 1;
       }
       
       .blog-card-box:hover .blog-img-box img {
@@ -1212,29 +1222,36 @@
 
       // Load blog posts
       async function loadBlogPosts() {
+        const container = document.getElementById('blogPostsContainer');
+        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Loading...</span></div><p class="text-muted mt-3">Loading blog posts...</p></div>';
+        
         try {
+          const startTime = performance.now();
           const response = await fetch(`${API_BASE_URL}/api/blog/posts`);
           const data = await response.json();
+          const loadTime = ((performance.now() - startTime) / 1000).toFixed(2);
 
           if (response.ok && data.posts) {
+            console.log(`✅ Blog posts loaded in ${loadTime}s`);
             displayBlogPosts(data.posts);
           } else {
-            document.getElementById('blogPostsContainer').innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
+            container.innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
           }
         } catch (error) {
-          document.getElementById('blogPostsContainer').innerHTML = '<div class="text-center py-5"><p class="text-danger">Error loading blog posts.</p></div>';
+          console.error('Error loading blog posts:', error);
+          container.innerHTML = '<div class="text-center py-5"><p class="text-danger">Error loading blog posts. Please refresh the page.</p></div>';
         }
       }
 
-      // Get blog image URL (handles both S3 and local storage)
-      function getBlogImageUrl(imagePath) {
+      // Get blog image URL (handles both S3 and local storage) with optimization
+      function getBlogImageUrl(imagePath, width = 600) {
         if (!imagePath) return 'assets/img/bg/common-bg.png';
         
         // Encode the path for URL
         const encodedPath = encodeURIComponent(imagePath);
         
-        // Use the unified image endpoint
-        return `${API_BASE_URL}/api/blog/image?path=${encodedPath}`;
+        // Request optimized image size for listing (600px width, 80% quality)
+        return `${API_BASE_URL}/api/blog/image?path=${encodedPath}&width=${width}&quality=80`;
       }
 
       // Display blog posts
@@ -1249,7 +1266,7 @@
         container.innerHTML = '<div class="blog-grid-container">' + posts.map(post => {
           const date = new Date(post.created_at);
           const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-          const imageUrl = getBlogImageUrl(post.featured_image);
+          const imageUrl = getBlogImageUrl(post.featured_image, 600);
           
           return `
             <article class="blog-card-box">
@@ -1268,7 +1285,15 @@
               </div>
               ${post.featured_image ? `
                 <div class="blog-img-box">
-                  <img src="${imageUrl}" alt="${post.title}">
+                  <img 
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220'%3E%3Crect fill='%23f0f0f0' width='400' height='220'/%3E%3C/svg%3E" 
+                    data-src="${imageUrl}" 
+                    alt="${escapeHtml(post.title)}"
+                    loading="lazy"
+                    class="blog-lazy-image"
+                    onerror="this.src='assets/img/bg/common-bg.png'"
+                    onload="this.classList.add('loaded')"
+                  >
                 </div>
               ` : '<div class="blog-img-box blog-placeholder-img"></div>'}
               <div class="blog-date-only">${formattedDate}</div>
@@ -1284,6 +1309,39 @@
             </article>
           `;
         }).join('') + '</div>';
+        
+        // Initialize lazy loading after rendering
+        initializeLazyLoading();
+      }
+
+      // Lazy load images when they come into viewport
+      function initializeLazyLoading() {
+        const lazyImages = document.querySelectorAll('.blog-lazy-image[data-src]');
+        
+        if ('IntersectionObserver' in window) {
+          const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.remove('blog-lazy-image');
+                img.removeAttribute('data-src');
+                imageObserver.unobserve(img);
+              }
+            });
+          }, {
+            rootMargin: '50px' // Start loading 50px before image enters viewport
+          });
+          
+          lazyImages.forEach(img => imageObserver.observe(img));
+        } else {
+          // Fallback for older browsers - load all images immediately
+          lazyImages.forEach(img => {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+            img.classList.add('loaded');
+          });
+        }
       }
 
 
@@ -1297,7 +1355,7 @@
             const post = data.post;
             const date = new Date(post.created_at);
             const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            const imageUrl = post.featured_image ? getBlogImageUrl(post.featured_image) : '';
+            const imageUrl = post.featured_image ? getBlogImageUrl(post.featured_image, 1200) : '';
             
             document.getElementById('blogPostDetailModalLabel').textContent = post.title;
             

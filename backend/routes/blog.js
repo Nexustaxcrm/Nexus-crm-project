@@ -391,29 +391,29 @@ router.delete('/posts/:id', verifyAdmin, async (req, res) => {
     }
 });
 
-// Serve blog images (S3 or local) - unified endpoint
+// Serve blog images (S3 or local) - unified endpoint with optimization
 router.get('/image', async (req, res) => {
     try {
         const imagePath = req.query.path;
+        const width = req.query.width ? parseInt(req.query.width) : null;
+        const quality = req.query.quality ? parseInt(req.query.quality) : 80;
         
         if (!imagePath) {
             return res.status(400).json({ error: 'Image path required. Use ?path=blog-images/filename.jpg' });
         }
+        
+        let fileBuffer;
+        let filename;
+        let contentType;
         
         // Check if it's an S3 key (starts with blog-images/)
         if (imagePath.startsWith(BLOG_S3_PREFIX + '/')) {
             // Serve from S3
             if (s3Storage.isS3Configured()) {
                 try {
-                    const fileBuffer = await s3Storage.downloadFromS3(imagePath);
-                    const filename = path.basename(imagePath);
-                    const contentType = s3Storage.getContentType(filename);
-                    
-                    res.setHeader('Content-Type', contentType);
-                    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-                    res.send(fileBuffer);
-                    console.log(`✅ Blog image served from S3: ${imagePath}`);
-                    return;
+                    fileBuffer = await s3Storage.downloadFromS3(imagePath);
+                    filename = path.basename(imagePath);
+                    contentType = s3Storage.getContentType(filename);
                 } catch (s3Error) {
                     console.error(`❌ Error serving blog image from S3: ${s3Error.message}`);
                     return res.status(404).json({ error: 'Image not found in S3' });
@@ -423,19 +423,73 @@ router.get('/image', async (req, res) => {
             }
         } else if (imagePath.startsWith('/blog_uploads/') || imagePath.startsWith('blog_uploads/')) {
             // Serve from local storage
-            const filename = path.basename(imagePath);
+            filename = path.basename(imagePath);
             const localPath = path.join(blogUploadsDir, filename);
             
             if (fs.existsSync(localPath)) {
-                res.sendFile(localPath);
-                console.log(`✅ Blog image served from local storage: ${localPath}`);
-                return;
+                fileBuffer = fs.readFileSync(localPath);
+                contentType = s3Storage.getContentType(filename);
             } else {
                 return res.status(404).json({ error: 'Image not found in local storage' });
             }
         } else {
             return res.status(400).json({ error: 'Invalid image path format' });
         }
+        
+        // Optimize image if sharp is available and parameters are provided
+        let processedBuffer = fileBuffer;
+        const originalSize = fileBuffer.length;
+        
+        if (contentType && contentType.startsWith('image/') && (width || quality < 100)) {
+            try {
+                const sharp = require('sharp');
+                let sharpInstance = sharp(fileBuffer);
+                
+                // Resize if width is specified
+                if (width) {
+                    sharpInstance = sharpInstance.resize(width, null, {
+                        withoutEnlargement: true,
+                        fit: 'inside'
+                    });
+                }
+                
+                // Apply format-specific optimization
+                if (contentType === 'image/jpeg' || contentType === 'image/jpg') {
+                    processedBuffer = await sharpInstance
+                        .jpeg({ quality: quality, progressive: true, mozjpeg: true })
+                        .toBuffer();
+                } else if (contentType === 'image/png') {
+                    processedBuffer = await sharpInstance
+                        .png({ quality: quality, progressive: true, compressionLevel: 9 })
+                        .toBuffer();
+                } else if (contentType === 'image/webp') {
+                    processedBuffer = await sharpInstance
+                        .webp({ quality: quality })
+                        .toBuffer();
+                } else {
+                    // For other formats, just resize if needed
+                    if (width) {
+                        processedBuffer = await sharpInstance.toBuffer();
+                    }
+                }
+                
+                const optimizedSize = processedBuffer.length;
+                const savings = ((1 - optimizedSize / originalSize) * 100).toFixed(1);
+                console.log(`✅ Blog image optimized: ${imagePath} (${(originalSize / 1024).toFixed(2)}KB → ${(optimizedSize / 1024).toFixed(2)}KB, ${savings}% reduction)`);
+            } catch (sharpError) {
+                // If sharp fails or is not available, serve original image
+                console.warn('⚠️ Sharp optimization failed, serving original image:', sharpError.message);
+                processedBuffer = fileBuffer;
+            }
+        }
+        
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // Cache for 1 year
+        res.setHeader('Content-Length', processedBuffer.length);
+        res.send(processedBuffer);
+        
+        const sizeKB = (processedBuffer.length / 1024).toFixed(2);
+        console.log(`✅ Blog image served: ${imagePath} (${sizeKB}KB)`);
     } catch (error) {
         console.error('Error serving blog image:', error);
         res.status(500).json({ error: 'Error serving image' });
