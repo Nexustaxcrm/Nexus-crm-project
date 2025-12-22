@@ -10465,7 +10465,14 @@ function getSampleCustomers() {
     ];
 }
 
-async function loadCustomers() {
+// Cache for customer data to prevent redundant API calls
+let customerCache = {
+    data: null,
+    timestamp: null,
+    maxAge: 30000 // 30 seconds cache
+};
+
+async function loadCustomers(forceRefresh = false) {
     try {
         const token = sessionStorage.getItem('authToken');
         
@@ -10490,7 +10497,23 @@ async function loadCustomers() {
             return;
         }
         
+        // Check cache if not forcing refresh
+        if (!forceRefresh && customerCache.data && customerCache.timestamp) {
+            const age = Date.now() - customerCache.timestamp;
+            if (age < customerCache.maxAge) {
+                console.log('✅ Using cached customer data');
+                customers = customerCache.data;
+                
+                // Refresh the dashboard if it's currently displayed
+                if (document.getElementById('dashboardPage').style.display !== 'none') {
+                    loadDashboard();
+                }
+                return;
+            }
+        }
+        
         // Fetch customers from server
+        const startTime = performance.now();
         const response = await fetch(API_BASE_URL + '/customers', {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -10499,6 +10522,7 @@ async function loadCustomers() {
         
         if (response.ok) {
             const data = await response.json();
+            const loadTime = ((performance.now() - startTime) / 1000).toFixed(2);
             
             // Handle paginated response (new API format)
             const customersData = data.customers || data;
@@ -10534,6 +10558,12 @@ async function loadCustomers() {
                     createdAt: customer.created_at || customer.createdAt || new Date().toISOString()
                 };
             });
+            
+            // Update cache
+            customerCache.data = customers;
+            customerCache.timestamp = Date.now();
+            
+            console.log(`✅ Customers loaded in ${loadTime}s (${customers.length} customers)`);
             
             // Refresh the dashboard if it's currently displayed
             if (document.getElementById('dashboardPage').style.display !== 'none') {
