@@ -226,9 +226,9 @@
       .blog-grid-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 18px;
+        gap: 15px;
         width: 100%;
-        max-width: 900px;
+        max-width: 800px;
         margin: 0 auto;
       }
       
@@ -236,9 +236,9 @@
         display: flex;
         flex-direction: column;
         background: #ffffff;
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         height: 100%;
         border: 1px solid rgba(6, 50, 50, 0.1);
@@ -327,7 +327,7 @@
       
       .blog-img-box {
         width: 100%;
-        height: 150px;
+        height: 130px;
         overflow: hidden;
         background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
         position: relative;
@@ -372,7 +372,7 @@
       }
       
       .blog-card-content {
-        padding: 14px;
+        padding: 12px;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -391,18 +391,18 @@
       }
       
       .blog-date-only {
-        font-size: 11px;
+        font-size: 10px;
         color: #063232;
         font-weight: 500;
-        padding: 8px 14px 0 14px;
-        margin-bottom: 5px;
+        padding: 6px 12px 0 12px;
+        margin-bottom: 4px;
       }
       
       .blog-title-box {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
         color: #063232;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         line-height: 1.3;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -412,23 +412,23 @@
       
       .blog-short-description-box {
         color: #545454;
-        line-height: 1.5;
-        margin-bottom: 12px;
+        line-height: 1.4;
+        margin-bottom: 10px;
         flex-grow: 1;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        font-size: 12px;
+        font-size: 11px;
       }
       
       .blog-read-btn {
         background-color: #063232 !important;
         border-color: #063232 !important;
-        padding: 7px 16px !important;
-        border-radius: 6px !important;
+        padding: 6px 14px !important;
+        border-radius: 5px !important;
         font-weight: 600 !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
         width: fit-content;
         transition: all 0.3s ease !important;
       }
@@ -443,53 +443,59 @@
       @media (max-width: 991px) {
         .blog-grid-container {
           grid-template-columns: 1fr;
-          gap: 16px;
+          gap: 14px;
           max-width: 100%;
         }
         
         .blog-img-box {
-          height: 140px;
-        }
-        
-        .blog-card-content {
-          padding: 12px;
-        }
-        
-        .blog-date-only {
-          padding: 7px 12px 0 12px;
-          font-size: 10px;
-        }
-        
-        .blog-title-box {
-          font-size: 15px;
-        }
-      }
-      
-      @media (max-width: 768px) {
-        .blog-grid-container {
-          gap: 14px;
-        }
-        
-        .blog-img-box {
-          height: 130px;
+          height: 120px;
         }
         
         .blog-card-content {
           padding: 10px;
         }
         
+        .blog-date-only {
+          padding: 6px 10px 0 10px;
+          font-size: 9px;
+        }
+        
         .blog-title-box {
           font-size: 14px;
         }
+      }
+      
+      @media (max-width: 768px) {
+        .blog-grid-container {
+          gap: 12px;
+        }
+        
+        .blog-img-box {
+          height: 110px;
+        }
+        
+        .blog-card-content {
+          padding: 8px;
+        }
+        
+        .blog-title-box {
+          font-size: 13px;
+          margin-bottom: 5px;
+        }
         
         .blog-short-description-box {
-          font-size: 11px;
-          margin-bottom: 10px;
+          font-size: 10px;
+          margin-bottom: 8px;
         }
         
         .blog-read-btn {
-          padding: 6px 14px !important;
-          font-size: 11px !important;
+          padding: 5px 12px !important;
+          font-size: 10px !important;
+        }
+        
+        .blog-date-only {
+          padding: 5px 8px 0 8px;
+          font-size: 9px;
         }
       }
       
