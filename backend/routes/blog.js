@@ -118,7 +118,9 @@ router.post('/admin-auth', async (req, res) => {
 // Create blog post
 router.post('/posts', verifyAdmin, upload.single('featuredImage'), async (req, res) => {
     try {
-        const { title, shortDescription, content } = req.body;
+        const { title, shortDescription, content, category } = req.body;
+        // Default to 'blog' if category not provided
+        const postCategory = category || 'blog';
         let featuredImage = null;
 
         // Handle image upload (S3 or local fallback)
@@ -180,10 +182,10 @@ router.post('/posts', verifyAdmin, upload.single('featuredImage'), async (req, r
         }
 
         const result = await pool.query(
-            `INSERT INTO blog_posts (title, short_description, content, featured_image, created_by, created_at)
-             VALUES ($1, $2, $3, $4, $5, NOW())
+            `INSERT INTO blog_posts (title, short_description, content, featured_image, created_by, category, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW())
              RETURNING *`,
-            [title, shortDescription, content, featuredImage, req.admin.username]
+            [title, shortDescription, content, featuredImage, req.admin.username, postCategory]
         );
 
         res.status(201).json({ 
@@ -201,7 +203,7 @@ router.post('/posts', verifyAdmin, upload.single('featuredImage'), async (req, r
 router.get('/posts', async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT id, title, short_description, featured_image, created_at, created_by
+            `SELECT id, title, short_description, featured_image, created_at, created_by, category
              FROM blog_posts
              ORDER BY created_at DESC`
         );
@@ -238,7 +240,9 @@ router.get('/posts/:id', async (req, res) => {
 router.put('/posts/:id', verifyAdmin, upload.single('featuredImage'), async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, shortDescription, content } = req.body;
+        const { title, shortDescription, content, category } = req.body;
+        // Default to 'blog' if category not provided
+        const postCategory = category || 'blog';
         
         // Check if post exists
         const postResult = await pool.query('SELECT * FROM blog_posts WHERE id = $1', [id]);
@@ -329,10 +333,10 @@ router.put('/posts/:id', verifyAdmin, upload.single('featuredImage'), async (req
         // Update post in database
         const result = await pool.query(
             `UPDATE blog_posts 
-             SET title = $1, short_description = $2, content = $3, featured_image = $4, updated_at = NOW()
-             WHERE id = $5
+             SET title = $1, short_description = $2, content = $3, featured_image = $4, category = $5, updated_at = NOW()
+             WHERE id = $6
              RETURNING *`,
-            [title, shortDescription, content, featuredImage, id]
+            [title, shortDescription, content, featuredImage, postCategory, id]
         );
         
         res.json({ 

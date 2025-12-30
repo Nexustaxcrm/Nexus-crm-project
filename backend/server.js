@@ -501,6 +501,7 @@ async function createBlogPostsTableMigration(pool) {
                     content TEXT NOT NULL,
                     featured_image VARCHAR(500),
                     created_by VARCHAR(255) NOT NULL,
+                    category VARCHAR(50) DEFAULT 'blog',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -513,6 +514,29 @@ async function createBlogPostsTableMigration(pool) {
             console.log('✅ blog_posts table created successfully');
         } else {
             console.log('✅ blog_posts table already exists');
+            // Add category column if it doesn't exist (for existing tables)
+            try {
+                const columnCheck = await pool.query(`
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name='blog_posts' AND column_name='category'
+                `);
+                
+                if (columnCheck.rows.length === 0) {
+                    console.log('🔄 Adding category column to blog_posts table...');
+                    await pool.query(`
+                        ALTER TABLE blog_posts 
+                        ADD COLUMN category VARCHAR(50) DEFAULT 'blog'
+                    `);
+                    
+                    // Create index for category
+                    await pool.query('CREATE INDEX IF NOT EXISTS idx_blog_posts_category ON blog_posts(category)');
+                    
+                    console.log('✅ category column added successfully');
+                }
+            } catch (columnError) {
+                console.error('⚠️ Error adding category column:', columnError.message);
+            }
         }
     } catch (error) {
         console.error('❌ Error creating blog_posts table:', error.message);

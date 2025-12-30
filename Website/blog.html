@@ -40,6 +40,54 @@
         }
       }
       
+      /* Blog Category Headers */
+      .blog-category-headers {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      
+      .blog-category-btn {
+        background: transparent;
+        border: 2px solid #063232;
+        color: #063232;
+        padding: 10px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .blog-category-btn:hover {
+        background: #063232;
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 50, 50, 0.3);
+      }
+      
+      .blog-category-btn.active {
+        background: #063232;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(6, 50, 50, 0.3);
+      }
+      
+      @media (max-width: 768px) {
+        .blog-category-headers {
+          gap: 15px;
+          margin-bottom: 15px;
+        }
+        
+        .blog-category-btn {
+          padding: 8px 20px;
+          font-size: 14px;
+        }
+      }
+      
       .blog-page-title {
         font-size: clamp(32px, 4vw, 48px) !important;
         font-weight: 600;
@@ -556,6 +604,19 @@
     <div class="container post-blog-wrapper">
       <div class="row align-items-center">
         <div class="col-12">
+          <!-- Blog Category Headers -->
+          <div class="blog-category-headers">
+            <button class="blog-category-btn active" data-category="blog" onclick="filterBlogPosts('blog')">
+              Blog
+            </button>
+            <button class="blog-category-btn" data-category="events" onclick="filterBlogPosts('events')">
+              Events
+            </button>
+            <button class="blog-category-btn" data-category="certifications" onclick="filterBlogPosts('certifications')">
+              Certifications
+            </button>
+          </div>
+          
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <!-- Page Title - Centered -->
             <div style="flex: 1; text-align: center;">
@@ -861,8 +922,18 @@
           <div class="modal-body" style="padding: 30px;">
             <form id="blogPostForm">
               <div class="mb-4">
-                <label for="blogTitle" class="form-label" style="font-weight: 600; color: #545454;">Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="blogTitle" required placeholder="Enter blog post title" style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                <div class="mb-3">
+                  <label for="blogCategory" class="form-label" style="font-weight: 600; color: #545454;">Category <span class="text-danger">*</span></label>
+                  <select class="form-control" id="blogCategory" required style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="blog">Blog</option>
+                    <option value="events">Events</option>
+                    <option value="certifications">Certifications</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="blogTitle" class="form-label" style="font-weight: 600; color: #545454;">Title <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="blogTitle" required placeholder="Enter blog post title" style="padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                </div>
               </div>
               
               <div class="mb-4">
@@ -986,6 +1057,14 @@
             <div id="editBlogFormSection" style="display: none;">
               <form id="editBlogForm">
                 <input type="hidden" id="editBlogPostId">
+                <div class="mb-3">
+                  <label class="form-label">Category</label>
+                  <select class="form-control" id="editBlogCategory" required>
+                    <option value="blog">Blog</option>
+                    <option value="events">Events</option>
+                    <option value="certifications">Certifications</option>
+                  </select>
+                </div>
                 <div class="mb-3">
                   <label class="form-label">Title</label>
                   <input type="text" class="form-control" id="editBlogTitle" required placeholder="Enter blog post title">
@@ -1162,6 +1241,7 @@
 
       // Submit blog post
       async function submitBlogPost() {
+        const category = document.getElementById('blogCategory').value;
         const title = document.getElementById('blogTitle').value.trim();
         const shortDescription = document.getElementById('blogShortDescription').value.trim();
         const content = document.getElementById('blogContent').innerHTML;
@@ -1184,6 +1264,7 @@
 
         try {
           const formData = new FormData();
+          formData.append('category', category);
           formData.append('title', title);
           formData.append('shortDescription', shortDescription);
           formData.append('content', content);
@@ -1220,6 +1301,36 @@
         }
       }
 
+      // Current active category filter
+      let currentCategory = 'blog';
+      let allBlogPosts = [];
+
+      // Filter blog posts by category
+      function filterBlogPosts(category) {
+        currentCategory = category;
+        
+        // Update active button
+        document.querySelectorAll('.blog-category-btn').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.getAttribute('data-category') === category) {
+            btn.classList.add('active');
+          }
+        });
+        
+        // Filter and display posts
+        if (allBlogPosts.length > 0) {
+          const filteredPosts = allBlogPosts.filter(post => {
+            // Check if post has category field, otherwise default to 'blog'
+            const postCategory = (post.category || 'blog').toLowerCase();
+            return postCategory === category.toLowerCase();
+          });
+          displayBlogPosts(filteredPosts);
+        } else {
+          // If posts not loaded yet, reload
+          loadBlogPosts();
+        }
+      }
+
       // Load blog posts
       async function loadBlogPosts() {
         const container = document.getElementById('blogPostsContainer');
@@ -1233,7 +1344,10 @@
 
           if (response.ok && data.posts) {
             console.log(`✅ Blog posts loaded in ${loadTime}s`);
-            displayBlogPosts(data.posts);
+            // Store all posts
+            allBlogPosts = data.posts;
+            // Filter by current category
+            filterBlogPosts(currentCategory);
           } else {
             container.innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
           }
@@ -1511,6 +1625,7 @@
               
               // Populate form with current post data
               if (window.currentEditPost) {
+                document.getElementById('editBlogCategory').value = window.currentEditPost.category || 'blog';
                 document.getElementById('editBlogTitle').value = window.currentEditPost.title || '';
                 document.getElementById('editBlogShortDescription').value = window.currentEditPost.short_description || '';
                 document.getElementById('editBlogContent').value = window.currentEditPost.content || '';
@@ -1552,6 +1667,7 @@
       // Submit Edit Blog
       async function submitEditBlog() {
         const postId = document.getElementById('editBlogPostId').value;
+        const category = document.getElementById('editBlogCategory').value;
         const title = document.getElementById('editBlogTitle').value.trim();
         const shortDescription = document.getElementById('editBlogShortDescription').value.trim();
         const content = document.getElementById('editBlogContent').value.trim();
@@ -1577,6 +1693,7 @@
         
         try {
           const formData = new FormData();
+          formData.append('category', category);
           formData.append('title', title);
           formData.append('shortDescription', shortDescription);
           formData.append('content', content);

@@ -123,15 +123,15 @@
             const offset = 120; // Offset from top of page (accounting for header)
             
             console.log('📍 Scrolling to form position:', formPosition - offset);
-            
-            // Scroll to form with smooth behavior
-            window.scrollTo({
-              top: formPosition - offset,
-              behavior: 'smooth'
-            });
-            
+          
+          // Scroll to form with smooth behavior
+          window.scrollTo({
+            top: formPosition - offset,
+            behavior: 'smooth'
+          });
+          
             // Focus on first input field (Your Name) after scroll completes
-            setTimeout(function() {
+          setTimeout(function() {
               const nameInput = form.querySelector('#fullname');
               if (nameInput) {
                 nameInput.focus();
@@ -151,7 +151,7 @@
           }, 100);
         } else {
           console.error('❌ Form not found after', maxAttempts, 'attempts');
-        }
+            }
       }
       
       // Start scrolling - try multiple times to handle page load delays
