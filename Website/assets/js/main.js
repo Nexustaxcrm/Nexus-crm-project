@@ -2284,6 +2284,11 @@
     function transitionVideos(fromVideo, toVideo) {
       // Reset and start playing the next video
       toVideo.currentTime = 0;
+      
+      // Ensure the video will loop if needed (though we handle looping manually)
+      toVideo.loop = false; // We handle looping manually through transitions
+      
+      // Play the next video
       toVideo.play().catch(function(error) {
         console.log('Error playing video:', error);
       });
@@ -2307,6 +2312,7 @@
       // Clean up previous video after transition
       setTimeout(function() {
         fromVideo.pause();
+        fromVideo.currentTime = 0; // Reset previous video for next cycle
         fromVideo.classList.remove('fading-out');
         fromVideo.classList.remove('fading-in');
         // Reset z-index for proper layering
@@ -2393,6 +2399,8 @@
       if (tertiaryVideo.ended || tertiaryVideo.currentTime >= tertiaryVideo.duration - 0.5) {
         // Restore original text BEFORE transition to ensure it's ready
         restoreHeroTextForFirstVideo();
+        // Reset primary video to start from beginning for continuous loop
+        primaryVideo.currentTime = 0;
         transitionVideos(tertiaryVideo, primaryVideo);
       }
     }
@@ -2446,32 +2454,39 @@
     }, { once: true });
     
     // Add event listeners to ensure text is correct when videos start playing
+    // This ensures text is always aligned with the currently playing video for continuous loop
     primaryVideo.addEventListener('play', function() {
-      // When primary video starts, ensure original text is shown
+      // When primary video starts, ensure original text is shown (1st video = 1st text)
       setTimeout(function() {
-        if (!primaryVideo.ended && !primaryVideo.paused) {
+        if (!primaryVideo.ended && !primaryVideo.paused && !primaryVideo.classList.contains('fading-out')) {
           restoreHeroTextForFirstVideo();
         }
-      }, 100);
+      }, 50);
     });
     
     secondaryVideo.addEventListener('play', function() {
-      // When secondary video starts, ensure second video text is shown
+      // When secondary video starts, ensure second video text is shown (2nd video = 2nd text)
       setTimeout(function() {
-        if (!secondaryVideo.ended && !secondaryVideo.paused) {
+        if (!secondaryVideo.ended && !secondaryVideo.paused && !secondaryVideo.classList.contains('fading-out')) {
           updateHeroTextForSecondVideo();
         }
-      }, 100);
+      }, 50);
     });
     
     tertiaryVideo.addEventListener('play', function() {
-      // When tertiary video starts, ensure third video text is shown
+      // When tertiary video starts, ensure third video text is shown (3rd video = 3rd text)
       setTimeout(function() {
-        if (!tertiaryVideo.ended && !tertiaryVideo.paused) {
+        if (!tertiaryVideo.ended && !tertiaryVideo.paused && !tertiaryVideo.classList.contains('fading-out')) {
           updateHeroTextForThirdVideo();
         }
-      }, 100);
+      }, 50);
     });
+    
+    // Ensure videos don't loop individually - we handle looping through transitions
+    // This ensures continuous loop: 1 → 2 → 3 → 1 → 2 → 3 → ...
+    primaryVideo.loop = false;
+    secondaryVideo.loop = false;
+    tertiaryVideo.loop = false;
   }
 
   // Initialize on page load
