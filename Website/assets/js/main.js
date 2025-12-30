@@ -2319,13 +2319,24 @@
         }
       }, 1200);
     }
+    
+    // Function to update text based on which video is currently playing
+    function updateTextForCurrentVideo(video) {
+      if (video === primaryVideo) {
+        restoreHeroTextForFirstVideo();
+      } else if (video === secondaryVideo) {
+        updateHeroTextForSecondVideo();
+      } else if (video === tertiaryVideo) {
+        updateHeroTextForThirdVideo();
+      }
+    }
 
     // Handle transition from primary (hero-video) to secondary (hero-video1)
     function handlePrimaryToSecondary() {
       if (primaryVideo.ended || primaryVideo.currentTime >= primaryVideo.duration - 0.5) {
-        transitionVideos(primaryVideo, secondaryVideo);
-        // Update text when switching to second video
+        // Update text BEFORE transition to ensure it's ready
         updateHeroTextForSecondVideo();
+        transitionVideos(primaryVideo, secondaryVideo);
       }
     }
     
@@ -2358,9 +2369,9 @@
     // Handle transition from secondary (hero-video1) to tertiary (hero-video2)
     function handleSecondaryToTertiary() {
       if (secondaryVideo.ended || secondaryVideo.currentTime >= secondaryVideo.duration - 0.5) {
-        transitionVideos(secondaryVideo, tertiaryVideo);
-        // Update text when switching to third video
+        // Update text BEFORE transition to ensure it's ready
         updateHeroTextForThirdVideo();
+        transitionVideos(secondaryVideo, tertiaryVideo);
       }
     }
     
@@ -2372,17 +2383,17 @@
       if (heroTitle && heroDescription) {
         // Update title - "Refer a Friend" in large size
         heroTitle.innerHTML = 'Refer a Friend';
-        // Update description
-        heroDescription.textContent = 'For every friend you refer, you will get $10 – and your friend will get $10 too.';
+        // Update description - exact format as requested
+        heroDescription.innerHTML = 'For every friend you refer,<br>you get $10 – and your friend gets $10 too.';
       }
     }
 
     // Handle transition from tertiary (hero-video2) back to primary (hero-video) - cycle restart
     function handleTertiaryToPrimary() {
       if (tertiaryVideo.ended || tertiaryVideo.currentTime >= tertiaryVideo.duration - 0.5) {
-        transitionVideos(tertiaryVideo, primaryVideo);
-        // Restore original text when going back to first video
+        // Restore original text BEFORE transition to ensure it's ready
         restoreHeroTextForFirstVideo();
+        transitionVideos(tertiaryVideo, primaryVideo);
       }
     }
 
@@ -2405,6 +2416,24 @@
       else if (tertiaryVideo.ended && !primaryVideo.classList.contains('fading-in') && !primaryVideo.classList.contains('fading-out')) {
         handleTertiaryToPrimary();
       }
+      
+      // Also ensure text is correct based on currently playing video
+      if (primaryVideo.paused === false && primaryVideo.ended === false && !primaryVideo.classList.contains('fading-out')) {
+        // Primary video is playing
+        if (document.getElementById('hero-main-title') && document.getElementById('hero-main-title').textContent.includes('FREE TAX QUOTE')) {
+          restoreHeroTextForFirstVideo();
+        }
+      } else if (secondaryVideo.paused === false && secondaryVideo.ended === false && !secondaryVideo.classList.contains('fading-out')) {
+        // Secondary video is playing
+        if (document.getElementById('hero-main-title') && !document.getElementById('hero-main-title').textContent.includes('FREE TAX QUOTE')) {
+          updateHeroTextForSecondVideo();
+        }
+      } else if (tertiaryVideo.paused === false && tertiaryVideo.ended === false && !tertiaryVideo.classList.contains('fading-out')) {
+        // Tertiary video is playing
+        if (document.getElementById('hero-main-title') && !document.getElementById('hero-main-title').textContent.includes('Refer a Friend')) {
+          updateHeroTextForThirdVideo();
+        }
+      }
     }, 100);
 
     // Ensure all videos are ready
@@ -2415,6 +2444,34 @@
     tertiaryVideo.addEventListener('loadeddata', function() {
       // Video is ready for smooth transition
     }, { once: true });
+    
+    // Add event listeners to ensure text is correct when videos start playing
+    primaryVideo.addEventListener('play', function() {
+      // When primary video starts, ensure original text is shown
+      setTimeout(function() {
+        if (!primaryVideo.ended && !primaryVideo.paused) {
+          restoreHeroTextForFirstVideo();
+        }
+      }, 100);
+    });
+    
+    secondaryVideo.addEventListener('play', function() {
+      // When secondary video starts, ensure second video text is shown
+      setTimeout(function() {
+        if (!secondaryVideo.ended && !secondaryVideo.paused) {
+          updateHeroTextForSecondVideo();
+        }
+      }, 100);
+    });
+    
+    tertiaryVideo.addEventListener('play', function() {
+      // When tertiary video starts, ensure third video text is shown
+      setTimeout(function() {
+        if (!tertiaryVideo.ended && !tertiaryVideo.paused) {
+          updateHeroTextForThirdVideo();
+        }
+      }, 100);
+    });
   }
 
   // Initialize on page load
