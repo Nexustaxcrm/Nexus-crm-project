@@ -44,7 +44,7 @@
       .blog-category-headers {
         display: flex;
         justify-content: center;
-        gap: 30px;
+        gap: 20px;
         margin-bottom: 20px;
         flex-wrap: wrap;
       }
@@ -53,8 +53,8 @@
         background: transparent;
         border: 2px solid #063232;
         color: #063232;
-        padding: 10px 30px;
-        font-size: 16px;
+        padding: 8px 24px;
+        font-size: 14px;
         font-weight: 600;
         border-radius: 6px;
         cursor: pointer;
@@ -78,13 +78,24 @@
       
       @media (max-width: 768px) {
         .blog-category-headers {
-          gap: 15px;
+          gap: 12px;
           margin-bottom: 15px;
         }
         
         .blog-category-btn {
-          padding: 8px 20px;
-          font-size: 14px;
+          padding: 6px 16px;
+          font-size: 12px;
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .blog-category-headers {
+          gap: 10px;
+        }
+        
+        .blog-category-btn {
+          padding: 6px 14px;
+          font-size: 11px;
         }
       }
       
