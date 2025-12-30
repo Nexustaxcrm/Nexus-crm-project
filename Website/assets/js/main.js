@@ -2324,6 +2324,34 @@
     function handlePrimaryToSecondary() {
       if (primaryVideo.ended || primaryVideo.currentTime >= primaryVideo.duration - 0.5) {
         transitionVideos(primaryVideo, secondaryVideo);
+        // Update text when switching to second video
+        updateHeroTextForSecondVideo();
+      }
+    }
+    
+    // Function to update hero text for second video
+    function updateHeroTextForSecondVideo() {
+      const heroTitle = document.getElementById('hero-main-title');
+      const heroSubtitle = document.getElementById('hero-subtitle');
+      const heroDescription = document.getElementById('hero-description');
+      
+      if (heroTitle && heroDescription) {
+        // Update title with subtitle structure
+        heroTitle.innerHTML = 'FREE TAX QUOTE <span class="hero-main-title-1 style-2" id="hero-subtitle">Want to know your tax refund?</span>';
+        heroDescription.textContent = "We'll provide you a free quote — No fees • No commitment • No obligation";
+      }
+    }
+    
+    // Function to restore original hero text for first video
+    function restoreHeroTextForFirstVideo() {
+      const heroTitle = document.getElementById('hero-main-title');
+      const heroDescription = document.getElementById('hero-description');
+      
+      if (heroTitle && heroDescription) {
+        // Restore original title with span structure
+        heroTitle.innerHTML = 'Accurate and Efficient Tax Returns <span class="hero-main-title-1 style-2" id="hero-subtitle">for Individuals & Businesses</span>';
+        
+        heroDescription.textContent = 'Get your taxes done right with our certified professionals. Maximize deductions, ensure compliance, and receive your refund faster.';
       }
     }
 
@@ -2338,6 +2366,8 @@
     function handleTertiaryToPrimary() {
       if (tertiaryVideo.ended || tertiaryVideo.currentTime >= tertiaryVideo.duration - 0.5) {
         transitionVideos(tertiaryVideo, primaryVideo);
+        // Restore original text when going back to first video
+        restoreHeroTextForFirstVideo();
       }
     }
 
