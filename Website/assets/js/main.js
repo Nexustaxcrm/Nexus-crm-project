@@ -97,8 +97,8 @@
   function scrollToContactForm() {
     // Check if URL has #contactForm hash
     if (window.location.hash === '#contactForm') {
-      // Wait a bit for page to fully render (especially if coming from another page)
-      setTimeout(function() {
+      // Function to perform the scroll and focus
+      function performScroll() {
         const form = document.getElementById('contactForm');
         if (form) {
           // Get the form's position
@@ -111,15 +111,24 @@
             behavior: 'smooth'
           });
           
-          // Focus on first input field after scroll
+          // Focus on first input field (Your Name) after scroll
           setTimeout(function() {
-            const firstInput = form.querySelector('input[type="text"]');
-            if (firstInput) {
-              firstInput.focus();
+            const nameInput = form.querySelector('#fullname');
+            if (nameInput) {
+              nameInput.focus();
+              // Also scroll the input into view if needed
+              nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           }, 800);
+        } else {
+          // If form not found yet, try again after a short delay
+          setTimeout(performScroll, 100);
         }
-      }, 300);
+      }
+      
+      // Wait for page to fully render (especially if coming from another page)
+      // Use longer timeout for cross-page navigation
+      setTimeout(performScroll, 500);
     }
   }
 
