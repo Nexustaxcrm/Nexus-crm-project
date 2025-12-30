@@ -1210,6 +1210,22 @@
             // Close auth modal
             const authModal = bootstrap.Modal.getInstance(document.getElementById('adminAuthModal'));
             authModal.hide();
+            
+            // Update modal title and button text based on current category
+            const modalTitle = document.getElementById('blogPostModalLabel');
+            const submitButton = document.querySelector('#blogPostModal .modal-footer button.btn-primary');
+            
+            if (currentCategory === 'blog') {
+              if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit"></i> Create New Blog Post';
+              if (submitButton) submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Post Blog';
+            } else if (currentCategory === 'events') {
+              if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit"></i> Create New Event';
+              if (submitButton) submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Post Event';
+            } else if (currentCategory === 'certifications') {
+              if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit"></i> Create New Certificate';
+              if (submitButton) submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Post Certificate';
+            }
+            
             // Open blog post creation modal
             const blogModal = new bootstrap.Modal(document.getElementById('blogPostModal'));
             blogModal.show();
@@ -1233,6 +1249,11 @@
       // Reset blog form
       function resetBlogForm() {
         document.getElementById('blogPostForm').reset();
+        // Set category to current active category
+        const categorySelect = document.getElementById('blogCategory');
+        if (categorySelect) {
+          categorySelect.value = currentCategory;
+        }
         document.getElementById('blogContent').innerHTML = '';
         document.getElementById('imagePreview').style.display = 'none';
         document.getElementById('blogPostError').style.display = 'none';
@@ -1283,7 +1304,13 @@
           const data = await response.json();
 
           if (response.ok && data.success) {
-            successDiv.textContent = 'Blog post created successfully!';
+            let successMessage = 'Blog post created successfully!';
+            if (currentCategory === 'events') {
+              successMessage = 'Event created successfully!';
+            } else if (currentCategory === 'certifications') {
+              successMessage = 'Certificate created successfully!';
+            }
+            successDiv.textContent = successMessage;
             successDiv.style.display = 'block';
             setTimeout(() => {
               const blogModal = bootstrap.Modal.getInstance(document.getElementById('blogPostModal'));
@@ -1316,6 +1343,19 @@
             btn.classList.add('active');
           }
         });
+        
+        // Update Post button text based on category
+        const postButton = document.querySelector('#postBlogButtonContainer button');
+        if (postButton) {
+          const icon = postButton.querySelector('i');
+          if (category === 'blog') {
+            postButton.innerHTML = '<i class="fas fa-plus"></i> Post Blog';
+          } else if (category === 'events') {
+            postButton.innerHTML = '<i class="fas fa-plus"></i> Post Event';
+          } else if (category === 'certifications') {
+            postButton.innerHTML = '<i class="fas fa-plus"></i> Post Certificate';
+          }
+        }
         
         // Filter and display posts
         if (allBlogPosts.length > 0) {
