@@ -2332,13 +2332,13 @@
     // Function to update hero text for second video
     function updateHeroTextForSecondVideo() {
       const heroTitle = document.getElementById('hero-main-title');
-      const heroSubtitle = document.getElementById('hero-subtitle');
       const heroDescription = document.getElementById('hero-description');
       
       if (heroTitle && heroDescription) {
-        // Update title with subtitle structure
-        heroTitle.innerHTML = 'FREE TAX QUOTE <span class="hero-main-title-1 style-2" id="hero-subtitle">Want to know your tax refund?</span>';
-        heroDescription.textContent = "We'll provide you a free quote — No fees • No commitment • No obligation";
+        // Update title - just "FREE TAX QUOTE" in large size
+        heroTitle.innerHTML = 'FREE TAX QUOTE';
+        // Update description - combine both lines in same size (smaller)
+        heroDescription.innerHTML = 'Want to know your tax refund?<br>We\'ll provide you a free quote — No fees • No commitment • No obligation';
       }
     }
     
