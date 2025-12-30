@@ -2359,6 +2359,21 @@
     function handleSecondaryToTertiary() {
       if (secondaryVideo.ended || secondaryVideo.currentTime >= secondaryVideo.duration - 0.5) {
         transitionVideos(secondaryVideo, tertiaryVideo);
+        // Update text when switching to third video
+        updateHeroTextForThirdVideo();
+      }
+    }
+    
+    // Function to update hero text for third video
+    function updateHeroTextForThirdVideo() {
+      const heroTitle = document.getElementById('hero-main-title');
+      const heroDescription = document.getElementById('hero-description');
+      
+      if (heroTitle && heroDescription) {
+        // Update title - "Refer a Friend" in large size
+        heroTitle.innerHTML = 'Refer a Friend';
+        // Update description
+        heroDescription.textContent = 'For every friend you refer, you will get $10 – and your friend will get $10 too.';
       }
     }
 
