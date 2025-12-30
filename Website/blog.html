@@ -1441,7 +1441,13 @@
             // Filter by current category
             filterBlogPosts(currentCategory);
           } else {
-            container.innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
+            let emptyMessage = 'No blog posts found.';
+            if (currentCategory === 'events') {
+              emptyMessage = 'No events found.';
+            } else if (currentCategory === 'certifications') {
+              emptyMessage = 'No certificates found.';
+            }
+            container.innerHTML = `<div class="text-center py-5"><p class="text-muted">${emptyMessage}</p></div>`;
           }
         } catch (error) {
           console.error('Error loading blog posts:', error);
@@ -1465,7 +1471,13 @@
         const container = document.getElementById('blogPostsContainer');
         
         if (posts.length === 0) {
-          container.innerHTML = '<div class="text-center py-5"><p class="text-muted">No blog posts found.</p></div>';
+          let emptyMessage = 'No blog posts found.';
+          if (currentCategory === 'events') {
+            emptyMessage = 'No events found.';
+          } else if (currentCategory === 'certifications') {
+            emptyMessage = 'No certificates found.';
+          }
+          container.innerHTML = `<div class="text-center py-5"><p class="text-muted">${emptyMessage}</p></div>`;
           return;
         }
 
@@ -1665,6 +1677,19 @@
             // Store post data for later use
             window.currentEditPost = post;
             
+            // Update modal title based on post category
+            const modalTitle = document.getElementById('editBlogModalLabel');
+            const postCategory = (post.category || 'blog').toLowerCase();
+            if (modalTitle) {
+              if (postCategory === 'blog') {
+                modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Blog Post';
+              } else if (postCategory === 'events') {
+                modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Event';
+              } else if (postCategory === 'certifications') {
+                modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Certificate';
+              }
+            }
+            
             // Show current image if exists
             if (post.featured_image) {
               const imageUrl = getBlogImageUrl(post.featured_image);
@@ -1717,14 +1742,28 @@
               
               // Populate form with current post data
               if (window.currentEditPost) {
-                document.getElementById('editBlogCategory').value = window.currentEditPost.category || 'blog';
-                document.getElementById('editBlogTitle').value = window.currentEditPost.title || '';
-                document.getElementById('editBlogShortDescription').value = window.currentEditPost.short_description || '';
-                document.getElementById('editBlogContent').value = window.currentEditPost.content || '';
+                const post = window.currentEditPost;
+                const postCategory = (post.category || 'blog').toLowerCase();
+                document.getElementById('editBlogCategory').value = postCategory;
+                document.getElementById('editBlogTitle').value = post.title || '';
+                document.getElementById('editBlogShortDescription').value = post.short_description || '';
+                document.getElementById('editBlogContent').value = post.content || '';
+                
+                // Update submit button text based on category
+                const submitButton = document.getElementById('editBlogSubmitBtn');
+                if (submitButton) {
+                  if (postCategory === 'blog') {
+                    submitButton.textContent = 'Update Blog Post';
+                  } else if (postCategory === 'events') {
+                    submitButton.textContent = 'Update Event';
+                  } else if (postCategory === 'certifications') {
+                    submitButton.textContent = 'Update Certificate';
+                  }
+                }
                 
                 // Show current image if exists
-                if (window.currentEditPost.featured_image) {
-                  const imageUrl = getBlogImageUrl(window.currentEditPost.featured_image);
+                if (post.featured_image) {
+                  const imageUrl = getBlogImageUrl(post.featured_image);
                   document.getElementById('editPreviewImg').src = imageUrl;
                   document.getElementById('editImagePreview').style.display = 'block';
                 }
@@ -1743,7 +1782,16 @@
                 }
               });
             } else {
-              document.getElementById('editBlogError').textContent = 'Only administrators can edit blog posts.';
+              let editError = 'Only administrators can edit blog posts.';
+              if (window.currentEditPost) {
+                const postCategory = (window.currentEditPost.category || 'blog').toLowerCase();
+                if (postCategory === 'events') {
+                  editError = 'Only administrators can edit events.';
+                } else if (postCategory === 'certifications') {
+                  editError = 'Only administrators can edit certificates.';
+                }
+              }
+              document.getElementById('editBlogError').textContent = editError;
               document.getElementById('editBlogError').style.display = 'block';
             }
           } else {
@@ -1804,7 +1852,13 @@
           const data = await response.json();
           
           if (response.ok && data.success) {
-            successDiv.textContent = 'Blog post updated successfully!';
+            let successMessage = 'Blog post updated successfully!';
+            if (category === 'events') {
+              successMessage = 'Event updated successfully!';
+            } else if (category === 'certifications') {
+              successMessage = 'Certificate updated successfully!';
+            }
+            successDiv.textContent = successMessage;
             successDiv.style.display = 'block';
             setTimeout(() => {
               const modal = bootstrap.Modal.getInstance(document.getElementById('editBlogModal'));
@@ -1835,13 +1889,39 @@
         document.getElementById('deleteBlogAuthForm').reset();
         document.getElementById('deleteBlogError').style.display = 'none';
         
-        // Load blog post title
+        // Load blog post data
         try {
           const response = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`);
           const data = await response.json();
           
           if (response.ok && data.post) {
-            document.getElementById('deleteBlogPostTitle').textContent = data.post.title || 'Untitled Post';
+            const post = data.post;
+            document.getElementById('deleteBlogPostTitle').textContent = post.title || 'Untitled Post';
+            
+            // Update modal title and messages based on post category
+            const modalTitle = document.getElementById('deleteBlogModalLabel');
+            const deleteButton = document.querySelector('#deleteBlogModal .modal-footer .btn-danger');
+            const postCategory = (post.category || 'blog').toLowerCase();
+            
+            if (modalTitle) {
+              if (postCategory === 'blog') {
+                modalTitle.innerHTML = '<i class="fas fa-trash"></i> Delete Blog Post';
+              } else if (postCategory === 'events') {
+                modalTitle.innerHTML = '<i class="fas fa-trash"></i> Delete Event';
+              } else if (postCategory === 'certifications') {
+                modalTitle.innerHTML = '<i class="fas fa-trash"></i> Delete Certificate';
+              }
+            }
+            
+            if (deleteButton) {
+              if (postCategory === 'blog') {
+                deleteButton.textContent = 'Delete Blog Post';
+              } else if (postCategory === 'events') {
+                deleteButton.textContent = 'Delete Event';
+              } else if (postCategory === 'certifications') {
+                deleteButton.textContent = 'Delete Certificate';
+              }
+            }
           }
         } catch (error) {
           console.error('Error loading blog post:', error);
@@ -1886,8 +1966,30 @@
           }
           
           // Check if user is admin
+          let adminError = 'Only administrators can delete blog posts.';
+          // Get post category for better error message
+          try {
+            const postResponse = await fetch(`${API_BASE_URL}/api/blog/posts/${postId}`);
+            const postData = await postResponse.json();
+            if (postResponse.ok && postData.post) {
+              const postCategory = (postData.post.category || 'blog').toLowerCase();
+              if (postCategory === 'events') {
+                adminError = 'Only administrators can delete events.';
+              } else if (postCategory === 'certifications') {
+                adminError = 'Only administrators can delete certificates.';
+              }
+            }
+          } catch (e) {
+            // Use current category as fallback
+            if (currentCategory === 'events') {
+              adminError = 'Only administrators can delete events.';
+            } else if (currentCategory === 'certifications') {
+              adminError = 'Only administrators can delete certificates.';
+            }
+          }
+          
           if (!authData.user || authData.user.role !== 'admin') {
-            errorDiv.textContent = 'Only administrators can delete blog posts.';
+            errorDiv.textContent = adminError;
             errorDiv.style.display = 'block';
             return;
           }
@@ -1903,6 +2005,14 @@
           const deleteData = await deleteResponse.json();
           
           if (deleteResponse.ok && deleteData.success) {
+            // Get success message based on current category
+            let successMessage = 'Blog post deleted successfully!';
+            if (currentCategory === 'events') {
+              successMessage = 'Event deleted successfully!';
+            } else if (currentCategory === 'certifications') {
+              successMessage = 'Certificate deleted successfully!';
+            }
+            
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('deleteBlogModal'));
             modal.hide();
@@ -1911,7 +2021,7 @@
             loadBlogPosts();
             
             // Show success notification
-            alert('Blog post deleted successfully!');
+            alert(successMessage);
           } else {
             errorDiv.textContent = deleteData.error || 'Failed to delete blog post';
             errorDiv.style.display = 'block';
