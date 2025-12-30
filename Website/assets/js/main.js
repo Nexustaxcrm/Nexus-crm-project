@@ -96,53 +96,82 @@
   --------------------------------------------------------------*/
   function scrollToContactForm() {
     // Check if URL has #contactForm hash
-    if (window.location.hash === '#contactForm') {
+    if (window.location.hash === '#contactForm' || window.location.hash === 'contactForm') {
       // Function to perform the scroll and focus
-      function performScroll() {
+      function performScroll(attempts) {
+        attempts = attempts || 0;
+        const maxAttempts = 20; // Try for up to 2 seconds (20 * 100ms)
+        
         const form = document.getElementById('contactForm');
         if (form) {
-          // Get the form's position
-          const formPosition = form.getBoundingClientRect().top + window.pageYOffset;
-          const offset = 100; // Offset from top of page
+          // Scroll to top first to ensure accurate positioning
+          window.scrollTo(0, 0);
           
-          // Scroll to form with smooth behavior
-          window.scrollTo({
-            top: formPosition - offset,
-            behavior: 'smooth'
-          });
-          
-          // Focus on first input field (Your Name) after scroll
+          // Wait a moment for scroll to reset, then scroll to form
           setTimeout(function() {
-            const nameInput = form.querySelector('#fullname');
-            if (nameInput) {
-              nameInput.focus();
-              // Also scroll the input into view if needed
-              nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 800);
-        } else {
+            // Get the form's position relative to document
+            const formRect = form.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const formPosition = formRect.top + scrollTop;
+            const offset = 120; // Offset from top of page (accounting for header)
+            
+            // Scroll to form with smooth behavior
+            window.scrollTo({
+              top: formPosition - offset,
+              behavior: 'smooth'
+            });
+            
+            // Focus on first input field (Your Name) after scroll completes
+            setTimeout(function() {
+              const nameInput = form.querySelector('#fullname');
+              if (nameInput) {
+                nameInput.focus();
+                // Ensure input is visible
+                nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 1000);
+          }, 100);
+        } else if (attempts < maxAttempts) {
           // If form not found yet, try again after a short delay
-          setTimeout(performScroll, 100);
+          setTimeout(function() {
+            performScroll(attempts + 1);
+          }, 100);
         }
       }
       
-      // Wait for page to fully render (especially if coming from another page)
-      // Use longer timeout for cross-page navigation
-      setTimeout(performScroll, 500);
+      // Start scrolling - try multiple times to handle page load delays
+      performScroll(0);
     }
   }
 
-  // Handle hash on page load (immediate check)
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scrollToContactForm);
-  } else {
-    // DOM is already loaded
+  // Handle hash on page load - multiple triggers to catch all scenarios
+  function initContactFormScroll() {
     scrollToContactForm();
   }
 
-  // Also handle hash change (if user clicks link while on same page)
+  // Run immediately if DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContactFormScroll);
+  } else {
+    // DOM is already loaded
+    initContactFormScroll();
+  }
+
+  // Also run after window load (when all resources are loaded)
+  $(window).on('load', function() {
+    setTimeout(initContactFormScroll, 200);
+  });
+
+  // Handle hash change (if user clicks link while on same page)
   $(window).on('hashchange', function() {
     scrollToContactForm();
+  });
+  
+  // Also check on page visibility change (handles browser back/forward)
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      setTimeout(scrollToContactForm, 300);
+    }
   });
 
   /*--------------------------------------------------------------
@@ -2615,3 +2644,4 @@
   }
 
 })(jQuery);
+

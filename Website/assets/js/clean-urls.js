@@ -134,11 +134,14 @@
             // Get actual file path
             const actualPath = getActualFilePath(cleanPath);
             
-            // Update URL to clean path
-            window.history.pushState({ path: actualPath }, '', cleanPath);
+            // Preserve hash if present (for anchor links like #contactForm)
+            const hash = window.location.hash || (href.includes('#') ? '#' + href.split('#')[1] : '');
             
-            // Load the actual file
-            window.location.href = actualPath;
+            // Update URL to clean path (preserve hash)
+            window.history.pushState({ path: actualPath }, '', cleanPath + hash);
+            
+            // Load the actual file (preserve hash)
+            window.location.href = actualPath + hash;
         }
     }
 
