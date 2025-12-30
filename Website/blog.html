@@ -1146,6 +1146,11 @@
 
       // Load blog posts on page load
       document.addEventListener('DOMContentLoaded', function() {
+        // Set initial heading based on default category
+        const heading = document.querySelector('.blog-page-title');
+        if (heading && currentCategory === 'blog') {
+          heading.textContent = 'Our Latest Blog';
+        }
         loadBlogPosts();
         checkAdminStatus();
         
@@ -1343,6 +1348,18 @@
             btn.classList.add('active');
           }
         });
+        
+        // Update heading text based on category
+        const heading = document.querySelector('.blog-page-title');
+        if (heading) {
+          if (category === 'blog') {
+            heading.textContent = 'Our Latest Blog';
+          } else if (category === 'events') {
+            heading.textContent = 'Our Latest Events';
+          } else if (category === 'certifications') {
+            heading.textContent = 'Our Latest Certificates';
+          }
+        }
         
         // Update Post button text based on category
         const postButton = document.querySelector('#postBlogButtonContainer button');
