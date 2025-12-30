@@ -95,15 +95,22 @@
     Scroll to Contact Form
   --------------------------------------------------------------*/
   function scrollToContactForm() {
-    // Check if URL has #contactForm hash
-    if (window.location.hash === '#contactForm' || window.location.hash === 'contactForm') {
+    // Check if URL has #contactForm hash (normalize hash)
+    const hash = window.location.hash;
+    const normalizedHash = hash ? hash.toLowerCase() : '';
+    
+    if (normalizedHash === '#contactform' || normalizedHash === 'contactform') {
+      console.log('📋 Contact form hash detected, scrolling to form...');
+      
       // Function to perform the scroll and focus
       function performScroll(attempts) {
         attempts = attempts || 0;
-        const maxAttempts = 20; // Try for up to 2 seconds (20 * 100ms)
+        const maxAttempts = 30; // Try for up to 3 seconds (30 * 100ms)
         
         const form = document.getElementById('contactForm');
         if (form) {
+          console.log('✅ Form found, scrolling...');
+          
           // Scroll to top first to ensure accurate positioning
           window.scrollTo(0, 0);
           
@@ -114,6 +121,8 @@
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const formPosition = formRect.top + scrollTop;
             const offset = 120; // Offset from top of page (accounting for header)
+            
+            console.log('📍 Scrolling to form position:', formPosition - offset);
             
             // Scroll to form with smooth behavior
             window.scrollTo({
@@ -126,21 +135,32 @@
               const nameInput = form.querySelector('#fullname');
               if (nameInput) {
                 nameInput.focus();
+                console.log('✅ Focused on name input field');
                 // Ensure input is visible
                 nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }
             }, 1000);
-          }, 100);
+          }, 200);
         } else if (attempts < maxAttempts) {
           // If form not found yet, try again after a short delay
+          if (attempts % 5 === 0) {
+            console.log('⏳ Waiting for form to load... attempt', attempts + 1);
+          }
           setTimeout(function() {
             performScroll(attempts + 1);
           }, 100);
+        } else {
+          console.error('❌ Form not found after', maxAttempts, 'attempts');
         }
       }
       
       // Start scrolling - try multiple times to handle page load delays
       performScroll(0);
+    } else {
+      // Debug: log if hash is present but doesn't match
+      if (hash) {
+        console.log('ℹ️ Hash present but not contactForm:', hash);
+      }
     }
   }
 

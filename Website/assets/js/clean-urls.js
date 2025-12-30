@@ -128,14 +128,18 @@
         {
             e.preventDefault();
             
-            // Get clean path
-            const cleanPath = getCleanPath(href);
+            // Extract hash from href BEFORE processing (important!)
+            let hash = '';
+            if (href.includes('#')) {
+                hash = '#' + href.split('#')[1];
+            }
+            
+            // Get clean path (without hash)
+            const hrefWithoutHash = href.split('#')[0];
+            const cleanPath = getCleanPath(hrefWithoutHash);
             
             // Get actual file path
             const actualPath = getActualFilePath(cleanPath);
-            
-            // Preserve hash if present (for anchor links like #contactForm)
-            const hash = window.location.hash || (href.includes('#') ? '#' + href.split('#')[1] : '');
             
             // Update URL to clean path (preserve hash)
             window.history.pushState({ path: actualPath }, '', cleanPath + hash);
