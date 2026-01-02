@@ -1612,7 +1612,7 @@ function loadAssignedWorkTable() {
     
     tbody.innerHTML = assignedCustomers.map(customer => `
         <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
-            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+            <td><strong><a href="#" class="text-decoration-none text-dark fw-bold" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id}); return false;" title="Click to edit customer">${customer.firstName} ${customer.lastName}</a></strong></td>
             <td><a href="tel:${customer.phone}" class="text-decoration-none phone-link" title="Double-click to copy" onclick="event.stopPropagation();">${customer.phone}</a></td>
             <td><a href="mailto:${customer.email}" class="text-decoration-none" onclick="event.stopPropagation();">${customer.email}</a></td>
             <td><small class="text-muted">${customer.address}</small></td>
@@ -2415,7 +2415,7 @@ function showStateCustomers(stateName) {
                                 <tbody>
                                     ${stateCustomers.map(customer => `
                                         <tr>
-                                            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+                                            <td><strong><a href="#" class="text-decoration-none text-dark fw-bold" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id}); return false;" title="Click to edit customer">${customer.firstName} ${customer.lastName}</a></strong></td>
                                             <td><a href="tel:${customer.phone}" class="text-decoration-none phone-link" title="Double-click to copy">${customer.phone}</a></td>
                                             <td><a href="mailto:${customer.email}" class="text-decoration-none">${customer.email}</a></td>
                                             <td><small class="text-muted">${customer.address}</small></td>
@@ -3534,7 +3534,7 @@ function renderArchiveModal() {
         html += `
         <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
             <td><input type="checkbox" class="archive-customer-checkbox" data-id="${customer.id}" onclick="event.stopPropagation();"></td>
-            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+            <td><strong><a href="#" class="text-decoration-none text-dark fw-bold" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id}); return false;" title="Click to edit customer">${customer.firstName} ${customer.lastName}</a></strong></td>
             <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy" onclick="event.stopPropagation();">${customer.phone || ''}</a></td>
             <td><a href="mailto:${customer.email || ''}" class="text-decoration-none" onclick="event.stopPropagation();">${customer.email || ''}</a></td>
             <td><small class="text-muted">${customer.address || ''}</small></td>
@@ -4329,7 +4329,7 @@ async function renderAssignWorkPage() {
                     <i class="fas fa-edit"></i>
                 </button>
             </td>
-            <td><strong>${customer.firstName} ${customer.lastName}</strong></td>
+            <td><strong><a href="#" class="text-decoration-none text-dark fw-bold" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id}); return false;" title="Click to edit customer">${customer.firstName} ${customer.lastName}</a></strong></td>
             <td><a href="tel:${customer.phone || ''}" class="text-decoration-none phone-link" title="Double-click to copy" onclick="event.stopPropagation();">${customer.phone || ''}</a></td>
             <td><a href="mailto:${customer.email || ''}" class="text-decoration-none" onclick="event.stopPropagation();">${customer.email || ''}</a></td>
             <td><small class="text-muted">${customer.address || ''}</small></td>
@@ -10116,7 +10116,7 @@ function getCallStatusBadgeColor(status) {
 function generateCustomerTableRows(customerList) {
     return customerList.map(customer => `
         <tr ondblclick="openUpdateStatusModal(${customer.id})" style="cursor: pointer;" title="Double-click to view details">
-            <td>${customer.firstName} ${customer.lastName}</td>
+            <td><a href="#" class="text-decoration-none text-dark fw-bold" onclick="event.stopPropagation(); openUpdateStatusModal(${customer.id}); return false;" title="Click to edit customer">${customer.firstName} ${customer.lastName}</a></td>
             <td>${customer.phone}</td>
             <td>${customer.email}</td>
             <td>${customer.address}</td>
