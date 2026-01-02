@@ -7446,14 +7446,28 @@ async function assignToEmployee(employeeUsername) {
             return;
         }
         
+        // Get CSRF token for the request
+        let csrf = getCSRFToken();
+        if (!csrf) {
+            console.log('⚠️ No CSRF token, fetching...');
+            csrf = await fetchCSRFToken();
+        }
+        
         // Assign each customer via API
         const assignPromises = selectedCustomers.map(async (customer) => {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+            
+            // Add CSRF token if available (required for protected routes)
+            if (csrf) {
+                headers['X-CSRF-Token'] = csrf;
+            }
+            
             const response = await fetch(API_BASE_URL + '/customers/' + customer.id, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: headers,
                 body: JSON.stringify({
                     name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
                     email: customer.email || null,
@@ -7506,14 +7520,28 @@ async function assignToUnassigned() {
             return;
         }
         
+        // Get CSRF token for the request
+        let csrf = getCSRFToken();
+        if (!csrf) {
+            console.log('⚠️ No CSRF token, fetching...');
+            csrf = await fetchCSRFToken();
+        }
+        
         // Unassign each customer via API
         const unassignPromises = selectedCustomers.map(async (customer) => {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+            
+            // Add CSRF token if available (required for protected routes)
+            if (csrf) {
+                headers['X-CSRF-Token'] = csrf;
+            }
+            
             const response = await fetch(API_BASE_URL + '/customers/' + customer.id, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: headers,
                 body: JSON.stringify({
                     name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Unknown',
                     email: customer.email || null,
