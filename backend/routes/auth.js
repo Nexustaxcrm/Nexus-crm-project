@@ -765,6 +765,56 @@ router.post('/change-password', verifyToken, async (req, res) => {
     }
 });
 
+// Verify admin password endpoint (for employee document access)
+router.post('/verify-admin-password', async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        const { password } = req.body;
+        
+        if (!password) {
+            return res.status(400).json({ error: 'Password is required' });
+        }
+        
+        // Get admin user from database
+        const result = await dbPool.query(
+            'SELECT id, username, password FROM users WHERE username = $1',
+            ['admin']
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Admin user not found' });
+        }
+        
+        const admin = result.rows[0];
+        
+        // Verify password
+        let isValid = false;
+        if (admin.password && (admin.password.startsWith('$2a$') || admin.password.startsWith('$2b$'))) {
+            // Hashed password - use bcrypt
+            isValid = await bcrypt.compare(password, admin.password);
+        } else {
+            // Plain text password (legacy)
+            isValid = (password === admin.password);
+        }
+        
+        if (!isValid) {
+            return res.status(401).json({ error: 'Invalid admin password' });
+        }
+        
+        res.json({ 
+            success: true,
+            message: 'Password verified successfully' 
+        });
+    } catch (error) {
+        console.error('Verify admin password error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Diagnostic endpoint to check user account status (for troubleshooting)
 router.get('/diagnose/:username', async (req, res) => {
     try {

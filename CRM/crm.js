@@ -6240,6 +6240,14 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
             return;
         }
         
+        // Check if user is employee - require admin password
+        if (currentUser && currentUser.role === 'employee') {
+            const passwordVerified = await promptAdminPassword();
+            if (!passwordVerified) {
+                return; // User cancelled or password was incorrect
+            }
+        }
+        
         // Store document info for download button
         currentViewingDocument = { id: documentId, fileName: fileName };
         
@@ -6451,6 +6459,14 @@ async function downloadCustomerDocument(documentId, fileName) {
             return;
         }
         
+        // Check if user is employee - require admin password
+        if (currentUser && currentUser.role === 'employee') {
+            const passwordVerified = await promptAdminPassword();
+            if (!passwordVerified) {
+                return; // User cancelled or password was incorrect
+            }
+        }
+        
         // Use validated ID
         documentId = docId;
         
@@ -6479,6 +6495,143 @@ async function downloadCustomerDocument(documentId, fileName) {
     } catch (error) {
         console.error('Error downloading document:', error);
         showNotification('error', 'Download Failed', 'Failed to download document. Please try again.');
+    }
+}
+
+// Prompt for admin password (for employee document access)
+function promptAdminPassword() {
+    return new Promise((resolve) => {
+        // Create modal HTML if it doesn't exist
+        let modal = document.getElementById('adminPasswordModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'adminPasswordModal';
+            modal.className = 'modal fade';
+            modal.setAttribute('tabindex', '-1');
+            modal.setAttribute('aria-labelledby', 'adminPasswordModalLabel');
+            modal.setAttribute('aria-hidden', 'true');
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="adminPasswordModalLabel">Admin Password Required</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please enter the admin password to access this document.</p>
+                            <div class="mb-3">
+                                <label for="adminPasswordInput" class="form-label">Admin Password</label>
+                                <input type="password" class="form-control" id="adminPasswordInput" placeholder="Enter admin password" autocomplete="off">
+                                <div id="adminPasswordError" class="text-danger mt-2" style="display: none;"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="window.adminPasswordResolve(false)">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="verifyAdminPassword()">Verify</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Reset error message
+        const errorDiv = document.getElementById('adminPasswordError');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+        }
+        
+        // Clear password input
+        const passwordInput = document.getElementById('adminPasswordInput');
+        if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+        
+        // Store resolve function globally so modal buttons can access it
+        window.adminPasswordResolve = resolve;
+        
+        // Show modal
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Handle Enter key in password field
+        if (passwordInput) {
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    verifyAdminPassword();
+                }
+            });
+        }
+        
+        // Handle modal close events
+        modal.addEventListener('hidden.bs.modal', function() {
+            if (window.adminPasswordResolve) {
+                window.adminPasswordResolve(false);
+                window.adminPasswordResolve = null;
+            }
+        });
+    });
+}
+
+// Verify admin password
+async function verifyAdminPassword() {
+    const passwordInput = document.getElementById('adminPasswordInput');
+    const errorDiv = document.getElementById('adminPasswordError');
+    const password = passwordInput ? passwordInput.value : '';
+    
+    if (!password) {
+        if (errorDiv) {
+            errorDiv.textContent = 'Password is required';
+            errorDiv.style.display = 'block';
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch(API_BASE_URL + '/auth/verify-admin-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Password verified - close modal and resolve promise
+            const modal = document.getElementById('adminPasswordModal');
+            if (modal) {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
+            }
+            
+            if (window.adminPasswordResolve) {
+                window.adminPasswordResolve(true);
+                window.adminPasswordResolve = null;
+            }
+        } else {
+            // Password incorrect
+            if (errorDiv) {
+                errorDiv.textContent = data.error || 'Invalid password';
+                errorDiv.style.display = 'block';
+            }
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+    } catch (error) {
+        console.error('Error verifying admin password:', error);
+        if (errorDiv) {
+            errorDiv.textContent = 'Error verifying password. Please try again.';
+            errorDiv.style.display = 'block';
+        }
     }
 }
 
