@@ -6242,16 +6242,20 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
         
         // Check if user is employee - require admin password
         if (currentUser && currentUser.role === 'employee') {
+            console.log('🔐 Employee detected, prompting for admin password...');
             const passwordVerified = await promptAdminPassword();
             if (!passwordVerified) {
+                console.log('❌ Admin password verification failed or cancelled');
                 return; // User cancelled or password was incorrect
             }
+            console.log('✅ Admin password verified, proceeding with document view');
         }
         
         // Store document info for download button
         currentViewingDocument = { id: documentId, fileName: fileName };
         
         console.log(`📄 Attempting to view document: ID=${documentId}, Name=${fileName}, isImage=${isImage}, isPDF=${isPDF}`);
+        console.log(`👤 Current user: ${currentUser ? currentUser.username : 'unknown'}, Role: ${currentUser ? currentUser.role : 'unknown'}`);
         
         // Update modal title
         const modalTitle = document.getElementById('documentViewerTitle');
@@ -6288,8 +6292,12 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
         });
         
         console.log(`📡 Document fetch response status: ${response.status}`);
+        console.log(`📡 Current user role: ${currentUser ? currentUser.role : 'unknown'}`);
         
         if (!response.ok) {
+            // Clone response to read it multiple times if needed
+            const responseClone = response.clone();
+            
             // Handle different error statuses
             if (response.status === 404) {
                 console.error(`❌ Document not found: ID ${documentId}`);
@@ -6308,21 +6316,43 @@ async function viewCustomerDocument(documentId, fileName, isImage, isPDF) {
                 return;
             } else if (response.status === 403) {
                 console.error(`❌ Access denied for document ID ${documentId}`);
+                // Try to get error message from response
+                let errorMessage = 'You don\'t have permission to view this document.';
+                try {
+                    const errorData = await responseClone.json();
+                    errorMessage = errorData.error || errorMessage;
+                    console.error('❌ Backend error message:', errorMessage);
+                } catch (e) {
+                    try {
+                        const errorText = await responseClone.text();
+                        console.error('❌ Backend error text:', errorText);
+                        // Try to parse as JSON if it looks like JSON
+                        if (errorText.trim().startsWith('{')) {
+                            const parsed = JSON.parse(errorText);
+                            errorMessage = parsed.error || errorMessage;
+                        } else {
+                            errorMessage = errorText || errorMessage;
+                        }
+                    } catch (e2) {
+                        console.error('❌ Could not parse error response:', e2);
+                    }
+                }
+                
                 if (viewerContent) {
                     viewerContent.innerHTML = `
                         <div class="text-center text-danger p-5">
                             <i class="fas fa-lock fa-3x mb-3"></i>
                             <h5>Access Denied</h5>
-                            <p>You don't have permission to view this document.</p>
+                            <p>${errorMessage}</p>
                         </div>
                     `;
                 }
-                showNotification('error', 'Access Denied', 'You don\'t have permission to view this document.');
+                showNotification('error', 'Access Denied', errorMessage);
                 return;
             } else {
                 let errorText = '';
                 try {
-                    errorText = await response.text();
+                    errorText = await responseClone.text();
                 } catch (e) {
                     errorText = response.statusText || `Status ${response.status}`;
                 }

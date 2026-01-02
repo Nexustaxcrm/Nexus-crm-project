@@ -1778,6 +1778,20 @@ router.get('/documents/:documentId/download', authenticateToken, async (req, res
             return res.status(403).json({ error: 'Access denied. You can only download your own documents.' });
         }
         
+        // Allow employees, preparation, and admin roles to access documents
+        // Note: Employees must verify admin password in frontend before accessing
+        // Explicitly allow these roles: admin, preparation, employee
+        const allowedRoles = ['admin', 'preparation', 'employee'];
+        if (userRole === 'customer') {
+            // Customer access is already checked above
+            // This block intentionally left empty - customer check happens earlier
+        } else if (!allowedRoles.includes(userRole)) {
+            console.log(`⚠️ Access denied - Invalid user role: ${userRole}`);
+            return res.status(403).json({ error: 'Access denied. Invalid user role.' });
+        } else {
+            console.log(`✅ Access granted for role: ${userRole}`);
+        }
+        
         // Check if file is stored in S3 or locally
         const isS3File = s3Storage.isS3Key(document.file_path);
         
