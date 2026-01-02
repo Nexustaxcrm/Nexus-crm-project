@@ -232,32 +232,49 @@ router.get('/', authenticateToken, async (req, res) => {
         // Build query with filters
         // CRITICAL: By default, exclude archived customers from all queries
         // They should only appear when explicitly requested via include_archived or archived_only
-        let query = 'SELECT * FROM customers WHERE 1=1';
+        // JOIN with users table to get username for assigned_to
+        let query = 'SELECT c.*, u.username as assigned_to_username FROM customers c LEFT JOIN users u ON c.assigned_to = u.id WHERE 1=1';
         const params = [];
         let paramIndex = 1;
         
         // Archive filtering - exclude archived by default unless explicitly requested
         if (archivedOnly) {
             // Only show archived customers
-            query += ` AND archived = TRUE`;
+            query += ` AND c.archived = TRUE`;
         } else if (!includeArchived) {
             // Default: exclude archived customers (for Assign Work tab and normal operations)
-            query += ` AND (archived IS NULL OR archived = FALSE)`;
+            query += ` AND (c.archived IS NULL OR c.archived = FALSE)`;
         }
         // If includeArchived is true, show all customers (both archived and non-archived)
         
         if (status) {
-            query += ` AND status = $${paramIndex++}`;
+            query += ` AND c.status = $${paramIndex++}`;
             params.push(status);
         }
         
         if (assignedTo) {
-            query += ` AND assigned_to = $${paramIndex++}`;
-            params.push(assignedTo);
+            // Convert username to user ID if needed
+            let assignedToValue = assignedTo;
+            if (typeof assignedTo === 'string' && assignedTo.trim() !== '') {
+                try {
+                    const userResult = await dbPool.query('SELECT id FROM users WHERE username = $1', [assignedTo.trim()]);
+                    if (userResult.rows.length > 0) {
+                        assignedToValue = userResult.rows[0].id;
+                    } else {
+                        // Username not found, return empty result
+                        assignedToValue = -1; // Will match nothing
+                    }
+                } catch (err) {
+                    console.error('Error converting username to user ID in query:', err);
+                    assignedToValue = -1; // Will match nothing
+                }
+            }
+            query += ` AND c.assigned_to = $${paramIndex++}`;
+            params.push(assignedToValue);
         }
         
         if (search) {
-            query += ` AND (name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR phone ILIKE $${paramIndex})`;
+            query += ` AND (c.name ILIKE $${paramIndex} OR c.email ILIKE $${paramIndex} OR c.phone ILIKE $${paramIndex})`;
             params.push(`%${search}%`);
             paramIndex++;
         }
@@ -266,7 +283,8 @@ router.get('/', authenticateToken, async (req, res) => {
         // CRITICAL: Build count query BEFORE adding LIMIT/OFFSET to main query
         // This ensures accurate count of all matching records
         // IMPORTANT: Remove any ORDER BY, LIMIT, OFFSET from count query
-        let countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
+        // For count, we don't need the JOIN, just count customers
+        let countQuery = query.replace('SELECT c.*, u.username as assigned_to_username FROM customers c LEFT JOIN users u ON c.assigned_to = u.id', 'SELECT COUNT(*) FROM customers c');
         // Remove ORDER BY, LIMIT, OFFSET if they exist (they shouldn't at this point, but be safe)
         countQuery = countQuery.split(' ORDER BY')[0].split(' LIMIT')[0].split(' OFFSET')[0];
         const countParams = [...params]; // Copy params before adding limit/offset
@@ -298,13 +316,21 @@ router.get('/', authenticateToken, async (req, res) => {
         console.log('Records per page:', limit);
         
         // Add ordering and pagination to main query (AFTER count query)
-        query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        query += ` ORDER BY c.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
         params.push(limit, offset);
         
         const result = await dbPool.query(query, params);
         
+        // Map result rows to include assigned_to_username from JOIN
+        const customersWithUsernames = result.rows.map(row => {
+            // Extract all customer fields (excluding username) and add assigned_to_username
+            const customer = { ...row };
+            customer.assigned_to_username = row.assigned_to_username || null;
+            return customer;
+        });
+        
         res.json({
-            customers: result.rows,
+            customers: customersWithUsernames,
             pagination: {
                 page,
                 limit,
@@ -549,11 +575,32 @@ router.post('/', authenticateToken, async (req, res) => {
         }
         
         const { email, phone, status, assigned_to, notes } = req.body;
+        
+        // Convert assigned_to from username to user ID if it's a string (username)
+        let finalAssignedTo = assigned_to;
+        if (assigned_to && typeof assigned_to === 'string' && assigned_to.trim() !== '') {
+            try {
+                const userResult = await dbPool.query('SELECT id FROM users WHERE username = $1', [assigned_to.trim()]);
+                if (userResult.rows.length > 0) {
+                    finalAssignedTo = userResult.rows[0].id;
+                } else {
+                    // Username not found, set to null
+                    console.warn(`⚠️ Username "${assigned_to}" not found. Setting assigned_to to null.`);
+                    finalAssignedTo = null;
+                }
+            } catch (err) {
+                console.error('Error converting username to user ID:', err);
+                finalAssignedTo = null;
+            }
+        } else if (assigned_to === '' || assigned_to === null || assigned_to === undefined) {
+            finalAssignedTo = null;
+        }
+        
         // CRITICAL: Always set archived = FALSE for new customers (bulk uploads and manual creation)
         // Archived customers should only be created via archive operation, not during upload
         const result = await dbPool.query(
             'INSERT INTO customers (name, email, phone, status, assigned_to, notes, archived) VALUES ($1, $2, $3, $4, $5, $6, FALSE) RETURNING *',
-            [name, email, phone, status, assigned_to, notes]
+            [name, email, phone, status, finalAssignedTo, notes]
         );
         res.json(result.rows[0]);
     } catch (error) {
@@ -609,6 +656,25 @@ router.put('/:id', authenticateToken, async (req, res) => {
         }
         
         let { email, phone, status, assigned_to, notes, archived } = req.body;
+        
+        // Convert assigned_to from username to user ID if it's a string (username)
+        if (assigned_to && typeof assigned_to === 'string' && assigned_to.trim() !== '') {
+            try {
+                const userResult = await client.query('SELECT id FROM users WHERE username = $1', [assigned_to.trim()]);
+                if (userResult.rows.length > 0) {
+                    assigned_to = userResult.rows[0].id;
+                } else {
+                    // Username not found, set to null
+                    console.warn(`⚠️ Username "${assigned_to}" not found. Setting assigned_to to null.`);
+                    assigned_to = null;
+                }
+            } catch (err) {
+                console.error('Error converting username to user ID:', err);
+                assigned_to = null;
+            }
+        } else if (assigned_to === '' || assigned_to === null || assigned_to === undefined) {
+            assigned_to = null;
+        }
         
         // Track changes for audit trail
         const actions = [];

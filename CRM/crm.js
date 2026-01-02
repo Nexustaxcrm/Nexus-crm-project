@@ -1541,7 +1541,10 @@ async function loadAdminDashboard() {
 }
 
 function loadEmployeeDashboard() {
-    const assignedCustomers = customers.filter(c => c.assignedTo === currentUser.username);
+    const assignedCustomers = customers.filter(c => {
+        const assignedTo = c.assigned_to_username || c.assignedTo || '';
+        return assignedTo === currentUser.username;
+    });
     
     const statsHtml = `
         <div class="col-md-3">
@@ -1586,7 +1589,11 @@ function loadEmployeeDashboard() {
 }
 
 function loadAssignedWorkTable() {
-    const assignedCustomers = customers.filter(c => c.assignedTo === currentUser.username);
+    // Compare with username (assigned_to_username from API) or fallback to assignedTo field
+    const assignedCustomers = customers.filter(c => {
+        const assignedTo = c.assigned_to_username || c.assignedTo || '';
+        return assignedTo === currentUser.username;
+    });
     
     // Sort customers alphabetically by name
     assignedCustomers.sort((a, b) => {
@@ -4127,7 +4134,7 @@ async function renderAssignWorkPage() {
                 status: customer.status || 'pending',
                 callStatus: customer.callStatus || 'not_called',
                 comments: commentsValue,  // Use comments field, or notes only if it doesn't look like an address
-                assignedTo: customer.assignedTo || customer.assigned_to || '',
+                assignedTo: customer.assigned_to_username || customer.assignedTo || customer.assigned_to || '',
                 archived: customer.archived || false
             };
         });
@@ -10554,7 +10561,7 @@ async function loadCustomers(forceRefresh = false) {
                     status: customer.status || 'pending',
                     callStatus: customer.callStatus || 'not_called',
                     comments: customer.comments || customer.notes || '',
-                    assignedTo: customer.assignedTo || customer.assigned_to || '',
+                    assignedTo: customer.assigned_to_username || customer.assignedTo || customer.assigned_to || '',
                     createdAt: customer.created_at || customer.createdAt || new Date().toISOString()
                 };
             });
