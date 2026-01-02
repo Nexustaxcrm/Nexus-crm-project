@@ -942,26 +942,32 @@ function showTab(tabName, clickedElement) {
         case 'assignWork':
             if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('assignWorkTab').style.display = 'block';
-                // CRITICAL: Call renderAssignWorkPage directly (it calls loadAssignWorkTable internally)
-                renderAssignWorkPage();
-                // Ensure pagination is visible after tab is shown
-                setTimeout(() => {
-                    const pagerCheck = document.getElementById('assignPagination');
-                    if (!pagerCheck) {
-                        console.error('❌ Pagination element missing when tab shown! Creating it...');
-                        renderAssignWorkPage();
-                    } else if (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 100 || !pagerCheck.innerHTML.includes('<select')) {
-                        console.log('🔄 Re-rendering pagination after tab show (missing dropdown)...');
-                        renderAssignWorkPage();
-                    } else {
-                        // Force show pagination even if it exists
-                        pagerCheck.style.display = 'block';
-                        pagerCheck.style.visibility = 'visible';
-                        pagerCheck.style.width = '100%';
-                        pagerCheck.style.opacity = '1';
-                        console.log('✅ Pagination element found and made visible');
+                // Ensure users are loaded before showing the tab
+                (async () => {
+                    if (!users || users.length === 0) {
+                        await loadUsers();
                     }
-                }, 300);
+                    // CRITICAL: Call renderAssignWorkPage directly (it calls loadAssignWorkTable internally)
+                    renderAssignWorkPage();
+                    // Ensure pagination is visible after tab is shown
+                    setTimeout(() => {
+                        const pagerCheck = document.getElementById('assignPagination');
+                        if (!pagerCheck) {
+                            console.error('❌ Pagination element missing when tab shown! Creating it...');
+                            renderAssignWorkPage();
+                        } else if (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 100 || !pagerCheck.innerHTML.includes('<select')) {
+                            console.log('🔄 Re-rendering pagination after tab show (missing dropdown)...');
+                            renderAssignWorkPage();
+                        } else {
+                            // Force show pagination even if it exists
+                            pagerCheck.style.display = 'block';
+                            pagerCheck.style.visibility = 'visible';
+                            pagerCheck.style.width = '100%';
+                            pagerCheck.style.opacity = '1';
+                            console.log('✅ Pagination element found and made visible');
+                        }
+                    }, 300);
+                })();
             }
             break;
         case 'progress':
@@ -3443,15 +3449,21 @@ async function parseCSVData(csvText) {
 }
 
 // Assign Work Functions
-function loadAssignWorkTable() {
+async function loadAssignWorkTable() {
     // Initialize pagination defaults and render first page
     window.assignFiltered = null;
     window.assignPageSize = window.assignPageSize || 200;
     window.assignCurrentPage = 1;
+    
+    // Ensure users are loaded before populating dropdown
+    if (!users || users.length === 0) {
+        await loadUsers();
+    }
+    
     // CRITICAL: Call renderAssignWorkPage to ensure pagination is rendered
     renderAssignWorkPage();
     renderAssignWorkPage();
-    // Load employee dropdown
+    // Load employee dropdown (now users should be loaded)
     loadEmployeeDropdown();
 }
 
@@ -4664,17 +4676,25 @@ function initAssignWorkColumnResize() {
     table.setAttribute('data-resize-init', '1');
 }
 
-function loadEmployeeDropdown() {
+async function loadEmployeeDropdown() {
     const employeeList = document.getElementById('employeeDropdownList');
     if (!employeeList) {
         console.warn('employeeDropdownList element not found');
         return;
     }
     
+    // Ensure users are loaded
+    if (!users || users.length === 0) {
+        console.log('Users not loaded, fetching...');
+        await loadUsers();
+    }
+    
     // Include both 'employee' and 'preparation' role users
     const assignableUsers = users.filter(u => 
         (u.role === 'employee' || u.role === 'preparation') && !u.locked
     );
+    
+    console.log('Assignable users found:', assignableUsers.length, assignableUsers.map(u => u.username));
     
     if (assignableUsers.length === 0) {
         employeeList.innerHTML = '<li><span class="dropdown-item text-muted">No employees available</span></li>';
