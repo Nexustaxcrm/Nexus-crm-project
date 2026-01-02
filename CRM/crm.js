@@ -6556,7 +6556,7 @@ function promptAdminPassword() {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="window.adminPasswordResolve(false)">Cancel</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="adminPasswordCancelBtn">Cancel</button>
                             <button type="button" class="btn btn-primary" onclick="verifyAdminPassword()">Verify</button>
                         </div>
                     </div>
@@ -6580,7 +6580,17 @@ function promptAdminPassword() {
         }
         
         // Store resolve function globally so modal buttons can access it
-        window.adminPasswordResolve = resolve;
+        window.adminPasswordResolve = (value) => {
+            if (value === true) {
+                // Mark modal as verified using data attribute
+                if (modal) {
+                    modal.setAttribute('data-password-verified', 'true');
+                }
+                console.log('✅ Password verified, setting flag to true');
+            }
+            resolve(value);
+            window.adminPasswordResolve = null;
+        };
         
         // Show modal
         const bsModal = new bootstrap.Modal(modal);
@@ -6588,7 +6598,12 @@ function promptAdminPassword() {
         
         // Handle Enter key in password field
         if (passwordInput) {
-            passwordInput.addEventListener('keypress', function(e) {
+            // Remove old listeners to prevent duplicates
+            const newInput = passwordInput.cloneNode(true);
+            passwordInput.parentNode.replaceChild(newInput, passwordInput);
+            const freshInput = document.getElementById('adminPasswordInput');
+            
+            freshInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     verifyAdminPassword();
@@ -6596,13 +6611,34 @@ function promptAdminPassword() {
             });
         }
         
-        // Handle modal close events
-        modal.addEventListener('hidden.bs.modal', function() {
-            if (window.adminPasswordResolve) {
+        // Handle Cancel button click
+        const cancelBtn = document.getElementById('adminPasswordCancelBtn');
+        if (cancelBtn) {
+            cancelBtn.onclick = function() {
+                const wasVerified = modal.getAttribute('data-password-verified') === 'true';
+                if (window.adminPasswordResolve && !wasVerified) {
+                    console.log('⚠️ Cancel button clicked');
+                    window.adminPasswordResolve(false);
+                    window.adminPasswordResolve = null;
+                }
+            };
+        }
+        
+        // Handle modal close events - only resolve if password wasn't verified
+        const handleModalClose = function() {
+            const wasVerified = modal.getAttribute('data-password-verified') === 'true';
+            if (window.adminPasswordResolve && !wasVerified) {
+                console.log('⚠️ Modal closed without password verification');
                 window.adminPasswordResolve(false);
                 window.adminPasswordResolve = null;
+            } else if (wasVerified) {
+                console.log('✅ Modal closed after successful password verification');
             }
-        });
+            // Reset the flag for next time
+            modal.removeAttribute('data-password-verified');
+        };
+        
+        modal.addEventListener('hidden.bs.modal', handleModalClose, { once: true });
     });
 }
 
@@ -6611,6 +6647,8 @@ async function verifyAdminPassword() {
     const passwordInput = document.getElementById('adminPasswordInput');
     const errorDiv = document.getElementById('adminPasswordError');
     const password = passwordInput ? passwordInput.value : '';
+    
+    console.log('🔐 verifyAdminPassword called, password length:', password.length);
     
     if (!password) {
         if (errorDiv) {
@@ -6621,6 +6659,7 @@ async function verifyAdminPassword() {
     }
     
     try {
+        console.log('📡 Calling verify-admin-password API:', API_BASE_URL + '/auth/verify-admin-password');
         const response = await fetch(API_BASE_URL + '/auth/verify-admin-password', {
             method: 'POST',
             headers: {
@@ -6629,12 +6668,31 @@ async function verifyAdminPassword() {
             body: JSON.stringify({ password: password })
         });
         
-        const data = await response.json();
+        console.log('📡 Response status:', response.status, response.statusText);
+        
+        let data;
+        try {
+            const responseText = await response.text();
+            console.log('📡 Response text:', responseText);
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('❌ Error parsing response:', parseError);
+            if (errorDiv) {
+                errorDiv.textContent = 'Error parsing server response. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+            return;
+        }
+        
+        console.log('📡 Response data:', data);
         
         if (response.ok && data.success) {
-            // Password verified - close modal and resolve promise
+            console.log('✅ Admin password verified successfully');
+            
+            // Set flag on modal element to track verification
             const modal = document.getElementById('adminPasswordModal');
             if (modal) {
+                modal.setAttribute('data-password-verified', 'true');
                 const bsModal = bootstrap.Modal.getInstance(modal);
                 if (bsModal) {
                     bsModal.hide();
@@ -6642,11 +6700,14 @@ async function verifyAdminPassword() {
             }
             
             if (window.adminPasswordResolve) {
+                console.log('✅ Resolving password promise with true');
                 window.adminPasswordResolve(true);
-                window.adminPasswordResolve = null;
+            } else {
+                console.warn('⚠️ adminPasswordResolve function not found');
             }
         } else {
             // Password incorrect
+            console.log('❌ Password verification failed:', data.error || 'Unknown error');
             if (errorDiv) {
                 errorDiv.textContent = data.error || 'Invalid password';
                 errorDiv.style.display = 'block';
@@ -6657,7 +6718,7 @@ async function verifyAdminPassword() {
             }
         }
     } catch (error) {
-        console.error('Error verifying admin password:', error);
+        console.error('❌ Error verifying admin password:', error);
         if (errorDiv) {
             errorDiv.textContent = 'Error verifying password. Please try again.';
             errorDiv.style.display = 'block';
