@@ -6545,7 +6545,7 @@ function promptAdminPassword() {
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="adminPasswordModalLabel">Admin Password Required</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" id="adminPasswordCloseBtn" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <p>Please enter the admin password to access this document.</p>
@@ -6556,7 +6556,7 @@ function promptAdminPassword() {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="adminPasswordCancelBtn">Cancel</button>
+                            <button type="button" class="btn btn-secondary" id="adminPasswordCancelBtn">Cancel</button>
                             <button type="button" class="btn btn-primary" onclick="verifyAdminPassword()">Verify</button>
                         </div>
                     </div>
@@ -6592,9 +6592,26 @@ function promptAdminPassword() {
             window.adminPasswordResolve = null;
         };
         
-        // Show modal
-        const bsModal = new bootstrap.Modal(modal);
+        // Show modal with options to prevent accidental closing
+        const bsModal = new bootstrap.Modal(modal, {
+            backdrop: 'static', // Prevent closing by clicking outside
+            keyboard: false      // Prevent closing with ESC key
+        });
         bsModal.show();
+        
+        // Handle close button click
+        const closeBtn = document.getElementById('adminPasswordCloseBtn');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                const wasVerified = modal.getAttribute('data-password-verified') === 'true';
+                if (!wasVerified && window.adminPasswordResolve) {
+                    console.log('⚠️ Close button clicked without verification');
+                    window.adminPasswordResolve(false);
+                    window.adminPasswordResolve = null;
+                }
+                bsModal.hide();
+            };
+        }
         
         // Handle Enter key in password field
         if (passwordInput) {
@@ -6689,21 +6706,29 @@ async function verifyAdminPassword() {
         if (response.ok && data.success) {
             console.log('✅ Admin password verified successfully');
             
-            // Set flag on modal element to track verification
-            const modal = document.getElementById('adminPasswordModal');
-            if (modal) {
-                modal.setAttribute('data-password-verified', 'true');
-                const bsModal = bootstrap.Modal.getInstance(modal);
-                if (bsModal) {
-                    bsModal.hide();
-                }
-            }
-            
+            // IMPORTANT: Resolve promise FIRST, then hide modal
+            // This ensures the promise resolves before the modal close event fires
             if (window.adminPasswordResolve) {
                 console.log('✅ Resolving password promise with true');
                 window.adminPasswordResolve(true);
+                // Clear the resolve function immediately after calling it
+                window.adminPasswordResolve = null;
             } else {
                 console.warn('⚠️ adminPasswordResolve function not found');
+            }
+            
+            // Set flag on modal element to track verification (for modal close handler)
+            const modal = document.getElementById('adminPasswordModal');
+            if (modal) {
+                modal.setAttribute('data-password-verified', 'true');
+                // Hide modal AFTER resolving promise
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    // Use setTimeout to ensure promise resolves before modal closes
+                    setTimeout(() => {
+                        bsModal.hide();
+                    }, 100);
+                }
             }
         } else {
             // Password incorrect
