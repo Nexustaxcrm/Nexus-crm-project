@@ -4352,10 +4352,21 @@ async function renderAssignWorkPage() {
     
         // Initialize column reordering for assigned work table (if function exists)
         if (typeof initColumnReordering === 'function') {
-    initColumnReordering('assignedWorkTable');
+            initColumnReordering('assignedWorkTable');
         } else {
             console.warn('⚠️ initColumnReordering function not found - skipping column reordering');
         }
+        
+        // Load employee dropdown after page is rendered
+        // Ensure users are loaded first
+        (async () => {
+            if (!users || users.length === 0) {
+                console.log('🔄 Users not loaded in renderAssignWorkPage, loading now...');
+                await loadUsers();
+            }
+            console.log('👥 Loading employee dropdown, total users:', users.length);
+            await loadEmployeeDropdown();
+        })();
 
         // CRITICAL: Get or create pagination element - MUST ALWAYS EXIST
         pager = document.getElementById('assignPagination');
@@ -4677,31 +4688,38 @@ function initAssignWorkColumnResize() {
 }
 
 async function loadEmployeeDropdown() {
+    console.log('🔍 loadEmployeeDropdown called');
     const employeeList = document.getElementById('employeeDropdownList');
     if (!employeeList) {
-        console.warn('employeeDropdownList element not found');
+        console.warn('❌ employeeDropdownList element not found');
         return;
     }
+    console.log('✅ employeeDropdownList element found');
     
     // Ensure users are loaded
     if (!users || users.length === 0) {
-        console.log('Users not loaded, fetching...');
+        console.log('📥 Users not loaded, fetching from API...');
         await loadUsers();
     }
+    
+    console.log('👥 Total users loaded:', users.length);
+    console.log('👥 Users array:', users);
     
     // Include both 'employee' and 'preparation' role users
     const assignableUsers = users.filter(u => 
         (u.role === 'employee' || u.role === 'preparation') && !u.locked
     );
     
-    console.log('Assignable users found:', assignableUsers.length, assignableUsers.map(u => u.username));
+    console.log('✅ Assignable users found:', assignableUsers.length);
+    console.log('✅ Assignable users:', assignableUsers.map(u => ({ username: u.username, role: u.role, locked: u.locked })));
     
     if (assignableUsers.length === 0) {
+        console.warn('⚠️ No assignable users found. All users:', users.map(u => ({ username: u.username, role: u.role, locked: u.locked })));
         employeeList.innerHTML = '<li><span class="dropdown-item text-muted">No employees available</span></li>';
         return;
     }
     
-    employeeList.innerHTML = assignableUsers.map(user => {
+    const dropdownHTML = assignableUsers.map(user => {
         const roleBadge = user.role === 'preparation' ? '<span class="badge bg-secondary ms-1">Prep</span>' : '';
         return `
         <li><a class="dropdown-item" href="#" onclick="assignToEmployee('${user.username}')">
@@ -4709,6 +4727,9 @@ async function loadEmployeeDropdown() {
         </a></li>
     `;
     }).join('');
+    
+    employeeList.innerHTML = dropdownHTML;
+    console.log('✅ Employee dropdown populated with', assignableUsers.length, 'users');
 }
 
 // Delete-by-status workflow
@@ -10677,10 +10698,12 @@ async function loadUsers() {
         const token = sessionStorage.getItem('authToken');
         if (!token) {
             // If not logged in, use empty array
+            console.warn('⚠️ No auth token, cannot load users');
             users = [];
             return;
         }
         
+        console.log('📡 Fetching users from API:', API_BASE_URL + '/users');
         const response = await fetch(API_BASE_URL + '/users', {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -10689,12 +10712,16 @@ async function loadUsers() {
         
         if (response.ok) {
             users = await response.json();
+            console.log('✅ Users loaded successfully:', users.length, 'users');
+            console.log('✅ Users details:', users.map(u => ({ username: u.username, role: u.role, locked: u.locked })));
         } else {
-            console.error('Failed to load users');
+            console.error('❌ Failed to load users, status:', response.status);
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
             users = [];
         }
     } catch (error) {
-        console.error('Error loading users:', error);
+        console.error('❌ Error loading users:', error);
         users = [];
     }
 }
