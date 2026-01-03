@@ -6557,7 +6557,7 @@ function promptAdminPassword() {
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" id="adminPasswordCancelBtn">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="verifyAdminPassword()">Verify</button>
+                            <button type="button" class="btn btn-primary" onclick="verifyAdminPasswordForDocument()">Verify</button>
                         </div>
                     </div>
                 </div>
@@ -6623,7 +6623,7 @@ function promptAdminPassword() {
             freshInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    verifyAdminPassword();
+                    verifyAdminPasswordForDocument();
                 }
             });
         }
@@ -6659,13 +6659,13 @@ function promptAdminPassword() {
     });
 }
 
-// Verify admin password
-async function verifyAdminPassword() {
+// Verify admin password for document access (employee users)
+async function verifyAdminPasswordForDocument() {
     const passwordInput = document.getElementById('adminPasswordInput');
     const errorDiv = document.getElementById('adminPasswordError');
     const password = passwordInput ? passwordInput.value : '';
     
-    console.log('🔐 verifyAdminPassword called, password length:', password.length);
+    console.log('🔐 verifyAdminPasswordForDocument called, password length:', password.length);
     
     if (!password) {
         if (errorDiv) {
