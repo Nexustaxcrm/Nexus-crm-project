@@ -6557,7 +6557,7 @@ function promptAdminPassword() {
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" id="adminPasswordCancelBtn">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="verifyAdminPasswordForDocument()">Verify</button>
+                            <button type="button" class="btn btn-primary" id="adminPasswordVerifyBtn">Verify</button>
                         </div>
                     </div>
                 </div>
@@ -6565,8 +6565,41 @@ function promptAdminPassword() {
             document.body.appendChild(modal);
         }
         
+        // CRITICAL: Update the Verify button onclick handler to use the document function
+        // This is needed because the modal might already exist from index.html with wrong handler
+        const verifyBtn = modal.querySelector('#adminPasswordVerifyBtn') || modal.querySelector('button.btn-primary');
+        if (verifyBtn) {
+            // Remove any existing onclick handlers
+            verifyBtn.removeAttribute('onclick');
+            verifyBtn.onclick = function(e) {
+                e.preventDefault();
+                verifyAdminPasswordForDocument();
+            };
+        }
+        
+        // Update modal title and body text for document access
+        const modalTitle = modal.querySelector('#adminPasswordModalLabel') || modal.querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = 'Admin Password Required';
+        }
+        const modalBodyText = modal.querySelector('.modal-body p');
+        if (modalBodyText) {
+            modalBodyText.textContent = 'Please enter the admin password to access this document.';
+        }
+        
         // Reset error message
-        const errorDiv = document.getElementById('adminPasswordError');
+        let errorDiv = document.getElementById('adminPasswordError');
+        if (!errorDiv) {
+            // Create error div if it doesn't exist (for existing modals from HTML)
+            const inputContainer = modal.querySelector('.modal-body .mb-3');
+            if (inputContainer) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'adminPasswordError';
+                errorDiv.className = 'text-danger mt-2';
+                errorDiv.style.display = 'none';
+                inputContainer.appendChild(errorDiv);
+            }
+        }
         if (errorDiv) {
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
@@ -6576,6 +6609,8 @@ function promptAdminPassword() {
         const passwordInput = document.getElementById('adminPasswordInput');
         if (passwordInput) {
             passwordInput.value = '';
+            // Remove any existing onkeypress handlers
+            passwordInput.removeAttribute('onkeypress');
             passwordInput.focus();
         }
         
@@ -6600,9 +6635,17 @@ function promptAdminPassword() {
         bsModal.show();
         
         // Handle close button click
-        const closeBtn = document.getElementById('adminPasswordCloseBtn');
+        let closeBtn = document.getElementById('adminPasswordCloseBtn');
+        if (!closeBtn) {
+            // Try to find close button by class if ID doesn't exist
+            closeBtn = modal.querySelector('.btn-close');
+        }
         if (closeBtn) {
-            closeBtn.onclick = function() {
+            // Remove any existing onclick/data-bs-dismiss attributes
+            closeBtn.removeAttribute('onclick');
+            closeBtn.removeAttribute('data-bs-dismiss');
+            closeBtn.onclick = function(e) {
+                e.preventDefault();
                 const wasVerified = modal.getAttribute('data-password-verified') === 'true';
                 if (!wasVerified && window.adminPasswordResolve) {
                     console.log('⚠️ Close button clicked without verification');
@@ -6620,6 +6663,8 @@ function promptAdminPassword() {
             passwordInput.parentNode.replaceChild(newInput, passwordInput);
             const freshInput = document.getElementById('adminPasswordInput');
             
+            // Remove any existing event listeners by cloning
+            freshInput.removeAttribute('onkeypress');
             freshInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -6629,15 +6674,24 @@ function promptAdminPassword() {
         }
         
         // Handle Cancel button click
-        const cancelBtn = document.getElementById('adminPasswordCancelBtn');
+        let cancelBtn = document.getElementById('adminPasswordCancelBtn');
+        if (!cancelBtn) {
+            // Try to find cancel button by class if ID doesn't exist
+            cancelBtn = modal.querySelector('button.btn-secondary');
+        }
         if (cancelBtn) {
-            cancelBtn.onclick = function() {
+            // Remove any existing onclick/data-bs-dismiss attributes
+            cancelBtn.removeAttribute('onclick');
+            cancelBtn.removeAttribute('data-bs-dismiss');
+            cancelBtn.onclick = function(e) {
+                e.preventDefault();
                 const wasVerified = modal.getAttribute('data-password-verified') === 'true';
                 if (window.adminPasswordResolve && !wasVerified) {
                     console.log('⚠️ Cancel button clicked');
                     window.adminPasswordResolve(false);
                     window.adminPasswordResolve = null;
                 }
+                bsModal.hide();
             };
         }
         
