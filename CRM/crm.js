@@ -991,13 +991,13 @@ function showTab(tabName, clickedElement) {
 }
 
 // Dashboard Functions
-function loadDashboard() {
+async function loadDashboard() {
     if (currentUser.role === 'admin') {
         loadAdminDashboard();
     } else if (currentUser.role === 'customer') {
         loadCustomerDashboard();
     } else {
-        loadEmployeeDashboard();
+        await loadEmployeeDashboard();
     }
 }
 
@@ -1546,52 +1546,344 @@ async function loadAdminDashboard() {
     }
 }
 
-function loadEmployeeDashboard() {
+// Get saved custom dashboard cards for current employee (from database)
+async function getEmployeeDashboardCards() {
+    if (!currentUser) return null;
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            console.warn('⚠️ No auth token, cannot fetch dashboard cards');
+            return null;
+        }
+        
+        const response = await fetch(API_BASE_URL + '/users/preferences/dashboard-cards', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.cards) {
+                return data.cards;
+            }
+            // If cards is null, no preference saved yet
+            return null;
+        } else {
+            console.error('❌ Failed to fetch dashboard cards:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Error fetching dashboard cards:', error);
+        return null;
+    }
+}
+
+// Save custom dashboard cards for current employee (to database)
+async function saveEmployeeDashboardCards(selectedStatuses) {
+    if (!currentUser) {
+        showNotification('error', 'Error', 'You must be logged in to save preferences.');
+        return false;
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            showNotification('error', 'Error', 'You must be logged in to save preferences.');
+            return false;
+        }
+        
+        const response = await fetch(API_BASE_URL + '/users/preferences/dashboard-cards', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ cards: selectedStatuses })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                return true;
+            } else {
+                showNotification('error', 'Error', data.error || 'Failed to save dashboard cards.');
+                return false;
+            }
+        } else {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            showNotification('error', 'Error', errorData.error || 'Failed to save dashboard cards.');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error saving dashboard cards:', error);
+        showNotification('error', 'Connection Error', 'Failed to connect to server. Please try again.');
+        return false;
+    }
+}
+
+// Get status icon and color configuration
+function getStatusCardConfig(status) {
+    const configs = {
+        'pending': { icon: 'fa-phone-slash', color: '#f5365c', label: 'Pending' },
+        'not_called': { icon: 'fa-phone-slash', color: '#f5365c', label: 'Pending Calls' },
+        'follow_up': { icon: 'fa-redo', color: '#2dce89', label: 'Follow-Up' },
+        'voice_mail': { icon: 'fa-voicemail', color: '#fb6340', label: 'Voice Mails' },
+        'w2_received': { icon: 'fa-file-check', color: '#11cdef', label: 'W2 Received' },
+        'call_back': { icon: 'fa-phone', color: '#5e72e4', label: 'Call Back' },
+        'not_in_service': { icon: 'fa-phone-slash', color: '#6c757d', label: 'Not in Service' },
+        'citizen': { icon: 'fa-user', color: '#2dce89', label: 'Citizen' },
+        'dnd': { icon: 'fa-ban', color: '#ffc107', label: 'DND' },
+        'interested': { icon: 'fa-heart', color: '#e83e8c', label: 'Interested' },
+        'potential': { icon: 'fa-star', color: '#17a2b8', label: 'Potential' },
+        'called': { icon: 'fa-phone', color: '#2dce89', label: 'Called' }
+    };
+    return configs[status] || { icon: 'fa-circle', color: '#6c757d', label: getStatusDisplayName(status) };
+}
+
+// Count customers by status or callStatus
+function countCustomersByStatus(assignedCustomers, status) {
+    // Special handling for call-related statuses
+    if (status === 'not_called' || status === 'called' || status === 'voice_mail') {
+        return assignedCustomers.filter(c => c.callStatus === status).length;
+    }
+    // For other statuses, use the status field
+    return assignedCustomers.filter(c => c.status === status).length;
+}
+
+async function loadEmployeeDashboard() {
     const assignedCustomers = customers.filter(c => {
         const assignedTo = c.assigned_to_username || c.assignedTo || '';
         return assignedTo === currentUser.username;
     });
     
-    const statsHtml = `
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-icon" style="background: #f5365c;">
-                    <i class="fas fa-phone-slash"></i>
+    // Get custom dashboard cards or use default
+    const customCards = await getEmployeeDashboardCards();
+    let selectedStatuses = customCards;
+    
+    // Default cards if none are saved
+    if (!selectedStatuses || selectedStatuses.length === 0) {
+        selectedStatuses = ['not_called', 'follow_up', 'voice_mail', 'w2_received'];
+    }
+    
+    // Build dashboard cards HTML with remove button
+    const cardsHtml = selectedStatuses.map((status, index) => {
+        const config = getStatusCardConfig(status);
+        const count = countCustomersByStatus(assignedCustomers, status);
+        return `
+            <div class="col-md-3" id="dashboardCard_${status}">
+                <div class="stats-card" style="position: relative;">
+                    <button type="button" class="btn btn-sm btn-link text-danger" 
+                            style="position: absolute; top: 5px; right: 5px; padding: 2px 5px; z-index: 10; opacity: 0.7;"
+                            onclick="removeDashboardCard('${status}')" 
+                            title="Remove card">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="stats-icon" style="background: ${config.color};">
+                        <i class="fas ${config.icon}"></i>
+                    </div>
+                    <div class="stats-number">${count}</div>
+                    <div class="stats-label">${config.label}</div>
                 </div>
-                <div class="stats-number">${assignedCustomers.filter(c => c.callStatus === 'not_called').length}</div>
-                <div class="stats-label">Pending Calls</div>
+            </div>
+        `;
+    }).join('');
+    
+    // Add "+ Add Card" button if less than 4 cards
+    const addCardButton = selectedStatuses.length < 4 ? `
+        <div class="col-md-3">
+            <div class="stats-card" style="border: 2px dashed #dee2e6; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 120px;" onclick="openAddCardModal()">
+                <div style="text-align: center; color: #6c757d;">
+                    <i class="fas fa-plus-circle" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                    <div style="font-size: 0.9rem; font-weight: 500;">+ Add Card</div>
+                </div>
             </div>
         </div>
+    ` : '';
+    
+    // Add edit button if 4 cards are already selected
+    const editButton = selectedStatuses.length >= 4 ? `
         <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-icon" style="background: #2dce89;">
-                    <i class="fas fa-redo"></i>
+            <div class="stats-card" style="border: 2px dashed #dee2e6; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 120px;" onclick="openAddCardModal()">
+                <div style="text-align: center; color: #6c757d;">
+                    <i class="fas fa-edit" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                    <div style="font-size: 0.9rem; font-weight: 500;">Edit Cards</div>
                 </div>
-                <div class="stats-number">${assignedCustomers.filter(c => c.status === 'follow_up').length}</div>
-                <div class="stats-label">Follow-Up</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-icon" style="background: #fb6340;">
-                    <i class="fas fa-voicemail"></i>
+    ` : '';
+    
+    const statsHtml = cardsHtml + addCardButton + editButton;
+    
+    document.getElementById('statsCards').innerHTML = statsHtml;
+}
+
+// Open modal for adding dashboard cards
+async function openAddCardModal() {
+    // Only allow for employees and preparation roles
+    if (!currentUser || (currentUser.role !== 'employee' && currentUser.role !== 'preparation')) {
+        showNotification('warning', 'Access Denied', 'This feature is only available for employees.');
+        return;
+    }
+    
+    let modal = document.getElementById('addCardModal');
+    if (!modal) {
+        // Create modal if it doesn't exist
+        createAddCardModal();
+        modal = document.getElementById('addCardModal');
+    }
+    
+    // Get current selections (async)
+    const currentCards = await getEmployeeDashboardCards() || ['not_called', 'follow_up', 'voice_mail', 'w2_received'];
+    
+    // Populate status checkboxes
+    const statusList = document.getElementById('addCardStatusList');
+    if (statusList) {
+        const allStatuses = [
+            { value: 'not_called', label: 'Pending Calls' },
+            { value: 'follow_up', label: 'Follow-Up' },
+            { value: 'voice_mail', label: 'Voice Mails' },
+            { value: 'w2_received', label: 'W2 Received' },
+            { value: 'call_back', label: 'Call Back' },
+            { value: 'not_in_service', label: 'Not in Service' },
+            { value: 'citizen', label: 'Citizen' },
+            { value: 'dnd', label: 'DND' },
+            { value: 'interested', label: 'Interested' },
+            { value: 'potential', label: 'Potential' },
+            { value: 'called', label: 'Called' },
+            { value: 'pending', label: 'Pending' }
+        ];
+        
+        statusList.innerHTML = allStatuses.map(status => {
+            const isChecked = currentCards.includes(status.value);
+            return `
+                <li>
+                    <label class="dropdown-item" style="cursor: pointer; margin: 0;">
+                        <input type="checkbox" class="form-check-input me-2 status-card-checkbox" 
+                               value="${status.value}" 
+                               ${isChecked ? 'checked' : ''}
+                               onchange="updateAddCardButton()">
+                        ${status.label}
+                    </label>
+                </li>
+            `;
+        }).join('');
+    }
+    
+    // Update button state
+    updateAddCardButton();
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+// Create the add card modal
+function createAddCardModal() {
+    const modalHTML = `
+        <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCardModalLabel">Customize Dashboard Cards</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">Select up to 4 status cards to display on your dashboard:</p>
+                        <div class="dropdown-menu show" style="position: static; display: block; width: 100%; max-height: 300px; overflow-y: auto;">
+                            <ul class="list-unstyled mb-0" id="addCardStatusList">
+                                <!-- Status checkboxes will be populated here -->
+                            </ul>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <span id="selectedCount">0</span> of 4 cards selected
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveCardsBtn" onclick="saveDashboardCards()" disabled>Save Cards</button>
+                    </div>
                 </div>
-                <div class="stats-number">${assignedCustomers.filter(c => c.callStatus === 'voice_mail').length}</div>
-                <div class="stats-label">Voice Mails</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-icon" style="background: #11cdef;">
-                    <i class="fas fa-file-check"></i>
-                </div>
-                <div class="stats-number">${assignedCustomers.filter(c => c.status === 'w2_received').length}</div>
-                <div class="stats-label">W2 Received</div>
             </div>
         </div>
     `;
     
-    document.getElementById('statsCards').innerHTML = statsHtml;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// Update add card button state
+function updateAddCardButton() {
+    const checkboxes = document.querySelectorAll('.status-card-checkbox:checked');
+    const count = checkboxes.length;
+    const selectedCount = document.getElementById('selectedCount');
+    const saveBtn = document.getElementById('saveCardsBtn');
+    
+    if (selectedCount) {
+        selectedCount.textContent = count;
+    }
+    
+    if (saveBtn) {
+        saveBtn.disabled = count === 0 || count > 4;
+        if (count > 4) {
+            saveBtn.textContent = `Too Many Selected (${count}/4)`;
+        } else {
+            saveBtn.textContent = 'Save Cards';
+        }
+    }
+}
+
+// Save selected dashboard cards
+async function saveDashboardCards() {
+    const checkboxes = document.querySelectorAll('.status-card-checkbox:checked');
+    const selectedStatuses = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (selectedStatuses.length === 0) {
+        showNotification('warning', 'No Selection', 'Please select at least one status card.');
+        return;
+    }
+    
+    if (selectedStatuses.length > 4) {
+        showNotification('warning', 'Too Many Selected', 'Please select a maximum of 4 status cards.');
+        return;
+    }
+    
+    // Save selections to database
+    const saved = await saveEmployeeDashboardCards(selectedStatuses);
+    
+    if (saved) {
+        // Reload dashboard
+        await loadEmployeeDashboard();
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addCardModal'));
+        modal.hide();
+        
+        showNotification('success', 'Dashboard Updated', 'Your dashboard cards have been updated successfully.');
+    }
+}
+
+// Remove a dashboard card
+async function removeDashboardCard(status) {
+    const currentCards = await getEmployeeDashboardCards() || ['not_called', 'follow_up', 'voice_mail', 'w2_received'];
+    const updatedCards = currentCards.filter(s => s !== status);
+    
+    if (updatedCards.length === 0) {
+        showNotification('warning', 'Cannot Remove', 'You must have at least one dashboard card.');
+        return;
+    }
+    
+    // Save updated cards to database
+    const saved = await saveEmployeeDashboardCards(updatedCards);
+    
+    if (saved) {
+        // Reload dashboard
+        await loadEmployeeDashboard();
+        
+        showNotification('success', 'Card Removed', 'Dashboard card has been removed.');
+    }
 }
 
 function loadAssignedWorkTable() {

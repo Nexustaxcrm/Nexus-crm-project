@@ -323,4 +323,97 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Get user dashboard card preferences
+router.get('/preferences/dashboard-cards', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        // Get user ID from token
+        const userId = req.user.id;
+        
+        // Get dashboard cards preference
+        const result = await dbPool.query(`
+            SELECT preference_value 
+            FROM user_preferences 
+            WHERE user_id = $1 AND preference_key = 'dashboard_cards'
+        `, [userId]);
+        
+        if (result.rows.length > 0 && result.rows[0].preference_value) {
+            try {
+                const cards = JSON.parse(result.rows[0].preference_value);
+                res.json({ success: true, cards: cards });
+            } catch (parseError) {
+                console.error('Error parsing dashboard cards:', parseError);
+                res.json({ success: true, cards: null });
+            }
+        } else {
+            // Return null if no preference is saved (frontend will use defaults)
+            res.json({ success: true, cards: null });
+        }
+    } catch (error) {
+        console.error('Error fetching dashboard cards:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Save user dashboard card preferences
+router.post('/preferences/dashboard-cards', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+        
+        // Get user ID from token
+        const userId = req.user.id;
+        
+        // Validate request body
+        const { cards } = req.body;
+        
+        if (!Array.isArray(cards)) {
+            return res.status(400).json({ error: 'Cards must be an array' });
+        }
+        
+        if (cards.length === 0) {
+            return res.status(400).json({ error: 'At least one card must be selected' });
+        }
+        
+        if (cards.length > 4) {
+            return res.status(400).json({ error: 'Maximum of 4 cards allowed' });
+        }
+        
+        // Validate card values (status codes)
+        const validStatuses = [
+            'pending', 'not_called', 'follow_up', 'voice_mail', 'w2_received',
+            'call_back', 'not_in_service', 'citizen', 'dnd', 'interested',
+            'potential', 'called'
+        ];
+        
+        for (const card of cards) {
+            if (!validStatuses.includes(card)) {
+                return res.status(400).json({ error: `Invalid status code: ${card}` });
+            }
+        }
+        
+        // Save or update preference using UPSERT
+        const preferenceValue = JSON.stringify(cards);
+        await dbPool.query(`
+            INSERT INTO user_preferences (user_id, preference_key, preference_value, updated_at)
+            VALUES ($1, 'dashboard_cards', $2, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, preference_key)
+            DO UPDATE SET 
+                preference_value = EXCLUDED.preference_value,
+                updated_at = CURRENT_TIMESTAMP
+        `, [userId, preferenceValue]);
+        
+        res.json({ success: true, message: 'Dashboard cards saved successfully' });
+    } catch (error) {
+        console.error('Error saving dashboard cards:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;

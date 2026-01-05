@@ -544,6 +544,50 @@ async function createBlogPostsTableMigration(pool) {
     }
 }
 
+// Migration function to create user_preferences table
+async function createUserPreferencesTableMigration(pool) {
+    try {
+        const tableCheck = await pool.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='user_preferences'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('🔄 Creating user_preferences table...');
+            await pool.query(`
+                CREATE TABLE user_preferences (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    preference_key VARCHAR(100) NOT NULL,
+                    preference_value TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, preference_key)
+                )
+            `);
+            
+            // Create indexes
+            await pool.query(`
+                CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id 
+                ON user_preferences(user_id)
+            `);
+            
+            await pool.query(`
+                CREATE INDEX IF NOT EXISTS idx_user_preferences_key 
+                ON user_preferences(preference_key)
+            `);
+            
+            console.log('✅ user_preferences table created successfully');
+        } else {
+            console.log('✅ user_preferences table already exists');
+        }
+    } catch (error) {
+        console.error('❌ Error creating user_preferences table:', error.message);
+        throw error;
+    }
+}
+
 // Migration function to create referrals table
 async function createReferralsTableMigration(pool) {
     try {
@@ -724,6 +768,14 @@ async function initializeDatabase() {
             } else {
                 console.log('✅ ssn_itin_entries column already exists');
             }
+        } catch (migrationError) {
+            console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
+            // Continue - migration failure won't prevent server startup
+        }
+        
+        // Run migration to create user_preferences table
+        try {
+            await createUserPreferencesTableMigration(pool);
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup
