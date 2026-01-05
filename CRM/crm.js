@@ -1600,12 +1600,25 @@ async function saveEmployeeDashboardCards(selectedStatuses) {
             return false;
         }
         
+        // Get CSRF token
+        let csrfToken = getCSRFToken();
+        if (!csrfToken) {
+            csrfToken = await fetchCSRFToken();
+        }
+        
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+        
+        // Add CSRF token if available
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
         const response = await fetch(API_BASE_URL + '/users/preferences/dashboard-cards', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: headers,
             body: JSON.stringify({ cards: selectedStatuses })
         });
         
