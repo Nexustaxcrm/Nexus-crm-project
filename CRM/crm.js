@@ -7404,10 +7404,24 @@ async function executeStatusUpdate() {
                     // The backend returns 'notes' which contains comments, but we need to keep address separate
                     // The address should remain in the frontend customer object and NOT be overwritten by the API response
                     const existingAddress = customers[index].address || updatedAddress || '';
+                    
+                    // Determine callStatus based on status for dashboard counts
+                    // Voice mail, called, and not_called statuses should also update callStatus
+                    let updatedCallStatus = customers[index].callStatus || null;
+                    if (status === 'voice_mail') {
+                        updatedCallStatus = 'voice_mail';
+                    } else if (status === 'called') {
+                        updatedCallStatus = 'called';
+                    } else if (status === 'not_called') {
+                        updatedCallStatus = 'not_called';
+                    }
+                    // For other statuses, preserve existing callStatus
+                    
                     customers[index] = { 
                         ...customers[index], 
                         ...updated, 
                         status, 
+                        callStatus: updatedCallStatus,  // Update callStatus for dashboard counts
                         comments: commentsToSave,
                         address: existingAddress,  // Always preserve existing address, never overwrite with notes
                         phone: updatedPhone || customers[index].phone || '',  // Update phone only after success
@@ -7429,6 +7443,9 @@ async function executeStatusUpdate() {
                 if (archiveModalEl && archiveModalEl.classList.contains('show')) {
                     renderArchiveModal();
                 }
+                
+                // CRITICAL: Reload dashboard to refresh card counts after status update
+                // This ensures the dashboard cards show updated numbers immediately
                 loadDashboard();
                 
                 // Refresh Top 20 States chart if Progress tab is visible
