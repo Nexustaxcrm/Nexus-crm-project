@@ -10987,6 +10987,23 @@ async function loadCustomers(forceRefresh = false) {
                     lastName = nameParts.slice(1).join(' ') || '';
                 }
                 
+                // Derive callStatus from status (for dashboard counts)
+                // Call statuses: 'called', 'voice_mail', 'not_called'
+                // Other statuses should preserve existing callStatus or default to 'not_called'
+                let derivedCallStatus = customer.callStatus;
+                if (!derivedCallStatus) {
+                    // Derive callStatus from status field
+                    if (customer.status === 'called' || customer.status === 'voice_mail' || customer.status === 'not_called') {
+                        derivedCallStatus = customer.status;
+                    } else if (customer.status === 'pending') {
+                        derivedCallStatus = 'not_called';  // Treat pending as not_called
+                    } else {
+                        // For other statuses (follow_up, interested, etc.), default to 'not_called'
+                        // This ensures dashboard counts work correctly
+                        derivedCallStatus = 'not_called';
+                    }
+                }
+                
                 // Also handle other field mappings
                 return {
                     ...customer,
@@ -10998,7 +11015,7 @@ async function loadCustomers(forceRefresh = false) {
                     email: customer.email || '',
                     address: customer.address || customer.notes || '',
                     status: customer.status || 'pending',
-                    callStatus: customer.callStatus || 'not_called',
+                    callStatus: derivedCallStatus,  // Use derived callStatus
                     comments: customer.comments || customer.notes || '',
                     assignedTo: customer.assigned_to_username || customer.assignedTo || customer.assigned_to || '',
                     createdAt: customer.created_at || customer.createdAt || new Date().toISOString()
