@@ -1555,20 +1555,20 @@ function loadEmployeeDashboard() {
     const statsHtml = `
         <div class="col-md-3">
             <div class="stats-card">
-                <div class="stats-icon" style="background: #2dce89;">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="stats-number">${assignedCustomers.filter(c => c.callStatus === 'called').length}</div>
-                <div class="stats-label">Total Calls</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card">
                 <div class="stats-icon" style="background: #f5365c;">
                     <i class="fas fa-phone-slash"></i>
                 </div>
                 <div class="stats-number">${assignedCustomers.filter(c => c.callStatus === 'not_called').length}</div>
                 <div class="stats-label">Pending Calls</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: #2dce89;">
+                    <i class="fas fa-redo"></i>
+                </div>
+                <div class="stats-number">${assignedCustomers.filter(c => c.status === 'follow_up').length}</div>
+                <div class="stats-label">Follow-Up</div>
             </div>
         </div>
         <div class="col-md-3">
