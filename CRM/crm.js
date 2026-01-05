@@ -40,6 +40,7 @@ let userProfiles = [];
 window.assignStatusFilter = null;
 window.currentFilter = null;
 window.assignCurrentPage = 1;
+window.isFiltering = false;
 
 // Copy Phone Number to Clipboard Function
 // Make it globally available
@@ -952,17 +953,29 @@ function showTab(tabName, clickedElement) {
                     if (!users || users.length === 0) {
                         await loadUsers();
                     }
-                    // CRITICAL: Call renderAssignWorkPage directly (it calls loadAssignWorkTable internally)
-                    renderAssignWorkPage();
+                    // CRITICAL: Only call renderAssignWorkPage if we're NOT filtering
+                    // filterByStatus sets window.isFiltering = true to prevent double rendering
+                    if (!window.isFiltering) {
+                        // No filter active, so this is a normal tab switch - render the page
+                        renderAssignWorkPage();
+                    }
+                    // If isFiltering is true, filterByStatus will handle the rendering
+                    
                     // Ensure pagination is visible after tab is shown
                     setTimeout(() => {
                         const pagerCheck = document.getElementById('assignPagination');
                         if (!pagerCheck) {
                             console.error('❌ Pagination element missing when tab shown! Creating it...');
-                            renderAssignWorkPage();
+                            // Only render if we're not filtering
+                            if (!window.isFiltering) {
+                                renderAssignWorkPage();
+                            }
                         } else if (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 100 || !pagerCheck.innerHTML.includes('<select')) {
                             console.log('🔄 Re-rendering pagination after tab show (missing dropdown)...');
-                            renderAssignWorkPage();
+                            // Only render if we're not filtering
+                            if (!window.isFiltering) {
+                                renderAssignWorkPage();
+                            }
                         } else {
                             // Force show pagination even if it exists
                             pagerCheck.style.display = 'block';
@@ -1965,8 +1978,7 @@ function exportAssignedCustomers() {
 }
 
 function filterByStatus(status) {
-    showTab('assignWork');
-    
+    // CRITICAL: Set filter BEFORE calling showTab to prevent double rendering
     // Reset pagination when filtering
     window.assignCurrentPage = 1;
     
@@ -1975,17 +1987,26 @@ function filterByStatus(status) {
         window.assignStatusFilter = null;
     }
     
+    // Set a flag to indicate we're filtering (prevents showTab from calling renderAssignWorkPage)
+    window.isFiltering = true;
+    
     if (status === 'follow_up') {
         // Filter for follow-up customers
         const followUpCustomers = getFollowUpCustomers();
+        // Show tab first, then load filtered data
+        showTab('assignWork');
         loadAssignWorkTableWithFilter(followUpCustomers);
+        window.isFiltering = false;
     } else if (status === 'all') {
         // Show all customers - clear status filter
         window.assignStatusFilter = null;
         window.currentFilter = null;
+        // Show tab (will call renderAssignWorkPage, but that's OK for 'all')
+        showTab('assignWork');
         // Update status dropdown to show "All Statuses"
         updateStatusDropdownFilter([]);
         renderAssignWorkPage();
+        window.isFiltering = false;
     } else {
         // Filter by specific status
         // Set assignStatusFilter as array (what renderAssignWorkPage expects)
@@ -1995,16 +2016,21 @@ function filterByStatus(status) {
         // Update status dropdown to show only this status selected
         updateStatusDropdownFilter([status]);
         
+        // Now show the tab (it will check isFiltering and skip renderAssignWorkPage)
+        showTab('assignWork');
+        
         // CRITICAL: Ensure customers are loaded before filtering
         // If customers array is empty, wait for it to load
         if (!customers || customers.length === 0) {
             console.log('⚠️ Customers not loaded yet, loading now...');
             loadCustomers().then(() => {
                 renderAssignWorkPage();
+                window.isFiltering = false;
             });
         } else {
             // Render the page with the filter applied
             renderAssignWorkPage();
+            window.isFiltering = false;
         }
     }
     
