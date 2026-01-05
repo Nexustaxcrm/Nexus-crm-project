@@ -1673,19 +1673,13 @@ async function loadEmployeeDashboard() {
         selectedStatuses = ['not_called', 'follow_up', 'voice_mail', 'w2_received'];
     }
     
-    // Build dashboard cards HTML with remove button
+    // Build dashboard cards HTML
     const cardsHtml = selectedStatuses.map((status, index) => {
         const config = getStatusCardConfig(status);
         const count = countCustomersByStatus(assignedCustomers, status);
         return `
             <div class="col-md-3" id="dashboardCard_${status}">
-                <div class="stats-card" style="position: relative;">
-                    <button type="button" class="btn btn-sm btn-link text-danger" 
-                            style="position: absolute; top: 5px; right: 5px; padding: 2px 5px; z-index: 10; opacity: 0.7;"
-                            onclick="removeDashboardCard('${status}')" 
-                            title="Remove card">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <div class="stats-card">
                     <div class="stats-icon" style="background: ${config.color};">
                         <i class="fas ${config.icon}"></i>
                     </div>
