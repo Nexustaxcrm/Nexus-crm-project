@@ -5426,7 +5426,9 @@ function openUpdateStatusModal(customerId) {
     document.getElementById('updateCustomerId').value = customerId;
     document.getElementById('updateCustomerName').value = customer.name || `${customer.firstName} ${customer.lastName}`;
     document.getElementById('updateCustomerStatus').value = customer.status || '';
-    document.getElementById('updateComments').value = customer.comments || '';
+    
+    // Clear new comment input
+    document.getElementById('updateComments').value = '';
     
     // CRITICAL: Store original updated_at for optimistic locking (concurrent operation protection)
     // This prevents data loss when multiple users update the same customer simultaneously
@@ -5436,6 +5438,9 @@ function openUpdateStatusModal(customerId) {
     // Store original comments for appending (preserve existing comments)
     const originalComments = customer.comments || customer.notes || '';
     document.getElementById('updateCustomerId').setAttribute('data-original-comments', originalComments);
+    
+    // Render comments in notebook style
+    renderCommentsNotebook(originalComments);
     
     // Load refund status from sessionStorage (clears when browser closes)
     const refundStatusKey = `customerRefundStatus_${customer.email || customerId}`;
@@ -7202,6 +7207,86 @@ async function deleteCustomerDocument(documentId, fileName, customerId) {
     }
 }
 
+// Render comments in notebook style
+function renderCommentsNotebook(commentsText) {
+    const commentsHistory = document.getElementById('commentsHistory');
+    if (!commentsHistory) return;
+    
+    // Clear existing comments
+    commentsHistory.innerHTML = '';
+    
+    if (!commentsText || commentsText.trim() === '') {
+        commentsHistory.innerHTML = '<div class="text-center text-muted" style="padding: 20px;">No comments yet</div>';
+        return;
+    }
+    
+    // Parse comments - split by double newlines or timestamp pattern
+    // Format: [timestamp] user: comment text
+    const comments = [];
+    
+    // Split by double newlines first to separate comment entries
+    const parts = commentsText.split(/\n\n+/);
+    
+    parts.forEach(part => {
+        const trimmed = part.trim();
+        if (!trimmed) return;
+        
+        // Try to extract timestamp and user if present
+        // Pattern: [timestamp] user: comment text (can span multiple lines)
+        const timestampMatch = trimmed.match(/^\[([^\]]+)\]\s*([^:\n]+):\s*(.+)$/s);
+        if (timestampMatch) {
+            comments.push({
+                date: timestampMatch[1].trim(),
+                user: timestampMatch[2].trim(),
+                text: timestampMatch[3].trim()
+            });
+        } else {
+            // Check if it's a legacy comment that might have timestamp in the middle
+            const inlineTimestampMatch = trimmed.match(/\[([^\]]+)\]\s*([^:\n]+):\s*(.+)/);
+            if (inlineTimestampMatch) {
+                comments.push({
+                    date: inlineTimestampMatch[1].trim(),
+                    user: inlineTimestampMatch[2].trim(),
+                    text: inlineTimestampMatch[3].trim()
+                });
+            } else {
+                // Legacy comment without structure - use current date and System as user
+                comments.push({
+                    date: new Date().toLocaleString(),
+                    user: 'System',
+                    text: trimmed
+                });
+            }
+        }
+    });
+    
+    // Render comments
+    if (comments.length === 0) {
+        commentsHistory.innerHTML = '<div class="text-center text-muted" style="padding: 20px;">No comments yet</div>';
+        return;
+    }
+    
+    comments.forEach(comment => {
+        const commentEntry = document.createElement('div');
+        commentEntry.className = 'comment-entry';
+        commentEntry.innerHTML = `
+            <div class="comment-meta">
+                <span class="comment-user">${escapeHtml(comment.user)}</span>
+                <span class="comment-date">${escapeHtml(comment.date)}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(comment.text)}</div>
+        `;
+        commentsHistory.appendChild(commentEntry);
+    });
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function updateCommentsByStatus() {
     const status = document.getElementById('updateCustomerStatus').value;
     const commentsField = document.getElementById('updateComments');
@@ -7743,6 +7828,15 @@ async function executeStatusUpdate() {
                         state: updatedState || customers[index].state || '',  // Update state only after success
                         updated_at: updated.updated_at || updated.updatedAt || originalUpdatedAt  // Update timestamp
                     };
+                    
+                    // Re-render comments in notebook style with updated comments
+                    renderCommentsNotebook(commentsToSave);
+                    
+                    // Update stored original comments for next edit
+                    document.getElementById('updateCustomerId').setAttribute('data-original-comments', commentsToSave);
+                    
+                    // Clear the new comment input field
+                    document.getElementById('updateComments').value = '';
                     
                     // Update the stored original updated_at for next edit
                     document.getElementById('updateCustomerId').setAttribute('data-original-updated-at', customers[index].updated_at || '');
