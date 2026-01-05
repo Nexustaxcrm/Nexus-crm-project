@@ -36,6 +36,11 @@ let callStatusChart = null;
 let monthlyComparisonChart = null;
 let userProfiles = [];
 
+// Initialize filter variables
+window.assignStatusFilter = null;
+window.currentFilter = null;
+window.assignCurrentPage = 1;
+
 // Copy Phone Number to Clipboard Function
 // Make it globally available
 // CRITICAL: This function prioritizes execCommand for macOS compatibility
@@ -1686,13 +1691,13 @@ async function loadEmployeeDashboard() {
         selectedStatuses = ['not_called', 'follow_up', 'voice_mail', 'w2_received'];
     }
     
-    // Build dashboard cards HTML
+    // Build dashboard cards HTML with onclick handlers
     const cardsHtml = selectedStatuses.map((status, index) => {
         const config = getStatusCardConfig(status);
         const count = countCustomersByStatus(assignedCustomers, status);
         return `
             <div class="col-md-3" id="dashboardCard_${status}">
-                <div class="stats-card">
+                <div class="stats-card" onclick="filterByStatus('${status}')" style="cursor: pointer;">
                     <div class="stats-icon" style="background: ${config.color};">
                         <i class="fas ${config.icon}"></i>
                     </div>
@@ -1965,6 +1970,11 @@ function filterByStatus(status) {
     // Reset pagination when filtering
     window.assignCurrentPage = 1;
     
+    // CRITICAL: Ensure assignStatusFilter is initialized
+    if (!window.hasOwnProperty('assignStatusFilter')) {
+        window.assignStatusFilter = null;
+    }
+    
     if (status === 'follow_up') {
         // Filter for follow-up customers
         const followUpCustomers = getFollowUpCustomers();
@@ -1985,8 +1995,17 @@ function filterByStatus(status) {
         // Update status dropdown to show only this status selected
         updateStatusDropdownFilter([status]);
         
-        // Render the page with the filter applied
-        renderAssignWorkPage();
+        // CRITICAL: Ensure customers are loaded before filtering
+        // If customers array is empty, wait for it to load
+        if (!customers || customers.length === 0) {
+            console.log('⚠️ Customers not loaded yet, loading now...');
+            loadCustomers().then(() => {
+                renderAssignWorkPage();
+            });
+        } else {
+            // Render the page with the filter applied
+            renderAssignWorkPage();
+        }
     }
     
     // Scroll to top
@@ -4375,14 +4394,21 @@ async function renderAssignWorkPage() {
         });
         
         // Apply status filter if set (send to API for server-side filtering)
-        const sel = Array.isArray(window.assignStatusFilter) ? window.assignStatusFilter : null;
+        // CRITICAL: Check if assignStatusFilter exists and is an array
+        const sel = (window.assignStatusFilter && Array.isArray(window.assignStatusFilter)) ? window.assignStatusFilter : 
+                   (window.assignStatusFilter ? [window.assignStatusFilter] : null);
         if (sel && sel.length > 0) {
-            const filtered = sel.filter(s => s !== 'archived');
+            const filtered = sel.filter(s => s !== 'archived' && s !== null && s !== undefined);
             if (filtered.length === 1) {
                 // Single status - use API filter
                 params.append('status', filtered[0]);
+                console.log(`✅ Applying status filter: ${filtered[0]}`);
+            } else if (filtered.length > 1) {
+                // Multiple statuses - will filter client-side after fetching
+                console.log(`✅ Applying multiple status filters: ${filtered.join(', ')}`);
             }
-            // For multiple statuses, we'll filter client-side after fetching
+        } else {
+            console.log('ℹ️ No status filter applied - showing all customers');
         }
         
         // Fetch customers from API with pagination
