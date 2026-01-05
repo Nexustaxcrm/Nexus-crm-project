@@ -331,8 +331,12 @@ router.get('/preferences/dashboard-cards', authenticateToken, async (req, res) =
             return res.status(500).json({ error: 'Database not initialized' });
         }
         
-        // Get user ID from token
-        const userId = req.user.id;
+        // Get user ID from token (JWT uses 'userId', not 'id')
+        const userId = req.user.userId || req.user.id;
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'User ID not found in token' });
+        }
         
         // Get dashboard cards preference
         const result = await dbPool.query(`
@@ -367,8 +371,12 @@ router.post('/preferences/dashboard-cards', authenticateToken, async (req, res) 
             return res.status(500).json({ error: 'Database not initialized' });
         }
         
-        // Get user ID from token
-        const userId = req.user.id;
+        // Get user ID from token (JWT uses 'userId', not 'id')
+        const userId = req.user.userId || req.user.id;
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'User ID not found in token' });
+        }
         
         // Validate request body
         const { cards } = req.body;
