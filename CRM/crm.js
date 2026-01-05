@@ -3894,12 +3894,25 @@ async function moveSelectedCustomersToStatus() {
                 archived: isArchive
             };
             
+            // Get CSRF token for the request
+            let csrf = getCSRFToken();
+            if (!csrf) {
+                csrf = await fetchCSRFToken();
+            }
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+            
+            // Add CSRF token if available (required for protected routes)
+            if (csrf) {
+                headers['X-CSRF-Token'] = csrf;
+            }
+            
             const response = await fetch(API_BASE_URL + '/customers/' + id, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: headers,
                 body: JSON.stringify(updateData)
             });
             
@@ -7338,6 +7351,13 @@ async function executeStatusUpdate() {
             return;
         }
         
+        // Get CSRF token for the request
+        let csrf = getCSRFToken();
+        if (!csrf) {
+            console.log('⚠️ No CSRF token, fetching...');
+            csrf = await fetchCSRFToken();
+        }
+        
         // CRITICAL: Only send comments to notes field, NOT the address
         // The address should be preserved separately and not sent to the backend
         // The backend 'notes' field should only contain comments, not address
@@ -7355,12 +7375,22 @@ async function executeStatusUpdate() {
         };
         
         try {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+            
+            // Add CSRF token if available (required for protected routes)
+            if (csrf) {
+                headers['X-CSRF-Token'] = csrf;
+                console.log('✅ CSRF token added to status update request');
+            } else {
+                console.warn('⚠️ No CSRF token available for status update request');
+            }
+            
             const response = await fetch(API_BASE_URL + '/customers/' + customerId, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: headers,
                 body: JSON.stringify(customerData)
             });
             
