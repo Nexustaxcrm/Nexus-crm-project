@@ -1459,6 +1459,12 @@ async function loadAdminDashboard() {
             statsCards.innerHTML = statsHtml;
         }
         
+        // Clear header actions for admin (Edit Cards button is only for employees)
+        const headerActionsContainer = document.getElementById('dashboardHeaderActions');
+        if (headerActionsContainer) {
+            headerActionsContainer.innerHTML = '';
+        }
+        
         // Load traffic section for admin
         loadTrafficSection();
         loadMonthlyComparisonChart();
@@ -1702,21 +1708,30 @@ async function loadEmployeeDashboard() {
         </div>
     ` : '';
     
-    // Add edit button if 4 cards are already selected
-    const editButton = selectedStatuses.length >= 4 ? `
-        <div class="col-md-3">
-            <div class="stats-card" style="border: 2px dashed #dee2e6; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 120px;" onclick="openAddCardModal()">
-                <div style="text-align: center; color: #6c757d;">
-                    <i class="fas fa-edit" style="font-size: 2rem; margin-bottom: 8px;"></i>
-                    <div style="font-size: 0.9rem; font-weight: 500;">Edit Cards</div>
-                </div>
-            </div>
-        </div>
-    ` : '';
-    
-    const statsHtml = cardsHtml + addCardButton + editButton;
+    const statsHtml = cardsHtml + addCardButton;
     
     document.getElementById('statsCards').innerHTML = statsHtml;
+    
+    // Add Edit Cards button to top-right header area (smaller size) - only for employee/preparation roles
+    const headerActionsContainer = document.getElementById('dashboardHeaderActions');
+    if (headerActionsContainer && currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
+        // Only show Edit Cards button if user has cards (can add or edit)
+        if (selectedStatuses.length > 0) {
+            headerActionsContainer.innerHTML = `
+                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                        onclick="openAddCardModal()" 
+                        style="padding: 4px 12px; font-size: 0.75rem; border-radius: 4px; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-edit" style="font-size: 0.7rem;"></i>
+                    <span>Edit Cards</span>
+                </button>
+            `;
+        } else {
+            headerActionsContainer.innerHTML = '';
+        }
+    } else if (headerActionsContainer) {
+        // Hide for admin and other roles
+        headerActionsContainer.innerHTML = '';
+    }
 }
 
 // Open modal for adding dashboard cards
