@@ -838,6 +838,7 @@ async function showDashboard() {
         document.getElementById('progressLi').style.display = 'block';
         // Hide employee-specific features
         document.getElementById('assignedWorkLi').style.display = 'none';
+        document.getElementById('timeChartLi').style.display = 'none';
     } else if (currentUser.role === 'preparation') {
         // Preparation role - same dashboard as employee
         document.getElementById('userManagementLi').style.display = 'none';
@@ -904,6 +905,12 @@ function showTab(tabName, clickedElement) {
     // Check if employee is trying to access restricted tabs
     if (currentUser && currentUser.role !== 'admin' && ['upload', 'assignWork', 'progress', 'userManagement'].includes(tabName)) {
         showNotification('error', 'Access Denied', 'You do not have permission to access this section.');
+        return;
+    }
+    
+    // Check if admin is trying to access employee-only tabs
+    if (currentUser && currentUser.role === 'admin' && tabName === 'timeChart') {
+        showNotification('error', 'Access Denied', 'This section is only available for employees.');
         return;
     }
     
