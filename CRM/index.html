@@ -518,6 +518,44 @@
             left: 100%;
             top: 100%;
         }
+        
+        /* Dropdown menu positioning - align with glowing line */
+        .navbar .user-section .dropdown {
+            position: relative;
+        }
+        
+        .navbar .user-section .dropdown-menu {
+            margin-top: 0 !important;
+            top: 100% !important;
+            margin-bottom: 0 !important;
+            padding-top: 0 !important;
+            border-top: none !important;
+            z-index: 1050 !important;
+            position: absolute !important;
+            right: 0 !important;
+            left: auto !important;
+        }
+        
+        /* Remove any gap between avatar and dropdown */
+        .navbar .user-section .dropdown-menu.show {
+            margin-top: 0 !important;
+            transform: translateY(0) !important;
+        }
+        
+        /* Keep glowing effect visible when dropdown is shown */
+        .navbar .user-avatar.show,
+        .navbar .user-avatar[aria-expanded="true"],
+        .navbar .user-avatar.dropdown-toggle.show {
+            background: linear-gradient(135deg, #042828 0%, #063232 100%);
+            box-shadow: 0 8px 30px rgba(6, 50, 50, 0.4), 0 4px 12px rgba(15, 23, 42, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .navbar .user-avatar.show::before,
+        .navbar .user-avatar[aria-expanded="true"]::before,
+        .navbar .user-avatar.dropdown-toggle.show::before {
+            opacity: 0.6;
+        }
 
         /* Main Content */
         .main-content {
