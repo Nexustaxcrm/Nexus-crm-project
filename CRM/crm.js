@@ -926,6 +926,8 @@ function showTab(tabName, clickedElement) {
         userManagementTab.style.display = 'none';
         // Reset initialization flag when User Management tab is closed
         userManagementTabsInitialized = false;
+        // Stop auto-refresh when User Management tab is closed
+        stopTeamBreakAutoRefresh();
     }
     
     // Remove active class from all nav links
@@ -1034,6 +1036,8 @@ function showTab(tabName, clickedElement) {
                 document.getElementById('userManagementTab').style.display = 'block';
                 // Load team break table when User Management opens
                 loadTeamBreakTable();
+                // Start auto-refresh for Team Break table (every 5 seconds)
+                startTeamBreakAutoRefresh();
                 // Ensure initial tab state is correct
                 const allMainPanes = document.querySelectorAll('#userManagementMainTabContent .tab-pane');
                 allMainPanes.forEach((pane, index) => {
@@ -9835,9 +9839,13 @@ function initializeUserManagementTabs() {
                         targetPane.classList.add('show', 'active');
                         targetPane.style.display = 'block';
                         
-                        // If Team Break tab is opened, refresh the table
+                        // If Team Break tab is opened, refresh the table and start auto-refresh
                         if (targetId === '#teamBreakMainContent') {
                             loadTeamBreakTable();
+                            startTeamBreakAutoRefresh();
+                        } else {
+                            // Stop auto-refresh when switching away from Team Break tab
+                            stopTeamBreakAutoRefresh();
                         }
                     }
                     
@@ -13523,6 +13531,7 @@ function goBackToDobCalendar() {
 // Break Time Management Functions
 let breakStartTime = null;
 let breakInterval = null;
+let teamBreakRefreshInterval = null; // For auto-refreshing admin Team Break table
 
 async function punchBreakTime() {
     const punchBtn = document.getElementById('punchBreakBtn');
@@ -13870,6 +13879,44 @@ async function loadTeamBreakTable() {
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading break times</td></tr>';
         }
+    }
+}
+
+// Auto-refresh Team Break table for admin (polling every 5 seconds)
+function startTeamBreakAutoRefresh() {
+    // Clear any existing interval
+    stopTeamBreakAutoRefresh();
+    
+    // Only start if user is admin
+    if (!currentUser || currentUser.role !== 'admin') {
+        return;
+    }
+    
+    // Refresh immediately
+    loadTeamBreakTable();
+    
+    // Set up polling every 3 seconds for faster updates
+    teamBreakRefreshInterval = setInterval(() => {
+        // Only refresh if Team Break tab is visible
+        const teamBreakContent = document.getElementById('teamBreakMainContent');
+        const userManagementTab = document.getElementById('userManagementTab');
+        if (teamBreakContent && userManagementTab && 
+            userManagementTab.style.display !== 'none' &&
+            teamBreakContent.style.display !== 'none' && 
+            teamBreakContent.classList.contains('active')) {
+            loadTeamBreakTable();
+        } else {
+            // Stop polling if tab is not visible
+            stopTeamBreakAutoRefresh();
+        }
+    }, 3000); // Refresh every 3 seconds for faster updates
+}
+
+// Stop auto-refresh for Team Break table
+function stopTeamBreakAutoRefresh() {
+    if (teamBreakRefreshInterval) {
+        clearInterval(teamBreakRefreshInterval);
+        teamBreakRefreshInterval = null;
     }
 }
 
