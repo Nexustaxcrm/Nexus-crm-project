@@ -931,6 +931,13 @@ function showTab(tabName, clickedElement) {
         stopTeamAttendanceAutoRefresh();
     }
     
+    const timeChartTab = document.getElementById('timeChartTab');
+    if (timeChartTab) {
+        timeChartTab.style.display = 'none';
+        // Reset initialization flag when Time Chart tab is closed
+        timeChartTabsInitialized = false;
+    }
+    
     // Remove active class from all nav links
     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
     
@@ -1026,6 +1033,8 @@ function showTab(tabName, clickedElement) {
         case 'timeChart':
             if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
                 document.getElementById('timeChartTab').style.display = 'block';
+                // Initialize Time Chart sub-tabs
+                initializeTimeChartTabs();
                 // Load break time history when Time Chart opens (with delay to ensure token is ready)
                 setTimeout(() => {
                     loadBreakTimeHistory();
@@ -9875,6 +9884,87 @@ function initializeUserManagementTabs() {
         });
         
         userManagementTabsInitialized = true;
+    }, 150);
+}
+
+// Initialize Time Chart sub-tabs (Break Time / Attendance)
+let timeChartTabsInitialized = false;
+
+function initializeTimeChartTabs() {
+    // Prevent duplicate initialization
+    if (timeChartTabsInitialized) {
+        return;
+    }
+    
+    // Use setTimeout to ensure DOM is fully ready
+    setTimeout(() => {
+        // Get all tab buttons in Time Chart
+        const tabButtons = document.querySelectorAll('#timeChartSubTabs .nav-link');
+        
+        if (tabButtons.length === 0) {
+            console.warn('Time Chart tabs not found');
+            return;
+        }
+        
+        tabButtons.forEach((button) => {
+            // Remove data-bs-toggle to prevent Bootstrap auto-handling conflicts
+            button.removeAttribute('data-bs-toggle');
+            
+            // Get the target ID and other important attributes
+            const targetId = button.getAttribute('data-bs-target');
+            const role = button.getAttribute('role');
+            const ariaControls = button.getAttribute('aria-controls');
+            const buttonId = button.getAttribute('id');
+            
+            // Remove any existing click listeners by cloning
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Restore all important attributes
+            if (targetId) newButton.setAttribute('data-bs-target', targetId);
+            if (role) newButton.setAttribute('role', role);
+            if (ariaControls) newButton.setAttribute('aria-controls', ariaControls);
+            if (buttonId) newButton.setAttribute('id', buttonId);
+            newButton.classList.add('user-tab-btn');
+            
+            // Add custom click handler
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Hide all tab panes
+                const allPanes = document.querySelectorAll('#timeChartSubTabContent .tab-pane');
+                allPanes.forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                    pane.style.display = 'none';
+                });
+                
+                // Show the target pane
+                const targetPane = document.querySelector(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                    targetPane.style.display = 'block';
+                    
+                    // Load data when switching tabs
+                    if (targetId === '#breakTimeContent') {
+                        loadBreakTimeHistory();
+                    } else if (targetId === '#attendanceContent') {
+                        loadAttendanceHistory();
+                    }
+                }
+                
+                // Update active state on buttons
+                const allButtons = document.querySelectorAll('#timeChartSubTabs .nav-link');
+                allButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
+                this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
+            }, true); // Use capture phase to ensure our handler runs first
+        });
+        
+        timeChartTabsInitialized = true;
     }, 150);
 }
 
