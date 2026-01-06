@@ -956,7 +956,14 @@ function showTab(tabName, clickedElement) {
                     // CRITICAL: Only call renderAssignWorkPage if we're NOT filtering
                     // filterByStatus sets window.isFiltering = true to prevent double rendering
                     if (!window.isFiltering) {
-                        // No filter active, so this is a normal tab switch - render the page
+                        // No filter active, so this is a normal tab switch - clear any existing filters
+                        // This ensures clicking the tab directly shows ALL customers, not filtered results
+                        window.assignStatusFilter = null;
+                        window.currentFilter = null;
+                        window.clientSideFilter = null;
+                        // Update status dropdown to show "All Statuses"
+                        updateStatusDropdownFilter([]);
+                        // Render the page with no filters
                         renderAssignWorkPage();
                     }
                     // If isFiltering is true, filterByStatus will handle the rendering
