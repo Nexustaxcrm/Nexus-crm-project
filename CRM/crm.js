@@ -13533,7 +13533,11 @@ async function punchBreakTime() {
     if (!breakStartTime) {
         // Start break
         try {
-            const token = sessionStorage.getItem('token');
+            const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+            if (!token) {
+                showNotification('error', 'Authentication Error', 'Please log in again.');
+                return;
+            }
             const csrfToken = await getCSRFToken();
             
             const response = await fetch(API_BASE_URL + '/users/break-time/start', {
@@ -13588,7 +13592,7 @@ async function punchBreakTime() {
     } else {
         // End break
         try {
-            const token = sessionStorage.getItem('token');
+            const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
             if (!token) {
                 showNotification('error', 'Authentication Error', 'Please log in again.');
                 return;
@@ -13708,7 +13712,7 @@ async function loadBreakTimeHistory() {
     }
     
     try {
-        const token = sessionStorage.getItem('token');
+        const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
         if (!token) {
             console.warn('No token found, skipping break history load');
             return;
@@ -13796,7 +13800,15 @@ async function loadTeamBreakTable() {
     if (!currentUser || currentUser.role !== 'admin') return;
     
     try {
-        const token = sessionStorage.getItem('token');
+        const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+        if (!token) {
+            console.warn('No token found, skipping team break load');
+            const tbody = document.getElementById('teamBreakTable');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Unable to load break times</td></tr>';
+            }
+            return;
+        }
         const response = await fetch(API_BASE_URL + '/users/break-times', {
             headers: {
                 'Authorization': `Bearer ${token}`
