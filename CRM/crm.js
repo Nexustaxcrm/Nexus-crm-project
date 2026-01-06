@@ -4427,14 +4427,18 @@ async function renderAssignWorkPage() {
             const filtered = sel.filter(s => s !== 'archived' && s !== null && s !== undefined);
             if (filtered.length === 1) {
                 // Single status - use API filter
+                // Backend now handles 'not_called' to include both 'not_called' and 'pending'
                 params.append('status', filtered[0]);
                 console.log(`✅ Applying status filter: ${filtered[0]}`);
+                window.clientSideFilter = null;
             } else if (filtered.length > 1) {
                 // Multiple statuses - will filter client-side after fetching
                 console.log(`✅ Applying multiple status filters: ${filtered.join(', ')}`);
+                window.clientSideFilter = null;
             }
         } else {
             console.log('ℹ️ No status filter applied - showing all customers');
+            window.clientSideFilter = null;
         }
         
         // Fetch customers from API with pagination
@@ -4530,7 +4534,7 @@ async function renderAssignWorkPage() {
             };
         });
         
-        // Apply status filter if set (client-side filtering for multiple statuses)
+        // Apply status filter if set (client-side filtering for multiple statuses or special cases)
         let filteredSlice = slice;
         if (sel && sel.length > 0) {
             const filtered = sel.filter(s => s !== 'archived');
@@ -4539,7 +4543,7 @@ async function renderAssignWorkPage() {
                 const filteredSet = new Set(filtered);
                 filteredSlice = slice.filter(c => filteredSet.has(c.status || ''));
             }
-            // If single status, API already filtered it
+            // If single status, API already filtered it (including 'not_called' which includes 'pending')
         }
         
         // Filter out archived customers (should already be filtered by API, but double-check)

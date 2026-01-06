@@ -248,8 +248,17 @@ router.get('/', authenticateToken, async (req, res) => {
         // If includeArchived is true, show all customers (both archived and non-archived)
         
         if (status) {
-            query += ` AND c.status = $${paramIndex++}`;
-            params.push(status);
+            // Special handling for 'not_called' - include both 'not_called' and 'pending'
+            // because 'pending' is treated as 'not_called' in the stats endpoint
+            if (status === 'not_called') {
+                query += ` AND (c.status = $${paramIndex} OR c.status = $${paramIndex + 1})`;
+                params.push('not_called');
+                params.push('pending');
+                paramIndex += 2;
+            } else {
+                query += ` AND c.status = $${paramIndex++}`;
+                params.push(status);
+            }
         }
         
         if (assignedTo) {
