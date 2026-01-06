@@ -775,6 +775,13 @@
             border-bottom: 1px solid var(--border-color);
             color: var(--text-color);
         }
+        
+        /* Override for assign-work-table to ensure compact rows */
+        .assign-work-table.table tbody td,
+        table.assign-work-table tbody td {
+            padding: 4px 6px !important;
+            line-height: 1.2 !important;
+        }
 
         .table tbody tr:hover {
             background-color: var(--bg-color);
@@ -804,26 +811,40 @@
         }
 
         .assign-work-table .table tbody td {
-            padding: 4px 6px;
+            padding: 4px 6px !important;
             font-size: 13px;
             overflow: hidden;
-            vertical-align: middle;
+            vertical-align: middle !important;
             color: var(--text-color);
             border-bottom: 1px solid var(--border-color);
-            line-height: 1.3;
+            line-height: 1.2 !important;
+            height: auto !important;
+            min-height: auto !important;
         }
         
         .assign-work-table .table tbody tr {
-            line-height: 1.3;
-            margin: 0;
-            padding: 0;
-            height: auto;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: auto !important;
         }
         
         /* Reduce spacing in comments column */
         .assign-work-table .table tbody td:last-child {
-            line-height: 1.2;
-            padding: 4px 6px;
+            line-height: 1.2 !important;
+            padding: 4px 6px !important;
+        }
+        
+        /* Override Bootstrap default table cell padding */
+        .assign-work-table.table tbody td,
+        .assign-work-table .table.table tbody td {
+            padding: 4px 6px !important;
+        }
+        
+        /* Ensure no extra spacing from Bootstrap table classes */
+        .assign-work-table.table-hover tbody tr {
+            line-height: 1.2 !important;
         }
         
         .assign-work-table .table tbody tr:hover {
