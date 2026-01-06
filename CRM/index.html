@@ -898,6 +898,54 @@
         .assign-work-table .table tbody tr:hover {
             background-color: var(--bg-color);
         }
+        
+        /* Prevent table from stretching rows when there are fewer rows */
+        .assign-work-table .table {
+            height: auto !important;
+            min-height: auto !important;
+            max-height: none !important;
+            table-layout: fixed !important;
+        }
+        
+        .assign-work-table .table tbody {
+            height: auto !important;
+            min-height: auto !important;
+            max-height: none !important;
+            display: table-row-group !important;
+        }
+        
+        /* Ensure table doesn't use flexbox that could stretch rows */
+        .table-responsive .assign-work-table,
+        .table-responsive table.assign-work-table {
+            display: table !important;
+            height: auto !important;
+        }
+        
+        /* CRITICAL: Force fixed row height - prevent any stretching or collapsing */
+        .assign-work-table tbody tr {
+            display: table-row !important;
+            height: 25px !important;
+            max-height: 25px !important;
+            min-height: 25px !important;
+        }
+        
+        .assign-work-table tbody td {
+            display: table-cell !important;
+            height: 25px !important;
+            max-height: 25px !important;
+            min-height: 25px !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Prevent any flex or grid layouts from affecting row height */
+        .table-responsive {
+            display: block !important;
+        }
+        
+        .table-responsive .assign-work-table {
+            display: table !important;
+            width: 100% !important;
+        }
 
         /* Prevent text overflow - all cells should respect width */
         .assign-work-table .table tbody td {
