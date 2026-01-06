@@ -424,4 +424,172 @@ router.post('/preferences/dashboard-cards', authenticateToken, async (req, res) 
     }
 });
 
+// ============================================
+// BREAK TIME ENDPOINTS
+// ============================================
+
+// Start break time
+router.post('/break-time/start', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const username = req.user.username;
+        const breakStartTime = new Date();
+
+        // Check if user already has an active break
+        const activeBreak = await dbPool.query(
+            `SELECT id FROM break_times 
+             WHERE user_id = $1 AND status = 'active' AND break_end_time IS NULL`,
+            [userId]
+        );
+
+        if (activeBreak.rows.length > 0) {
+            return res.status(400).json({ error: 'You already have an active break' });
+        }
+
+        // Insert new break record
+        const result = await dbPool.query(
+            `INSERT INTO break_times (user_id, username, break_start_time, status)
+             VALUES ($1, $2, $3, 'active')
+             RETURNING *`,
+            [userId, username, breakStartTime]
+        );
+
+        res.json({ success: true, breakTime: result.rows[0] });
+    } catch (error) {
+        console.error('Error starting break time:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// End break time
+router.post('/break-time/end', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const breakEndTime = new Date();
+
+        // Find active break
+        const activeBreak = await dbPool.query(
+            `SELECT id, break_start_time FROM break_times 
+             WHERE user_id = $1 AND status = 'active' AND break_end_time IS NULL
+             ORDER BY break_start_time DESC LIMIT 1`,
+            [userId]
+        );
+
+        if (activeBreak.rows.length === 0) {
+            return res.status(400).json({ error: 'No active break found' });
+        }
+
+        const breakRecord = activeBreak.rows[0];
+        const startTime = new Date(breakRecord.break_start_time);
+        const durationSeconds = Math.floor((breakEndTime - startTime) / 1000);
+
+        // Update break record
+        const result = await dbPool.query(
+            `UPDATE break_times 
+             SET break_end_time = $1, duration_seconds = $2, status = 'completed', updated_at = CURRENT_TIMESTAMP
+             WHERE id = $3
+             RETURNING *`,
+            [breakEndTime, durationSeconds, breakRecord.id]
+        );
+
+        res.json({ success: true, breakTime: result.rows[0] });
+    } catch (error) {
+        console.error('Error ending break time:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get break times (for admin - all users, for employee - own breaks)
+router.get('/break-times', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        const { username, date } = req.query;
+
+        let query = `
+            SELECT bt.*, u.username as employee_username
+            FROM break_times bt
+            JOIN users u ON bt.user_id = u.id
+            WHERE 1=1
+        `;
+        const params = [];
+        let paramCount = 0;
+
+        // Admin can see all, employees/preparation see only their own
+        if (userRole !== 'admin') {
+            paramCount++;
+            query += ` AND bt.user_id = $${paramCount}`;
+            params.push(userId);
+        }
+
+        // Filter by username if provided (admin only)
+        if (username && userRole === 'admin') {
+            paramCount++;
+            query += ` AND bt.username = $${paramCount}`;
+            params.push(username);
+        }
+
+        // Filter by date if provided
+        if (date) {
+            paramCount++;
+            query += ` AND DATE(bt.break_start_time) = $${paramCount}`;
+            params.push(date);
+        }
+
+        query += ` ORDER BY bt.break_start_time DESC LIMIT 100`;
+
+        const result = await dbPool.query(query, params);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching break times:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get active breaks (for admin dashboard)
+router.get('/break-times/active', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userRole = req.user.role;
+
+        // Only admin can see active breaks
+        if (userRole !== 'admin') {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+
+        const result = await dbPool.query(
+            `SELECT bt.*, u.username as employee_username
+             FROM break_times bt
+             JOIN users u ON bt.user_id = u.id
+             WHERE bt.status = 'active' AND bt.break_end_time IS NULL
+             ORDER BY bt.break_start_time DESC`
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching active break times:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;

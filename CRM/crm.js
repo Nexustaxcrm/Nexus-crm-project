@@ -1023,11 +1023,15 @@ function showTab(tabName, clickedElement) {
         case 'timeChart':
             if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
                 document.getElementById('timeChartTab').style.display = 'block';
+                // Load break time history when Time Chart opens
+                loadBreakTimeHistory();
             }
             break;
         case 'userManagement':
             if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('userManagementTab').style.display = 'block';
+                // Load team break table when User Management opens
+                loadTeamBreakTable();
                 // Ensure initial tab state is correct
                 const allMainPanes = document.querySelectorAll('#userManagementMainTabContent .tab-pane');
                 allMainPanes.forEach((pane, index) => {
@@ -9828,6 +9832,11 @@ function initializeUserManagementTabs() {
                     if (targetPane) {
                         targetPane.classList.add('show', 'active');
                         targetPane.style.display = 'block';
+                        
+                        // If Team Break tab is opened, refresh the table
+                        if (targetId === '#teamBreakMainContent') {
+                            loadTeamBreakTable();
+                        }
                     }
                     
                     // Update active state on buttons
@@ -13513,7 +13522,7 @@ function goBackToDobCalendar() {
 let breakStartTime = null;
 let breakInterval = null;
 
-function punchBreakTime() {
+async function punchBreakTime() {
     const punchBtn = document.getElementById('punchBreakBtn');
     const breakStatus = document.getElementById('currentBreakStatus');
     const breakTimeInfo = document.getElementById('breakTimeInfo');
@@ -13521,49 +13530,108 @@ function punchBreakTime() {
     
     if (!breakStartTime) {
         // Start break
-        breakStartTime = new Date();
-        const timeString = breakStartTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        punchBtn.innerHTML = '<i class="fas fa-stop-circle"></i> End Break';
-        punchBtn.className = 'btn btn-danger btn-lg';
-        punchBtn.onclick = function() { punchBreakTime(); };
-        breakStatus.textContent = 'On break';
-        breakStatus.style.color = '#dc3545';
-        breakTimeInfo.style.display = 'block';
-        breakStartTimeSpan.textContent = timeString;
-        
-        // Start duration timer
-        breakInterval = setInterval(updateBreakDuration, 1000);
-        updateBreakDuration();
-        
-        showNotification('success', 'Break Started', 'Your break time has been recorded.');
+        try {
+            const token = sessionStorage.getItem('token');
+            const csrfToken = await getCSRFToken();
+            
+            const response = await fetch(API_BASE_URL + '/users/break-time/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-CSRF-Token': csrfToken
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to start break');
+            }
+            
+            const data = await response.json();
+            breakStartTime = new Date(data.breakTime.break_start_time);
+            const timeString = breakStartTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            punchBtn.innerHTML = '<i class="fas fa-stop-circle"></i> End Break';
+            punchBtn.className = 'btn btn-danger btn-lg';
+            punchBtn.onclick = function() { punchBreakTime(); };
+            breakStatus.textContent = 'On break';
+            breakStatus.style.color = '#dc3545';
+            breakTimeInfo.style.display = 'block';
+            breakStartTimeSpan.textContent = timeString;
+            
+            // Start duration timer
+            breakInterval = setInterval(updateBreakDuration, 1000);
+            updateBreakDuration();
+            
+            showNotification('success', 'Break Started', 'Your break time has been recorded.');
+            
+            // Refresh admin Team Break tab if it's open
+            if (currentUser && currentUser.role === 'admin') {
+                loadTeamBreakTable();
+            }
+        } catch (error) {
+            console.error('Error starting break:', error);
+            showNotification('error', 'Error', error.message || 'Failed to start break');
+        }
     } else {
         // End break
-        const savedBreakStart = new Date(breakStartTime); // Save start time before resetting
-        const breakEndTime = new Date();
-        const duration = Math.floor((breakEndTime - savedBreakStart) / 1000); // duration in seconds
-        const hours = Math.floor(duration / 3600);
-        const minutes = Math.floor((duration % 3600) / 60);
-        const seconds = duration % 60;
-        const durationString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
-        // Reset break
-        breakStartTime = null;
-        if (breakInterval) {
-            clearInterval(breakInterval);
-            breakInterval = null;
+        try {
+            const token = sessionStorage.getItem('token');
+            const csrfToken = await getCSRFToken();
+            
+            const response = await fetch(API_BASE_URL + '/users/break-time/end', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-CSRF-Token': csrfToken
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to end break');
+            }
+            
+            const data = await response.json();
+            const savedBreakStart = new Date(data.breakTime.break_start_time);
+            const breakEndTime = new Date(data.breakTime.break_end_time);
+            const durationSeconds = data.breakTime.duration_seconds;
+            const hours = Math.floor(durationSeconds / 3600);
+            const minutes = Math.floor((durationSeconds % 3600) / 60);
+            const seconds = durationSeconds % 60;
+            const durationString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Reset break
+            breakStartTime = null;
+            if (breakInterval) {
+                clearInterval(breakInterval);
+                breakInterval = null;
+            }
+            
+            punchBtn.innerHTML = '<i class="fas fa-play-circle"></i> Start Break';
+            punchBtn.className = 'btn btn-primary btn-lg';
+            breakStatus.textContent = 'Not on break';
+            breakStatus.style.color = '#6c757d';
+            breakTimeInfo.style.display = 'none';
+            
+            // Add to history
+            addBreakToHistory(savedBreakStart, breakEndTime, durationString);
+            
+            showNotification('success', 'Break Ended', `Break duration: ${durationString}`);
+            
+            // Refresh admin Team Break tab if it's open
+            if (currentUser && currentUser.role === 'admin') {
+                loadTeamBreakTable();
+            }
+            
+            // Reload break history
+            loadBreakTimeHistory();
+        } catch (error) {
+            console.error('Error ending break:', error);
+            showNotification('error', 'Error', error.message || 'Failed to end break');
         }
-        
-        punchBtn.innerHTML = '<i class="fas fa-play-circle"></i> Start Break';
-        punchBtn.className = 'btn btn-primary btn-lg';
-        breakStatus.textContent = 'Not on break';
-        breakStatus.style.color = '#6c757d';
-        breakTimeInfo.style.display = 'none';
-        
-        // Add to history (in a real app, this would be saved to the server)
-        addBreakToHistory(savedBreakStart, breakEndTime, durationString);
-        
-        showNotification('success', 'Break Ended', `Break duration: ${durationString}`);
     }
 }
 
@@ -13605,6 +13673,138 @@ function addBreakToHistory(startTime, endTime, duration) {
         <td><span class="badge bg-success">Completed</span></td>
     `;
     tbody.insertBefore(row, tbody.firstChild);
+}
+
+// Load break time history from server
+async function loadBreakTimeHistory() {
+    try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(API_BASE_URL + '/users/break-times', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load break history');
+        }
+        
+        const breakTimes = await response.json();
+        const tbody = document.getElementById('breakTimeHistoryTable');
+        if (!tbody) return;
+        
+        if (breakTimes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No break records found</td></tr>';
+            return;
+        }
+        
+        // Filter to current user's breaks only (for employee/preparation)
+        const userBreaks = breakTimes.filter(bt => 
+            currentUser.role === 'admin' || bt.username === currentUser.username
+        );
+        
+        tbody.innerHTML = userBreaks.map(bt => {
+            const startTime = new Date(bt.break_start_time);
+            const dateStr = startTime.toLocaleDateString('en-US');
+            const startStr = startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let endStr = '-';
+            let duration = '-';
+            let statusBadge = '<span class="badge bg-danger">Active</span>';
+            
+            if (bt.break_end_time) {
+                const endTime = new Date(bt.break_end_time);
+                endStr = endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const hours = Math.floor(bt.duration_seconds / 3600);
+                const minutes = Math.floor((bt.duration_seconds % 3600) / 60);
+                const seconds = bt.duration_seconds % 60;
+                duration = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                statusBadge = '<span class="badge bg-success">Completed</span>';
+            }
+            
+            return `
+                <tr>
+                    <td>${dateStr}</td>
+                    <td>${startStr}</td>
+                    <td>${endStr}</td>
+                    <td>${duration}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading break history:', error);
+    }
+}
+
+// Load team break table for admin
+async function loadTeamBreakTable() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    
+    try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(API_BASE_URL + '/users/break-times', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load team break times');
+        }
+        
+        const breakTimes = await response.json();
+        const tbody = document.getElementById('teamBreakTable');
+        if (!tbody) return;
+        
+        if (breakTimes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No break records found</td></tr>';
+            return;
+        }
+        
+        // Sort by start time (most recent first)
+        breakTimes.sort((a, b) => new Date(b.break_start_time) - new Date(a.break_start_time));
+        
+        tbody.innerHTML = breakTimes.map(bt => {
+            const startTime = new Date(bt.break_start_time);
+            const dateStr = startTime.toLocaleDateString('en-US');
+            const startStr = startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let endStr = '-';
+            let duration = '-';
+            let statusBadge = '<span class="badge bg-danger">Active</span>';
+            let startTimeColor = 'color: #dc3545; font-weight: bold;'; // Red for active
+            let endTimeColor = '';
+            
+            if (bt.break_end_time) {
+                const endTime = new Date(bt.break_end_time);
+                endStr = endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const hours = Math.floor(bt.duration_seconds / 3600);
+                const minutes = Math.floor((bt.duration_seconds % 3600) / 60);
+                const seconds = bt.duration_seconds % 60;
+                duration = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                statusBadge = '<span class="badge bg-success">Completed</span>';
+                startTimeColor = 'color: #28a745; font-weight: bold;'; // Green for completed
+                endTimeColor = 'color: #28a745; font-weight: bold;'; // Green for completed
+            }
+            
+            return `
+                <tr>
+                    <td>${bt.username || bt.employee_username || 'Unknown'}</td>
+                    <td style="${startTimeColor}">${startStr}</td>
+                    <td style="${endTimeColor}">${endStr}</td>
+                    <td>${duration}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading team break times:', error);
+        const tbody = document.getElementById('teamBreakTable');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading break times</td></tr>';
+        }
+    }
 }
 
 // Attendance Management Functions

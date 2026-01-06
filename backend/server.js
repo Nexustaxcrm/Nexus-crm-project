@@ -544,6 +544,58 @@ async function createBlogPostsTableMigration(pool) {
     }
 }
 
+// Migration function to create break_times table
+async function createBreakTimesTableMigration(pool) {
+    const client = await pool.connect();
+    try {
+        console.log('🔄 Starting migration: Create break_times table...');
+        await client.query('BEGIN');
+
+        const tableCheck = await client.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='break_times'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('📝 Creating break_times table...');
+            await client.query(`
+                CREATE TABLE break_times (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    username VARCHAR(255) NOT NULL,
+                    break_start_time TIMESTAMP NOT NULL,
+                    break_end_time TIMESTAMP,
+                    duration_seconds INTEGER,
+                    status VARCHAR(50) DEFAULT 'active',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            
+            // Create indexes for faster queries
+            await client.query(`
+                CREATE INDEX idx_break_times_user_id ON break_times(user_id);
+                CREATE INDEX idx_break_times_username ON break_times(username);
+                CREATE INDEX idx_break_times_status ON break_times(status);
+                CREATE INDEX idx_break_times_break_start_time ON break_times(break_start_time DESC);
+            `);
+            
+            console.log('✅ break_times table created successfully!');
+        } else {
+            console.log('✅ break_times table already exists. Migration not needed.');
+        }
+
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Migration failed:', error.message);
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 // Migration function to create user_preferences table
 async function createUserPreferencesTableMigration(pool) {
     try {
@@ -776,6 +828,7 @@ async function initializeDatabase() {
         // Run migration to create user_preferences table
         try {
             await createUserPreferencesTableMigration(pool);
+            await createBreakTimesTableMigration(pool);
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup
