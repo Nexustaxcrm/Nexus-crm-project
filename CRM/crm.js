@@ -1478,7 +1478,16 @@ async function loadAdminDashboard() {
                     <div class="stats-label">Referrals</div>
                 </div>
             </div>
-        `;
+            <div class="col-md-3">
+                <div class="stats-card" onclick="filterByStatus('old_clients')">
+                    <div class="stats-icon" style="background: linear-gradient(135deg, #8b7355 0%, #a0826d 50%, #b8956a 100%); background-size: 200% 200%;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stats-number">${stats.oldClientsCount || 0}</div>
+                    <div class="stats-label">Old Clients</div>
+                </div>
+            </div>
+`;
         
         if (statsCards) {
             statsCards.innerHTML = statsHtml;
@@ -1567,6 +1576,15 @@ async function loadAdminDashboard() {
                 </div>
                 <div class="stats-number">${getArchivedCount()}</div>
                 <div class="stats-label">Archived</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" onclick="filterByStatus('old_clients')">
+                <div class="stats-icon" style="background: #8b7355;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-number">${getOldClientsCount()}</div>
+                <div class="stats-label">Old Clients</div>
             </div>
         </div>
     `;
@@ -2004,6 +2022,22 @@ function filterByStatus(status) {
         showTab('assignWork');
         loadAssignWorkTableWithFilter(followUpCustomers);
         window.isFiltering = false;
+    } else if (status === 'old_clients') {
+        // Filter for old clients (created more than 1 year ago)
+        window.assignStatusFilter = ['old_clients'];
+        window.currentFilter = 'old_clients';
+        window.isOldClientsFilter = true; // Special flag for date-based filtering
+        showTab('assignWork');
+        if (!customers || customers.length === 0) {
+            console.log('⚠️ Customers not loaded yet, loading now...');
+            loadCustomers().then(() => {
+                renderAssignWorkPage();
+                window.isFiltering = false;
+            });
+        } else {
+            renderAssignWorkPage();
+            window.isFiltering = false;
+        }
     } else if (status === 'all') {
         // Show all customers - clear status filter
         window.assignStatusFilter = null;
@@ -3856,6 +3890,17 @@ function getArchivedCount() {
     return customers.filter(c => c.archived === true || (c.status && c.status === 'archived')).length;
 }
 
+function getOldClientsCount() {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    return customers.filter(c => {
+        if (c.archived === true) return false;
+        if (!c.created_at) return false;
+        const createdDate = new Date(c.created_at);
+        return createdDate < oneYearAgo;
+    }).length;
+}
+
 function openArchiveView() {
     // Open Archive modal
     const modal = new bootstrap.Modal(document.getElementById('archiveModal'));
@@ -4432,7 +4477,13 @@ async function renderAssignWorkPage() {
                    (window.assignStatusFilter ? [window.assignStatusFilter] : null);
         if (sel && sel.length > 0) {
             const filtered = sel.filter(s => s !== 'archived' && s !== null && s !== undefined);
-            if (filtered.length === 1) {
+            if (filtered.length === 1 && filtered[0] === 'old_clients') {
+                // Special handling for old clients - use date filter
+                const oneYearAgo = new Date();
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                params.append('old_clients', 'true');
+                console.log(`✅ Applying old clients filter (created before ${oneYearAgo.toISOString()})`);
+            } else if (filtered.length === 1) {
                 // Single status - use API filter
                 // Backend now handles 'not_called' to include both 'not_called' and 'pending'
                 params.append('status', filtered[0]);

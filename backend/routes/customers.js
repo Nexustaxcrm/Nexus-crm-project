@@ -228,6 +228,7 @@ router.get('/', authenticateToken, async (req, res) => {
         const search = req.query.search;
         const includeArchived = req.query.include_archived === 'true' || req.query.include_archived === '1';
         const archivedOnly = req.query.archived_only === 'true' || req.query.archived_only === '1';
+        const oldClients = req.query.old_clients === 'true' || req.query.old_clients === '1';
         
         // Build query with filters
         // CRITICAL: By default, exclude archived customers from all queries
@@ -286,6 +287,11 @@ router.get('/', authenticateToken, async (req, res) => {
             query += ` AND (c.name ILIKE $${paramIndex} OR c.email ILIKE $${paramIndex} OR c.phone ILIKE $${paramIndex})`;
             params.push(`%${search}%`);
             paramIndex++;
+        }
+        
+        // Filter for old clients (created more than 1 year ago)
+        if (oldClients) {
+            query += ` AND c.created_at < NOW() - INTERVAL '1 year'`;
         }
         
         // Get total count for pagination
@@ -552,13 +558,24 @@ router.get('/stats', authenticateToken, async (req, res) => {
         // Get interested count (customers with status 'interested')
         const interestedCount = statusCounts['interested'] || 0;
         
+        // Get old clients count (clients created more than 1 year ago)
+        const oldClientsQuery = `
+            SELECT COUNT(*) as count
+            FROM customers
+            WHERE (archived IS NULL OR archived = FALSE)
+            AND created_at < NOW() - INTERVAL '1 year'
+        `;
+        const oldClientsResult = await dbPool.query(oldClientsQuery);
+        const oldClientsCount = parseInt(oldClientsResult.rows[0].count);
+        
         res.json({
             totalCustomers,
             statusCounts,
             callStatusCounts,
             archivedCount,
             interestedCount,
-            w2Received: statusCounts['w2_received'] || 0
+            w2Received: statusCounts['w2_received'] || 0,
+            oldClientsCount
         });
     } catch (error) {
         console.error('Error fetching customer statistics:', error);
