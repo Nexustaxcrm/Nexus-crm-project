@@ -1023,8 +1023,10 @@ function showTab(tabName, clickedElement) {
         case 'timeChart':
             if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
                 document.getElementById('timeChartTab').style.display = 'block';
-                // Load break time history when Time Chart opens
-                loadBreakTimeHistory();
+                // Load break time history when Time Chart opens (with delay to ensure token is ready)
+                setTimeout(() => {
+                    loadBreakTimeHistory();
+                }, 500);
             }
             break;
         case 'userManagement':
@@ -13544,8 +13546,17 @@ async function punchBreakTime() {
             });
             
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to start break');
+                let errorMessage = 'Failed to start break';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (e) {
+                    // If response is not JSON, use status text
+                    errorMessage = response.status === 403 ? 'Access denied. Please check your permissions.' : 
+                                  response.status === 401 ? 'Invalid or expired token. Please log in again.' :
+                                  response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
             
             const data = await response.json();
@@ -13578,6 +13589,10 @@ async function punchBreakTime() {
         // End break
         try {
             const token = sessionStorage.getItem('token');
+            if (!token) {
+                showNotification('error', 'Authentication Error', 'Please log in again.');
+                return;
+            }
             const csrfToken = await getCSRFToken();
             
             const response = await fetch(API_BASE_URL + '/users/break-time/end', {
@@ -13590,8 +13605,17 @@ async function punchBreakTime() {
             });
             
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to end break');
+                let errorMessage = 'Failed to end break';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (e) {
+                    // If response is not JSON, use status text
+                    errorMessage = response.status === 403 ? 'Access denied. Please check your permissions.' : 
+                                  response.status === 401 ? 'Invalid or expired token. Please log in again.' :
+                                  response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
             
             const data = await response.json();
@@ -13677,8 +13701,19 @@ function addBreakToHistory(startTime, endTime, duration) {
 
 // Load break time history from server
 async function loadBreakTimeHistory() {
+    // Check if user is logged in and has proper role
+    if (!currentUser || (currentUser.role !== 'employee' && currentUser.role !== 'preparation')) {
+        console.warn('User not logged in or not authorized for break history');
+        return;
+    }
+    
     try {
         const token = sessionStorage.getItem('token');
+        if (!token) {
+            console.warn('No token found, skipping break history load');
+            return;
+        }
+        
         const response = await fetch(API_BASE_URL + '/users/break-times', {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -13686,7 +13721,26 @@ async function loadBreakTimeHistory() {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load break history');
+            let errorMessage = 'Failed to load break history';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                // If response is not JSON, use status text
+                errorMessage = response.statusText || errorMessage;
+            }
+            console.error('Error loading break history:', response.status, errorMessage);
+            // For 401/403, the token might be expired - try to refresh or just return silently
+            if (response.status === 401 || response.status === 403) {
+                console.warn('Authentication error loading break history:', errorMessage);
+                // Don't show error to user - might be expected (e.g., token expired)
+                const tbody = document.getElementById('breakTimeHistoryTable');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Unable to load break history</td></tr>';
+                }
+                return;
+            }
+            throw new Error(errorMessage);
         }
         
         const breakTimes = await response.json();
