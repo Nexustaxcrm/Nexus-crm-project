@@ -779,8 +779,11 @@
         /* Override for assign-work-table to ensure compact rows */
         .assign-work-table.table tbody td,
         table.assign-work-table tbody td {
-            padding: 4px 6px !important;
-            line-height: 1.2 !important;
+            padding: 2px 6px !important;
+            line-height: 1.0 !important;
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
         }
 
         .table tbody tr:hover {
@@ -811,51 +814,78 @@
         }
 
         .assign-work-table .table tbody td {
-            padding: 3px 6px !important;
+            padding: 2px 6px !important;
             font-size: 13px;
             overflow: hidden;
             vertical-align: middle !important;
             color: var(--text-color);
             border-bottom: 1px solid var(--border-color);
-            line-height: 1.1 !important;
-            height: 26px !important;
-            max-height: 26px !important;
-            min-height: 26px !important;
+            line-height: 1.0 !important;
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
+            box-sizing: border-box !important;
         }
         
         .assign-work-table .table tbody tr {
-            line-height: 1.1 !important;
+            line-height: 1.0 !important;
             margin: 0 !important;
             padding: 0 !important;
-            height: 26px !important;
-            max-height: 26px !important;
-            min-height: 26px !important;
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Force row height - override any Bootstrap or other styles */
+        table.assign-work-table tbody tr,
+        .assign-work-table table tbody tr,
+        .data-table.assign-work-table table tbody tr {
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
+        }
+        
+        table.assign-work-table tbody td,
+        .assign-work-table table tbody td,
+        .data-table.assign-work-table table tbody td {
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
+            padding: 2px 6px !important;
         }
         
         /* Reduce spacing in comments column */
         .assign-work-table .table tbody td:last-child {
-            line-height: 1.1 !important;
-            padding: 3px 6px !important;
-            height: 26px !important;
-            max-height: 26px !important;
-            min-height: 26px !important;
+            line-height: 1.0 !important;
+            padding: 2px 6px !important;
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
         }
         
         /* Override Bootstrap default table cell padding */
         .assign-work-table.table tbody td,
         .assign-work-table .table.table tbody td {
-            padding: 3px 6px !important;
-            height: 26px !important;
-            max-height: 26px !important;
-            min-height: 26px !important;
+            padding: 2px 6px !important;
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
         }
         
         /* Ensure no extra spacing from Bootstrap table classes */
         .assign-work-table.table-hover tbody tr {
-            line-height: 1.1 !important;
-            height: 26px !important;
-            max-height: 26px !important;
-            min-height: 26px !important;
+            line-height: 1.0 !important;
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
+        }
+        
+        /* Override Bootstrap table-hover row height */
+        .assign-work-table.table-hover tbody tr td {
+            height: 24px !important;
+            max-height: 24px !important;
+            min-height: 24px !important;
         }
         
         /* Ensure consistent row height for all table rows, regardless of content */

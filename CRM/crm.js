@@ -4479,22 +4479,12 @@ async function renderAssignWorkPage() {
             currentPage: page,
             pageSize: size,
             totalRecords: pagination.totalRecords,
-            totalPages: pagination.totalPages,
-            expectedTotal: 145713, // Expected total from user
-            difference: pagination.totalRecords ? (145713 - pagination.totalRecords) : 'unknown'
+            totalPages: pagination.totalPages
         });
         console.log('Full API Response:', data);
         
-        // VERIFY: Check if totalRecords matches expected count
-        if (pagination.totalRecords && pagination.totalRecords !== 145713) {
-            console.warn(`⚠️ WARNING: API returned ${pagination.totalRecords} total records, but expected 145,713. Difference: ${145713 - pagination.totalRecords}`);
-            console.warn('This could mean:');
-            console.warn('1. Some customers are archived (excluded from count)');
-            console.warn('2. Database query is filtering incorrectly');
-            console.warn('3. Customers were deleted or not imported correctly');
-        } else if (pagination.totalRecords === 145713) {
-            console.log('✅ SUCCESS: API returned correct total count of 145,713 customers');
-        }
+        // Note: Removed hardcoded expected count check as it becomes outdated when customers are added/removed
+        // The API returns the actual current count, which is the correct value to use
         
         // Transform database records to match frontend expectations
         const slice = customersData.map(customer => {
