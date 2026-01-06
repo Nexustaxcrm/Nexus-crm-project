@@ -846,6 +846,7 @@ async function showDashboard() {
         document.getElementById('progressLi').style.display = 'none';
         // Show employee-specific features
         document.getElementById('assignedWorkLi').style.display = 'block';
+        document.getElementById('timeChartLi').style.display = 'block';
     } else {
         // Hide admin-only features for employees
         document.getElementById('userManagementLi').style.display = 'none';
@@ -854,6 +855,7 @@ async function showDashboard() {
         document.getElementById('progressLi').style.display = 'none';
         // Show employee-specific features
         document.getElementById('assignedWorkLi').style.display = 'block';
+        document.getElementById('timeChartLi').style.display = 'block';
     }
     
     // Load dashboard
@@ -1004,6 +1006,11 @@ function showTab(tabName, clickedElement) {
         case 'reports':
             if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('reportsTab').style.display = 'block';
+            }
+            break;
+        case 'timeChart':
+            if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
+                document.getElementById('timeChartTab').style.display = 'block';
             }
             break;
         case 'userManagement':
@@ -13304,6 +13311,202 @@ function goBackToDobCalendar() {
         monthYearPanel.style.display = 'none';
     }
     renderDobCalendar();
+}
+
+// Break Time Management Functions
+let breakStartTime = null;
+let breakInterval = null;
+
+function punchBreakTime() {
+    const punchBtn = document.getElementById('punchBreakBtn');
+    const breakStatus = document.getElementById('currentBreakStatus');
+    const breakTimeInfo = document.getElementById('breakTimeInfo');
+    const breakStartTimeSpan = document.getElementById('breakStartTime');
+    
+    if (!breakStartTime) {
+        // Start break
+        breakStartTime = new Date();
+        const timeString = breakStartTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        punchBtn.innerHTML = '<i class="fas fa-stop-circle"></i> End Break';
+        punchBtn.className = 'btn btn-danger btn-lg';
+        punchBtn.onclick = function() { punchBreakTime(); };
+        breakStatus.textContent = 'On break';
+        breakStatus.style.color = '#dc3545';
+        breakTimeInfo.style.display = 'block';
+        breakStartTimeSpan.textContent = timeString;
+        
+        // Start duration timer
+        breakInterval = setInterval(updateBreakDuration, 1000);
+        updateBreakDuration();
+        
+        showNotification('success', 'Break Started', 'Your break time has been recorded.');
+    } else {
+        // End break
+        const savedBreakStart = new Date(breakStartTime); // Save start time before resetting
+        const breakEndTime = new Date();
+        const duration = Math.floor((breakEndTime - savedBreakStart) / 1000); // duration in seconds
+        const hours = Math.floor(duration / 3600);
+        const minutes = Math.floor((duration % 3600) / 60);
+        const seconds = duration % 60;
+        const durationString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        // Reset break
+        breakStartTime = null;
+        if (breakInterval) {
+            clearInterval(breakInterval);
+            breakInterval = null;
+        }
+        
+        punchBtn.innerHTML = '<i class="fas fa-play-circle"></i> Start Break';
+        punchBtn.className = 'btn btn-primary btn-lg';
+        breakStatus.textContent = 'Not on break';
+        breakStatus.style.color = '#6c757d';
+        breakTimeInfo.style.display = 'none';
+        
+        // Add to history (in a real app, this would be saved to the server)
+        addBreakToHistory(savedBreakStart, breakEndTime, durationString);
+        
+        showNotification('success', 'Break Ended', `Break duration: ${durationString}`);
+    }
+}
+
+function updateBreakDuration() {
+    if (!breakStartTime) return;
+    
+    const now = new Date();
+    const duration = Math.floor((now - breakStartTime) / 1000); // duration in seconds
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    const seconds = duration % 60;
+    const durationString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    const breakDurationSpan = document.getElementById('breakDuration');
+    if (breakDurationSpan) {
+        breakDurationSpan.textContent = durationString;
+    }
+}
+
+function addBreakToHistory(startTime, endTime, duration) {
+    const tbody = document.getElementById('breakTimeHistoryTable');
+    if (!tbody) return;
+    
+    // Remove "No records" message if present
+    if (tbody.children.length === 1 && tbody.children[0].textContent.includes('No break records')) {
+        tbody.innerHTML = '';
+    }
+    
+    const dateStr = startTime.toLocaleDateString('en-US');
+    const startStr = startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const endStr = endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${dateStr}</td>
+        <td>${startStr}</td>
+        <td>${endStr}</td>
+        <td>${duration}</td>
+        <td><span class="badge bg-success">Completed</span></td>
+    `;
+    tbody.insertBefore(row, tbody.firstChild);
+}
+
+// Attendance Management Functions
+let checkInTime = null;
+let attendanceInterval = null;
+
+function punchAttendance() {
+    const punchBtn = document.getElementById('punchAttendanceBtn');
+    const attendanceStatus = document.getElementById('currentAttendanceStatus');
+    const attendanceInfo = document.getElementById('attendanceInfo');
+    const checkInTimeSpan = document.getElementById('checkInTime');
+    
+    if (!checkInTime) {
+        // Check in
+        checkInTime = new Date();
+        const timeString = checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        punchBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Check Out';
+        punchBtn.className = 'btn btn-danger btn-lg';
+        punchBtn.onclick = function() { punchAttendance(); };
+        attendanceStatus.textContent = 'Checked in';
+        attendanceStatus.style.color = '#28a745';
+        attendanceInfo.style.display = 'block';
+        checkInTimeSpan.textContent = timeString;
+        
+        // Start total hours timer
+        attendanceInterval = setInterval(updateTotalHours, 1000);
+        updateTotalHours();
+        
+        showNotification('success', 'Checked In', 'Your attendance has been recorded.');
+    } else {
+        // Check out
+        const checkOutTime = new Date();
+        const duration = Math.floor((checkOutTime - checkInTime) / 1000); // duration in seconds
+        const hours = Math.floor(duration / 3600);
+        const minutes = Math.floor((duration % 3600) / 60);
+        const seconds = duration % 60;
+        const totalHoursString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        
+        // Reset attendance
+        const savedCheckIn = checkInTime;
+        checkInTime = null;
+        if (attendanceInterval) {
+            clearInterval(attendanceInterval);
+            attendanceInterval = null;
+        }
+        
+        punchBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Check In';
+        punchBtn.className = 'btn btn-success btn-lg';
+        attendanceStatus.textContent = 'Not checked in';
+        attendanceStatus.style.color = '#6c757d';
+        attendanceInfo.style.display = 'none';
+        
+        // Add to history (in a real app, this would be saved to the server)
+        addAttendanceToHistory(savedCheckIn, checkOutTime, totalHoursString);
+        
+        showNotification('success', 'Checked Out', `Total hours today: ${totalHoursString}`);
+    }
+}
+
+function updateTotalHours() {
+    if (!checkInTime) return;
+    
+    const now = new Date();
+    const duration = Math.floor((now - checkInTime) / 1000); // duration in seconds
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    const seconds = duration % 60;
+    const totalHoursString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    const totalHoursSpan = document.getElementById('totalHoursToday');
+    if (totalHoursSpan) {
+        totalHoursSpan.textContent = totalHoursString;
+    }
+}
+
+function addAttendanceToHistory(checkIn, checkOut, totalHours) {
+    const tbody = document.getElementById('attendanceHistoryTable');
+    if (!tbody) return;
+    
+    // Remove "No records" message if present
+    if (tbody.children.length === 1 && tbody.children[0].textContent.includes('No attendance records')) {
+        tbody.innerHTML = '';
+    }
+    
+    const dateStr = checkIn.toLocaleDateString('en-US');
+    const checkInStr = checkIn.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const checkOutStr = checkOut.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${dateStr}</td>
+        <td>${checkInStr}</td>
+        <td>${checkOutStr}</td>
+        <td>${totalHours}</td>
+        <td><span class="badge bg-success">Completed</span></td>
+    `;
+    tbody.insertBefore(row, tbody.firstChild);
 }
 
 
