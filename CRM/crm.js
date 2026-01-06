@@ -1039,10 +1039,24 @@ function showTab(tabName, clickedElement) {
                         pane.style.display = 'none';
                     }
                 });
+                // Ensure sub-tabs are visible
+                const companyLoginsContent = document.getElementById('companyLoginsContent');
+                const customersLoginContent = document.getElementById('customersLoginContent');
+                if (companyLoginsContent) {
+                    companyLoginsContent.classList.add('show', 'active');
+                    companyLoginsContent.style.display = 'block';
+                }
+                if (customersLoginContent) {
+                    customersLoginContent.classList.remove('show', 'active');
+                    customersLoginContent.style.display = 'none';
+                }
                 loadUsers().then(() => {
-                    loadUserManagementTable();
-                    // Initialize Bootstrap tabs for User Management
-                    initializeUserManagementTabs();
+                    // Use setTimeout to ensure DOM is fully ready
+                    setTimeout(() => {
+                        loadUserManagementTable();
+                        // Initialize Bootstrap tabs for User Management
+                        initializeUserManagementTabs();
+                    }, 100);
                 });
             }
             break;
@@ -9923,6 +9937,8 @@ function loadUserManagementTable(activeTab = 'company') {
         } else {
             customersTbody.innerHTML = customerUsers.map(user => renderUserRow(user)).join('');
         }
+    } else {
+        console.warn('customersLoginTable tbody not found');
     }
     
     // Load Company Logins table
@@ -9933,7 +9949,18 @@ function loadUserManagementTable(activeTab = 'company') {
         } else {
             companyTbody.innerHTML = companyUsers.map(user => renderUserRow(user)).join('');
         }
+    } else {
+        console.warn('companyLoginsTable tbody not found');
     }
+    
+    // Debug: Log user counts
+    console.log('User Management Table Load:', {
+        totalUsers: users.length,
+        companyUsers: companyUsers.length,
+        customerUsers: customerUsers.length,
+        companyTbodyFound: !!companyTbody,
+        customersTbodyFound: !!customersTbody
+    });
     
     // Update active tab if specified
     if (activeTab === 'company') {
