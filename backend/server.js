@@ -544,6 +544,59 @@ async function createBlogPostsTableMigration(pool) {
     }
 }
 
+// Migration function to create attendance table
+async function createAttendanceTableMigration(pool) {
+    const client = await pool.connect();
+    try {
+        console.log('🔄 Starting migration: Create attendance table...');
+        await client.query('BEGIN');
+
+        const tableCheck = await client.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name='attendance'
+        `);
+
+        if (tableCheck.rows.length === 0) {
+            console.log('📝 Creating attendance table...');
+            await client.query(`
+                CREATE TABLE attendance (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    username VARCHAR(255) NOT NULL,
+                    attendance_date DATE NOT NULL,
+                    check_in_time TIMESTAMP,
+                    check_out_time TIMESTAMP,
+                    total_hours_seconds INTEGER,
+                    status VARCHAR(50) DEFAULT 'checked_in',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+            
+            // Create indexes for faster queries
+            await client.query(`
+                CREATE INDEX idx_attendance_user_id ON attendance(user_id);
+                CREATE INDEX idx_attendance_username ON attendance(username);
+                CREATE INDEX idx_attendance_date ON attendance(attendance_date DESC);
+                CREATE INDEX idx_attendance_status ON attendance(status);
+            `);
+            
+            console.log('✅ attendance table created successfully!');
+        } else {
+            console.log('✅ attendance table already exists. Migration not needed.');
+        }
+
+        await client.query('COMMIT');
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('❌ Migration failed:', error.message);
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
 // Migration function to create break_times table
 async function createBreakTimesTableMigration(pool) {
     const client = await pool.connect();
@@ -829,6 +882,7 @@ async function initializeDatabase() {
         try {
             await createUserPreferencesTableMigration(pool);
             await createBreakTimesTableMigration(pool);
+            await createAttendanceTableMigration(pool);
         } catch (migrationError) {
             console.error('⚠️ Migration warning (non-fatal):', migrationError.message);
             // Continue - migration failure won't prevent server startup

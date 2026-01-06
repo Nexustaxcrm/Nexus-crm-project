@@ -592,4 +592,144 @@ router.get('/break-times/active', authenticateToken, async (req, res) => {
     }
 });
 
+// ============================================
+// ATTENDANCE ENDPOINTS
+// ============================================
+
+// Mark attendance (check in)
+router.post('/attendance/check-in', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const username = req.user.username;
+        const checkInTime = new Date();
+        const attendanceDate = checkInTime.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Check if user already has an active attendance for today
+        const activeAttendance = await dbPool.query(
+            `SELECT id FROM attendance 
+             WHERE user_id = $1 AND attendance_date = $2 AND check_out_time IS NULL`,
+            [userId, attendanceDate]
+        );
+
+        if (activeAttendance.rows.length > 0) {
+            return res.status(400).json({ error: 'You already have an active attendance for today' });
+        }
+
+        // Insert new attendance record
+        const result = await dbPool.query(
+            `INSERT INTO attendance (user_id, username, attendance_date, check_in_time, status)
+             VALUES ($1, $2, $3, $4, 'checked_in')
+             RETURNING *`,
+            [userId, username, attendanceDate, checkInTime]
+        );
+
+        res.json({ success: true, attendance: result.rows[0] });
+    } catch (error) {
+        console.error('Error marking attendance:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Check out
+router.post('/attendance/check-out', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const checkOutTime = new Date();
+        const attendanceDate = checkOutTime.toISOString().split('T')[0]; // YYYY-MM-DD
+
+        // Find active attendance for today
+        const activeAttendance = await dbPool.query(
+            `SELECT id, check_in_time FROM attendance 
+             WHERE user_id = $1 AND attendance_date = $2 AND check_out_time IS NULL
+             ORDER BY check_in_time DESC LIMIT 1`,
+            [userId, attendanceDate]
+        );
+
+        if (activeAttendance.rows.length === 0) {
+            return res.status(400).json({ error: 'No active attendance found for today' });
+        }
+
+        const attendanceRecord = activeAttendance.rows[0];
+        const checkInTime = new Date(attendanceRecord.check_in_time);
+        const totalHoursSeconds = Math.floor((checkOutTime - checkInTime) / 1000);
+
+        // Update attendance record
+        const result = await dbPool.query(
+            `UPDATE attendance 
+             SET check_out_time = $1, total_hours_seconds = $2, status = 'completed', updated_at = CURRENT_TIMESTAMP
+             WHERE id = $3
+             RETURNING *`,
+            [checkOutTime, totalHoursSeconds, attendanceRecord.id]
+        );
+
+        res.json({ success: true, attendance: result.rows[0] });
+    } catch (error) {
+        console.error('Error checking out:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get attendance records (for admin - all users, for employee - own records)
+router.get('/attendance', authenticateToken, async (req, res) => {
+    try {
+        const dbPool = pool || req.app.locals.pool;
+        if (!dbPool) {
+            return res.status(500).json({ error: 'Database not initialized' });
+        }
+
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        const { username, date } = req.query;
+
+        let query = `
+            SELECT a.*, u.username as employee_username
+            FROM attendance a
+            JOIN users u ON a.user_id = u.id
+            WHERE 1=1
+        `;
+        const params = [];
+        let paramCount = 0;
+
+        // Admin can see all, employees/preparation see only their own
+        if (userRole !== 'admin') {
+            paramCount++;
+            query += ` AND a.user_id = $${paramCount}`;
+            params.push(userId);
+        }
+
+        // Filter by username if provided (admin only)
+        if (username && userRole === 'admin') {
+            paramCount++;
+            query += ` AND a.username = $${paramCount}`;
+            params.push(username);
+        }
+
+        // Filter by date if provided
+        if (date) {
+            paramCount++;
+            query += ` AND a.attendance_date = $${paramCount}`;
+            params.push(date);
+        }
+
+        query += ` ORDER BY a.attendance_date DESC, a.check_in_time DESC LIMIT 100`;
+
+        const result = await dbPool.query(query, params);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching attendance records:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 module.exports = router;

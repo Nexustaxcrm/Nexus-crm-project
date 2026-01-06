@@ -928,6 +928,7 @@ function showTab(tabName, clickedElement) {
         userManagementTabsInitialized = false;
         // Stop auto-refresh when User Management tab is closed
         stopTeamBreakAutoRefresh();
+        stopTeamAttendanceAutoRefresh();
     }
     
     // Remove active class from all nav links
@@ -1028,6 +1029,7 @@ function showTab(tabName, clickedElement) {
                 // Load break time history when Time Chart opens (with delay to ensure token is ready)
                 setTimeout(() => {
                     loadBreakTimeHistory();
+                    loadAttendanceHistory();
                 }, 500);
             }
             break;
@@ -1038,6 +1040,10 @@ function showTab(tabName, clickedElement) {
                 loadTeamBreakTable();
                 // Start auto-refresh for Team Break table (every 5 seconds)
                 startTeamBreakAutoRefresh();
+                // Load team attendance table when User Management opens
+                loadTeamAttendanceTable();
+                // Start auto-refresh for Team Attendance table
+                startTeamAttendanceAutoRefresh();
                 // Ensure initial tab state is correct
                 const allMainPanes = document.querySelectorAll('#userManagementMainTabContent .tab-pane');
                 allMainPanes.forEach((pane, index) => {
@@ -9843,9 +9849,16 @@ function initializeUserManagementTabs() {
                         if (targetId === '#teamBreakMainContent') {
                             loadTeamBreakTable();
                             startTeamBreakAutoRefresh();
-                        } else {
-                            // Stop auto-refresh when switching away from Team Break tab
+                            stopTeamAttendanceAutoRefresh();
+                        } else if (targetId === '#teamAttendanceMainContent') {
+                            // If Team Attendance tab is opened, refresh the table and start auto-refresh
+                            loadTeamAttendanceTable();
+                            startTeamAttendanceAutoRefresh();
                             stopTeamBreakAutoRefresh();
+                        } else {
+                            // Stop auto-refresh when switching away from Team Break/Attendance tabs
+                            stopTeamBreakAutoRefresh();
+                            stopTeamAttendanceAutoRefresh();
                         }
                     }
                     
@@ -13924,57 +13937,143 @@ function stopTeamBreakAutoRefresh() {
 let checkInTime = null;
 let attendanceInterval = null;
 
-function punchAttendance() {
+async function punchAttendance() {
     const punchBtn = document.getElementById('punchAttendanceBtn');
     const attendanceStatus = document.getElementById('currentAttendanceStatus');
     const attendanceInfo = document.getElementById('attendanceInfo');
     const checkInTimeSpan = document.getElementById('checkInTime');
     
     if (!checkInTime) {
-        // Check in
-        checkInTime = new Date();
-        const timeString = checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        punchBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Check Out';
-        punchBtn.className = 'btn btn-danger btn-lg';
-        punchBtn.onclick = function() { punchAttendance(); };
-        attendanceStatus.textContent = 'Checked in';
-        attendanceStatus.style.color = '#28a745';
-        attendanceInfo.style.display = 'block';
-        checkInTimeSpan.textContent = timeString;
-        
-        // Start total hours timer
-        attendanceInterval = setInterval(updateTotalHours, 1000);
-        updateTotalHours();
-        
-        showNotification('success', 'Checked In', 'Your attendance has been recorded.');
+        // Mark Attendance (Check In)
+        try {
+            const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+            if (!token) {
+                showNotification('error', 'Authentication Error', 'Please log in again.');
+                return;
+            }
+            const csrfToken = await getCSRFToken();
+            
+            const response = await fetch(API_BASE_URL + '/users/attendance/check-in', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-CSRF-Token': csrfToken
+                }
+            });
+            
+            if (!response.ok) {
+                let errorMessage = 'Failed to mark attendance';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (e) {
+                    errorMessage = response.status === 403 ? 'Access denied. Please check your permissions.' : 
+                                  response.status === 401 ? 'Invalid or expired token. Please log in again.' :
+                                  response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+            
+            const data = await response.json();
+            checkInTime = new Date(data.attendance.check_in_time);
+            const timeString = checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            punchBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Check Out';
+            punchBtn.className = 'btn btn-danger btn-lg';
+            punchBtn.onclick = function() { punchAttendance(); };
+            attendanceStatus.textContent = 'Attendance marked';
+            attendanceStatus.style.color = '#28a745';
+            attendanceInfo.style.display = 'block';
+            checkInTimeSpan.textContent = timeString;
+            
+            // Start total hours timer
+            attendanceInterval = setInterval(updateTotalHours, 1000);
+            updateTotalHours();
+            
+            showNotification('success', 'Attendance Marked', 'Your attendance has been recorded.');
+            
+            // Refresh admin Team Attendance tab if it's open
+            if (currentUser && currentUser.role === 'admin') {
+                loadTeamAttendanceTable();
+            }
+            
+            // Reload attendance history
+            loadAttendanceHistory();
+        } catch (error) {
+            console.error('Error marking attendance:', error);
+            showNotification('error', 'Error', error.message || 'Failed to mark attendance');
+        }
     } else {
         // Check out
-        const checkOutTime = new Date();
-        const duration = Math.floor((checkOutTime - checkInTime) / 1000); // duration in seconds
-        const hours = Math.floor(duration / 3600);
-        const minutes = Math.floor((duration % 3600) / 60);
-        const seconds = duration % 60;
-        const totalHoursString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
-        // Reset attendance
-        const savedCheckIn = checkInTime;
-        checkInTime = null;
-        if (attendanceInterval) {
-            clearInterval(attendanceInterval);
-            attendanceInterval = null;
+        try {
+            const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+            if (!token) {
+                showNotification('error', 'Authentication Error', 'Please log in again.');
+                return;
+            }
+            const csrfToken = await getCSRFToken();
+            
+            const response = await fetch(API_BASE_URL + '/users/attendance/check-out', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-CSRF-Token': csrfToken
+                }
+            });
+            
+            if (!response.ok) {
+                let errorMessage = 'Failed to check out';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (e) {
+                    errorMessage = response.status === 403 ? 'Access denied. Please check your permissions.' : 
+                                  response.status === 401 ? 'Invalid or expired token. Please log in again.' :
+                                  response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+            
+            const data = await response.json();
+            const savedCheckIn = new Date(data.attendance.check_in_time);
+            const checkOutTime = new Date(data.attendance.check_out_time);
+            const totalHoursSeconds = data.attendance.total_hours_seconds;
+            const hours = Math.floor(totalHoursSeconds / 3600);
+            const minutes = Math.floor((totalHoursSeconds % 3600) / 60);
+            const seconds = totalHoursSeconds % 60;
+            const totalHoursString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            // Reset attendance
+            checkInTime = null;
+            if (attendanceInterval) {
+                clearInterval(attendanceInterval);
+                attendanceInterval = null;
+            }
+            
+            punchBtn.innerHTML = '<i class="fas fa-calendar-check"></i> Mark Attendance';
+            punchBtn.className = 'btn btn-success btn-lg';
+            attendanceStatus.textContent = 'Not marked';
+            attendanceStatus.style.color = '#6c757d';
+            attendanceInfo.style.display = 'none';
+            
+            // Add to history
+            addAttendanceToHistory(savedCheckIn, checkOutTime, totalHoursString);
+            
+            showNotification('success', 'Checked Out', `Total hours today: ${totalHoursString}`);
+            
+            // Refresh admin Team Attendance tab if it's open
+            if (currentUser && currentUser.role === 'admin') {
+                loadTeamAttendanceTable();
+            }
+            
+            // Reload attendance history
+            loadAttendanceHistory();
+        } catch (error) {
+            console.error('Error checking out:', error);
+            showNotification('error', 'Error', error.message || 'Failed to check out');
         }
-        
-        punchBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Check In';
-        punchBtn.className = 'btn btn-success btn-lg';
-        attendanceStatus.textContent = 'Not checked in';
-        attendanceStatus.style.color = '#6c757d';
-        attendanceInfo.style.display = 'none';
-        
-        // Add to history (in a real app, this would be saved to the server)
-        addAttendanceToHistory(savedCheckIn, checkOutTime, totalHoursString);
-        
-        showNotification('success', 'Checked Out', `Total hours today: ${totalHoursString}`);
     }
 }
 
