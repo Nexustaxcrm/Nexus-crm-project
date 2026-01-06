@@ -921,7 +921,12 @@ function showTab(tabName, clickedElement) {
     document.getElementById('assignWorkTab').style.display = 'none';
     document.getElementById('progressTab').style.display = 'none';
     document.getElementById('reportsTab').style.display = 'none';
-    document.getElementById('userManagementTab').style.display = 'none';
+    const userManagementTab = document.getElementById('userManagementTab');
+    if (userManagementTab) {
+        userManagementTab.style.display = 'none';
+        // Reset initialization flag when User Management tab is closed
+        userManagementTabsInitialized = false;
+    }
     
     // Remove active class from all nav links
     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
@@ -973,34 +978,34 @@ function showTab(tabName, clickedElement) {
                         // Update status dropdown to show "All Statuses"
                         updateStatusDropdownFilter([]);
                         // Render the page with no filters
-                        renderAssignWorkPage();
+                renderAssignWorkPage();
                     }
                     // If isFiltering is true, filterByStatus will handle the rendering
                     
-                    // Ensure pagination is visible after tab is shown
-                    setTimeout(() => {
-                        const pagerCheck = document.getElementById('assignPagination');
-                        if (!pagerCheck) {
-                            console.error('❌ Pagination element missing when tab shown! Creating it...');
+                // Ensure pagination is visible after tab is shown
+                setTimeout(() => {
+                    const pagerCheck = document.getElementById('assignPagination');
+                    if (!pagerCheck) {
+                        console.error('❌ Pagination element missing when tab shown! Creating it...');
                             // Only render if we're not filtering
                             if (!window.isFiltering) {
-                                renderAssignWorkPage();
+                        renderAssignWorkPage();
                             }
-                        } else if (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 100 || !pagerCheck.innerHTML.includes('<select')) {
-                            console.log('🔄 Re-rendering pagination after tab show (missing dropdown)...');
+                    } else if (!pagerCheck.innerHTML || pagerCheck.innerHTML.length < 100 || !pagerCheck.innerHTML.includes('<select')) {
+                        console.log('🔄 Re-rendering pagination after tab show (missing dropdown)...');
                             // Only render if we're not filtering
                             if (!window.isFiltering) {
-                                renderAssignWorkPage();
+                        renderAssignWorkPage();
                             }
-                        } else {
-                            // Force show pagination even if it exists
-                            pagerCheck.style.display = 'block';
-                            pagerCheck.style.visibility = 'visible';
-                            pagerCheck.style.width = '100%';
-                            pagerCheck.style.opacity = '1';
-                            console.log('✅ Pagination element found and made visible');
-                        }
-                    }, 300);
+                    } else {
+                        // Force show pagination even if it exists
+                        pagerCheck.style.display = 'block';
+                        pagerCheck.style.visibility = 'visible';
+                        pagerCheck.style.width = '100%';
+                        pagerCheck.style.opacity = '1';
+                        console.log('✅ Pagination element found and made visible');
+                    }
+                }, 300);
                 })();
             }
             break;
@@ -1023,7 +1028,22 @@ function showTab(tabName, clickedElement) {
         case 'userManagement':
             if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('userManagementTab').style.display = 'block';
-                loadUsers().then(() => loadUserManagementTable());
+                // Ensure initial tab state is correct
+                const allMainPanes = document.querySelectorAll('#userManagementMainTabContent .tab-pane');
+                allMainPanes.forEach((pane, index) => {
+                    if (index === 0) {
+                        pane.classList.add('show', 'active');
+                        pane.style.display = 'block';
+                    } else {
+                        pane.classList.remove('show', 'active');
+                        pane.style.display = 'none';
+                    }
+                });
+                loadUsers().then(() => {
+                    loadUserManagementTable();
+                    // Initialize Bootstrap tabs for User Management
+                    initializeUserManagementTabs();
+                });
             }
             break;
     }
@@ -1501,7 +1521,7 @@ async function loadAdminDashboard() {
                     <div class="stats-label">Old Clients</div>
                 </div>
             </div>
-`;
+        `;
         
         if (statsCards) {
             statsCards.innerHTML = statsHtml;
@@ -1752,11 +1772,11 @@ async function loadEmployeeDashboard() {
                 <div class="stats-card" onclick="filterByStatus('${status}')" style="cursor: pointer;">
                     <div class="stats-icon" style="background: ${config.color};">
                         <i class="fas ${config.icon}"></i>
-                    </div>
+                </div>
                     <div class="stats-number">${count}</div>
                     <div class="stats-label">${config.label}</div>
-                </div>
             </div>
+        </div>
         `;
     }).join('');
     
@@ -1867,20 +1887,20 @@ function createAddCardModal() {
                     <div class="modal-header">
                         <h5 class="modal-title" id="addCardModalLabel">Customize Dashboard Cards</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
+                </div>
                     <div class="modal-body">
                         <p class="text-muted mb-3">Select up to 4 status cards to display on your dashboard:</p>
                         <div class="dropdown-menu show" style="position: static; display: block; width: 100%; max-height: 300px; overflow-y: auto;">
                             <ul class="list-unstyled mb-0" id="addCardStatusList">
                                 <!-- Status checkboxes will be populated here -->
                             </ul>
-                        </div>
+            </div>
                         <div class="mt-3">
                             <small class="text-muted">
                                 <span id="selectedCount">0</span> of 4 cards selected
                             </small>
-                        </div>
-                    </div>
+        </div>
+                </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveCardsBtn" onclick="saveDashboardCards()" disabled>Save Cards</button>
@@ -2083,8 +2103,8 @@ function filterByStatus(status) {
                 window.isFiltering = false;
             });
         } else {
-            // Render the page with the filter applied
-            renderAssignWorkPage();
+        // Render the page with the filter applied
+        renderAssignWorkPage();
             window.isFiltering = false;
         }
     }
@@ -4326,8 +4346,8 @@ async function moveSelectedCustomersToStatus() {
             }
             
             const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
             };
             
             // Add CSRF token if available (required for protected routes)
@@ -4797,7 +4817,7 @@ async function renderAssignWorkPage() {
     
         // Initialize column reordering for assigned work table (if function exists)
         if (typeof initColumnReordering === 'function') {
-            initColumnReordering('assignedWorkTable');
+    initColumnReordering('assignedWorkTable');
         } else {
             console.warn('⚠️ initColumnReordering function not found - skipping column reordering');
         }
@@ -7893,8 +7913,8 @@ async function executeStatusUpdate() {
         
         try {
             const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
             };
             
             // Add CSRF token if available (required for protected routes)
@@ -8393,8 +8413,8 @@ async function assignToEmployee(employeeUsername) {
         // Assign each customer via API
         const assignPromises = selectedCustomers.map(async (customer) => {
             const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
             };
             
             // Add CSRF token if available (required for protected routes)
@@ -8467,8 +8487,8 @@ async function assignToUnassigned() {
         // Unassign each customer via API
         const unassignPromises = selectedCustomers.map(async (customer) => {
             const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
             };
             
             // Add CSRF token if available (required for protected routes)
@@ -9717,6 +9737,85 @@ function downloadCSVFile(csvContent, filename) {
 // Switch between Customers Login and Company Logins tabs
 function switchUserManagementTab(tabType) {
     loadUserManagementTable(tabType);
+}
+
+// Track if tabs have been initialized to prevent duplicate initialization
+let userManagementTabsInitialized = false;
+
+// Initialize User Management tabs to ensure Bootstrap tab switching works properly
+function initializeUserManagementTabs() {
+    // Prevent duplicate initialization
+    if (userManagementTabsInitialized) {
+        return;
+    }
+    
+    // Use setTimeout to ensure DOM is fully ready
+    setTimeout(() => {
+        // Get all tab buttons in User Management
+        const tabButtons = document.querySelectorAll('#userManagementMainTabs .nav-link');
+        
+        if (tabButtons.length === 0) {
+            console.warn('User Management tabs not found');
+            return;
+        }
+        
+        tabButtons.forEach((button) => {
+            // Remove data-bs-toggle to prevent Bootstrap auto-handling conflicts
+            button.removeAttribute('data-bs-toggle');
+            
+            // Get the target ID and other important attributes
+            const targetId = button.getAttribute('data-bs-target');
+            const role = button.getAttribute('role');
+            const ariaControls = button.getAttribute('aria-controls');
+            const buttonId = button.getAttribute('id');
+            const onclick = button.getAttribute('onclick');
+            
+            // Remove any existing click listeners by cloning
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Restore all important attributes
+            if (targetId) newButton.setAttribute('data-bs-target', targetId);
+            if (role) newButton.setAttribute('role', role);
+            if (ariaControls) newButton.setAttribute('aria-controls', ariaControls);
+            if (buttonId) newButton.setAttribute('id', buttonId);
+            if (onclick) newButton.setAttribute('onclick', onclick);
+            
+            // Add click handler to manually trigger tab switching
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const targetId = this.getAttribute('data-bs-target');
+                if (targetId) {
+                    // Hide all tab panes
+                    const allPanes = document.querySelectorAll('#userManagementMainTabContent .tab-pane');
+                    allPanes.forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                        pane.style.display = 'none';
+                    });
+                    
+                    // Show the target pane
+                    const targetPane = document.querySelector(targetId);
+                    if (targetPane) {
+                        targetPane.classList.add('show', 'active');
+                        targetPane.style.display = 'block';
+                    }
+                    
+                    // Update active state on buttons
+                    const allButtons = document.querySelectorAll('#userManagementMainTabs .nav-link');
+                    allButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.setAttribute('aria-selected', 'false');
+                    });
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
+                }
+            }, true); // Use capture phase to ensure our handler runs first
+        });
+        
+        userManagementTabsInitialized = true;
+    }, 150);
 }
 
 function loadUserManagementTable(activeTab = 'company') {
