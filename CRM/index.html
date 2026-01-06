@@ -8219,21 +8219,21 @@
             <div id="userManagementTab" style="display: none;">
                 <div class="data-table">
                     <div class="p-4">
-                        <h5 class="mb-4">Manage Users</h5>
-                        <button onclick="showAddUserModal()" class="btn btn-primary mb-4">
-                            <i class="fas fa-plus"></i> Add New User
-                        </button>
-                        
-                        <!-- Tabs Navigation -->
-                        <ul class="nav nav-tabs mb-4 user-management-tabs" id="userManagementTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                        <!-- Top Level Tabs Navigation -->
+                        <ul class="nav nav-tabs mb-4 user-management-tabs" id="userManagementMainTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active user-tab-btn" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="true" onclick="switchUserManagementTab('company')">
-                                    <i class="fas fa-building"></i> <span>Company Logins</span>
+                                <button class="nav-link active user-tab-btn" id="manageUsersMainTab" data-bs-toggle="tab" data-bs-target="#manageUsersMainContent" type="button" role="tab" aria-controls="manageUsersMainContent" aria-selected="true">
+                                    <i class="fas fa-users-cog"></i> <span>Manage Users</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link user-tab-btn" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="false" onclick="switchUserManagementTab('customers')">
-                                    <i class="fas fa-users"></i> <span>Customers Logins</span>
+                                <button class="nav-link user-tab-btn" id="teamBreakMainTab" data-bs-toggle="tab" data-bs-target="#teamBreakMainContent" type="button" role="tab" aria-controls="teamBreakMainContent" aria-selected="false">
+                                    <i class="fas fa-coffee"></i> <span>Team Break</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link user-tab-btn" id="teamAttendanceMainTab" data-bs-toggle="tab" data-bs-target="#teamAttendanceMainContent" type="button" role="tab" aria-controls="teamAttendanceMainContent" aria-selected="false">
+                                    <i class="fas fa-calendar-check"></i> <span>Team Attendance</span>
                                 </button>
                             </li>
                         </ul>
@@ -8313,38 +8313,107 @@
                             }
                         </style>
                         
-                        <!-- Tab Content -->
-                        <div class="tab-content" id="userManagementTabContent">
-                            <!-- Company Logins Tab -->
-                            <div class="tab-pane fade show active" id="companyLoginsContent" role="tabpanel" aria-labelledby="companyLoginsTab">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Role</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                        <tbody id="companyLoginsTable"></tbody>
-                            </table>
+                        <!-- Top Level Tab Content -->
+                        <div class="tab-content" id="userManagementMainTabContent">
+                            <!-- Manage Users Main Tab -->
+                            <div class="tab-pane fade show active" id="manageUsersMainContent" role="tabpanel" aria-labelledby="manageUsersMainTab">
+                                <button onclick="showAddUserModal()" class="btn btn-primary mb-4">
+                                    <i class="fas fa-plus"></i> Add New User
+                                </button>
+                                
+                                <!-- Sub Tabs Navigation for Manage Users -->
+                                <ul class="nav nav-tabs mb-4 user-management-tabs" id="userManagementSubTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active user-tab-btn" id="companyLoginsTab" data-bs-toggle="tab" data-bs-target="#companyLoginsContent" type="button" role="tab" aria-controls="companyLoginsContent" aria-selected="true" onclick="switchUserManagementTab('company')">
+                                            <i class="fas fa-building"></i> <span>Company Logins</span>
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link user-tab-btn" id="customersLoginTab" data-bs-toggle="tab" data-bs-target="#customersLoginContent" type="button" role="tab" aria-controls="customersLoginContent" aria-selected="false" onclick="switchUserManagementTab('customers')">
+                                            <i class="fas fa-users"></i> <span>Customers Logins</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                                
+                                <!-- Sub Tab Content for Manage Users -->
+                                <div class="tab-content" id="userManagementSubTabContent">
+                                    <!-- Company Logins Tab -->
+                                    <div class="tab-pane fade show active" id="companyLoginsContent" role="tabpanel" aria-labelledby="companyLoginsTab">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Username</th>
+                                                        <th>Role</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="companyLoginsTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Customers Login Tab -->
+                                    <div class="tab-pane fade" id="customersLoginContent" role="tabpanel" aria-labelledby="customersLoginTab">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Username</th>
+                                                        <th>Role</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="customersLoginTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <!-- Customers Login Tab -->
-                            <div class="tab-pane fade" id="customersLoginContent" role="tabpanel" aria-labelledby="customersLoginTab">
+                            <!-- Team Break Main Tab -->
+                            <div class="tab-pane fade" id="teamBreakMainContent" role="tabpanel" aria-labelledby="teamBreakMainTab">
                                 <div class="table-responsive">
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>Username</th>
-                                                <th>Role</th>
+                                                <th>Employee Name</th>
+                                                <th>Break Start Time</th>
+                                                <th>Break End Time</th>
+                                                <th>Duration</th>
                                                 <th>Status</th>
-                                                <th>Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="customersLoginTable"></tbody>
+                                        <tbody id="teamBreakTable">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">No break records found</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Team Attendance Main Tab -->
+                            <div class="tab-pane fade" id="teamAttendanceMainContent" role="tabpanel" aria-labelledby="teamAttendanceMainTab">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee Name</th>
+                                                <th>Date</th>
+                                                <th>Check In</th>
+                                                <th>Check Out</th>
+                                                <th>Total Hours</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="teamAttendanceTable">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted">No attendance records found</td>
+                                            </tr>
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
