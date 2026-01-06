@@ -13726,7 +13726,7 @@ function addBreakToHistory(startTime, endTime, duration) {
 }
 
 // Load break time history from server
-async function loadBreakTimeHistory() {
+async function loadBreakTimeHistory(selectedDate = null) {
     // Check if user is logged in and has proper role
     if (!currentUser || (currentUser.role !== 'employee' && currentUser.role !== 'preparation')) {
         console.warn('User not logged in or not authorized for break history');
@@ -13740,7 +13740,30 @@ async function loadBreakTimeHistory() {
             return;
         }
         
-        const response = await fetch(API_BASE_URL + '/users/break-times', {
+        // Show date filter for employee/preparation users
+        const dateFilterContainer = document.getElementById('breakTimeDateFilter');
+        if (dateFilterContainer) {
+            dateFilterContainer.style.display = 'flex';
+        }
+        
+        // If no date selected, default to today's date
+        let dateToFilter = selectedDate;
+        if (!dateToFilter) {
+            const today = new Date();
+            dateToFilter = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+            const datePicker = document.getElementById('breakTimeDatePicker');
+            if (datePicker) {
+                datePicker.value = dateToFilter;
+            }
+        }
+        
+        // Build API URL with date filter
+        let apiUrl = API_BASE_URL + '/users/break-times';
+        if (dateToFilter) {
+            apiUrl += `?date=${dateToFilter}`;
+        }
+        
+        const response = await fetch(apiUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -13773,15 +13796,16 @@ async function loadBreakTimeHistory() {
         const tbody = document.getElementById('breakTimeHistoryTable');
         if (!tbody) return;
         
-        if (breakTimes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No break records found</td></tr>';
-            return;
-        }
-        
         // Filter to current user's breaks only (for employee/preparation)
         const userBreaks = breakTimes.filter(bt => 
             currentUser.role === 'admin' || bt.username === currentUser.username
         );
+        
+        if (userBreaks.length === 0) {
+            const dateDisplay = dateToFilter ? new Date(dateToFilter).toLocaleDateString('en-US') : 'today';
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No break records found for ${dateDisplay}</td></tr>`;
+            return;
+        }
         
         tbody.innerHTML = userBreaks.map(bt => {
             const startTime = new Date(bt.break_start_time);
@@ -14330,3 +14354,30 @@ function stopTeamAttendanceAutoRefresh() {
     }
 }
 
+// Filter break time history by selected date (for employee/preparation only)
+function filterBreakTimeByDate(selectedDate) {
+    if (!currentUser || (currentUser.role !== 'employee' && currentUser.role !== 'preparation')) {
+        return;
+    }
+    
+    if (selectedDate) {
+        loadBreakTimeHistory(selectedDate);
+    } else {
+        loadBreakTimeHistory(); // Default to today
+    }
+}
+
+// Reset break time date filter to today
+function resetBreakTimeDateFilter() {
+    if (!currentUser || (currentUser.role !== 'employee' && currentUser.role !== 'preparation')) {
+        return;
+    }
+    
+    const datePicker = document.getElementById('breakTimeDatePicker');
+    if (datePicker) {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        datePicker.value = todayStr;
+        loadBreakTimeHistory(todayStr);
+    }
+}
