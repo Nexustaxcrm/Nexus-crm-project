@@ -14117,4 +14117,216 @@ function addAttendanceToHistory(checkIn, checkOut, totalHours) {
     tbody.insertBefore(row, tbody.firstChild);
 }
 
+// Load attendance history from server
+async function loadAttendanceHistory() {
+    // Check if user is logged in and has proper role
+    if (!currentUser || (currentUser.role !== 'employee' && currentUser.role !== 'preparation')) {
+        console.warn('User not logged in or not authorized for attendance history');
+        return;
+    }
+    
+    try {
+        const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+        if (!token) {
+            console.warn('No token found, skipping attendance history load');
+            return;
+        }
+        
+        const response = await fetch(API_BASE_URL + '/users/attendance', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            let errorMessage = 'Failed to load attendance history';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = response.statusText || errorMessage;
+            }
+            console.error('Error loading attendance history:', response.status, errorMessage);
+            if (response.status === 401 || response.status === 403) {
+                console.warn('Authentication error loading attendance history:', errorMessage);
+                const tbody = document.getElementById('attendanceHistoryTable');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Unable to load attendance history</td></tr>';
+                }
+                return;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        const attendanceRecords = await response.json();
+        const tbody = document.getElementById('attendanceHistoryTable');
+        if (!tbody) return;
+        
+        if (attendanceRecords.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No attendance records found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = attendanceRecords.map(record => {
+            const checkInTime = new Date(record.check_in_time);
+            const dateStr = checkInTime.toLocaleDateString('en-US');
+            const checkInStr = checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let checkOutStr = '-';
+            let totalHours = '-';
+            let statusBadge = '<span class="badge bg-warning">Active</span>';
+            
+            if (record.check_out_time) {
+                const checkOutTime = new Date(record.check_out_time);
+                checkOutStr = checkOutTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                const hours = Math.floor(record.total_hours_seconds / 3600);
+                const minutes = Math.floor((record.total_hours_seconds % 3600) / 60);
+                const seconds = record.total_hours_seconds % 60;
+                totalHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                statusBadge = '<span class="badge bg-success">Completed</span>';
+            }
+            
+            return `
+                <tr>
+                    <td>${dateStr}</td>
+                    <td>${checkInStr}</td>
+                    <td>${checkOutStr}</td>
+                    <td>${totalHours}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading attendance history:', error);
+        const tbody = document.getElementById('attendanceHistoryTable');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading attendance history</td></tr>';
+        }
+    }
+}
+
+// Load team attendance table for admin
+async function loadTeamAttendanceTable() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    
+    try {
+        const token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+        if (!token) {
+            console.warn('No token found, skipping team attendance load');
+            const tbody = document.getElementById('teamAttendanceTable');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Unable to load attendance records</td></tr>';
+            }
+            return;
+        }
+        const response = await fetch(API_BASE_URL + '/users/attendance', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load team attendance records');
+        }
+        
+        const attendanceRecords = await response.json();
+        const tbody = document.getElementById('teamAttendanceTable');
+        if (!tbody) return;
+        
+        if (attendanceRecords.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No attendance records found</td></tr>';
+            return;
+        }
+        
+        // Sort by date and check-in time (most recent first)
+        attendanceRecords.sort((a, b) => {
+            const dateA = new Date(a.attendance_date + ' ' + a.check_in_time);
+            const dateB = new Date(b.attendance_date + ' ' + b.check_in_time);
+            return dateB - dateA;
+        });
+        
+        tbody.innerHTML = attendanceRecords.map(record => {
+            const checkInTime = new Date(record.check_in_time);
+            const dateStr = checkInTime.toLocaleDateString('en-US');
+            const checkInStr = checkInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            let checkOutStr = '-';
+            let totalHours = '-';
+            let statusBadge = '<span class="badge bg-warning">Active</span>';
+            let checkInColor = 'color: #ffc107; font-weight: bold;'; // Yellow/Orange for active
+            let checkOutColor = '';
+            
+            if (record.check_out_time) {
+                const checkOutTime = new Date(record.check_out_time);
+                checkOutStr = checkOutTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                const hours = Math.floor(record.total_hours_seconds / 3600);
+                const minutes = Math.floor((record.total_hours_seconds % 3600) / 60);
+                const seconds = record.total_hours_seconds % 60;
+                totalHours = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                statusBadge = '<span class="badge bg-success">Completed</span>';
+                checkInColor = 'color: #28a745; font-weight: bold;'; // Green for completed
+                checkOutColor = 'color: #28a745; font-weight: bold;'; // Green for completed
+            }
+            
+            return `
+                <tr>
+                    <td>${record.username || record.employee_username || 'Unknown'}</td>
+                    <td>${dateStr}</td>
+                    <td style="${checkInColor}">${checkInStr}</td>
+                    <td style="${checkOutColor}">${checkOutStr}</td>
+                    <td>${totalHours}</td>
+                    <td>${statusBadge}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading team attendance records:', error);
+        const tbody = document.getElementById('teamAttendanceTable');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading attendance records</td></tr>';
+        }
+    }
+}
+
+// Auto-refresh Team Attendance table for admin (polling every 3 seconds)
+let teamAttendanceRefreshInterval = null;
+
+function startTeamAttendanceAutoRefresh() {
+    // Clear any existing interval
+    stopTeamAttendanceAutoRefresh();
+    
+    // Only start if user is admin
+    if (!currentUser || currentUser.role !== 'admin') {
+        return;
+    }
+    
+    // Refresh immediately
+    loadTeamAttendanceTable();
+    
+    // Set up polling every 3 seconds
+    teamAttendanceRefreshInterval = setInterval(() => {
+        // Only refresh if Team Attendance tab is visible
+        const teamAttendanceContent = document.getElementById('teamAttendanceMainContent');
+        const userManagementTab = document.getElementById('userManagementTab');
+        if (teamAttendanceContent && userManagementTab && 
+            userManagementTab.style.display !== 'none' &&
+            teamAttendanceContent.style.display !== 'none' && 
+            teamAttendanceContent.classList.contains('active')) {
+            loadTeamAttendanceTable();
+        } else {
+            // Stop polling if tab is not visible
+            stopTeamAttendanceAutoRefresh();
+        }
+    }, 3000); // Refresh every 3 seconds
+}
+
+// Stop auto-refresh for Team Attendance table
+function stopTeamAttendanceAutoRefresh() {
+    if (teamAttendanceRefreshInterval) {
+        clearInterval(teamAttendanceRefreshInterval);
+        teamAttendanceRefreshInterval = null;
+    }
+}
 
