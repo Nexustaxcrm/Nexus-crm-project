@@ -1026,7 +1026,8 @@ function showTab(tabName, clickedElement) {
             }
             break;
         case 'reports':
-            if (currentUser && currentUser.role === 'admin') {
+            // Allow admin, employee, and preparation users to access reports
+            if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'employee' || currentUser.role === 'preparation')) {
                 document.getElementById('reportsTab').style.display = 'block';
             }
             break;
