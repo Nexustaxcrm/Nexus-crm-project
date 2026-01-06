@@ -10012,8 +10012,7 @@ function loadUserManagementTable(activeTab = 'company') {
     });
     
     // Update active tab if specified
-    const companyTab = document.getElementById('companyLoginsTab');
-    const customersTab = document.getElementById('customersLoginTab');
+    // Reuse companyTab and customersTab already declared above
     const companyContent = document.getElementById('companyLoginsContent');
     const customersContent = document.getElementById('customersLoginContent');
     
