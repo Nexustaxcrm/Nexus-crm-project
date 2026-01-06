@@ -1039,9 +1039,13 @@ function showTab(tabName, clickedElement) {
                         pane.style.display = 'none';
                     }
                 });
-                // Ensure sub-tabs are visible
+                // Ensure sub-tabs are properly initialized
                 const companyLoginsContent = document.getElementById('companyLoginsContent');
                 const customersLoginContent = document.getElementById('customersLoginContent');
+                const companyLoginsTab = document.getElementById('companyLoginsTab');
+                const customersLoginTab = document.getElementById('customersLoginTab');
+                
+                // Set initial state: Company Logins active, Customers Logins hidden
                 if (companyLoginsContent) {
                     companyLoginsContent.classList.add('show', 'active');
                     companyLoginsContent.style.display = 'block';
@@ -1050,12 +1054,22 @@ function showTab(tabName, clickedElement) {
                     customersLoginContent.classList.remove('show', 'active');
                     customersLoginContent.style.display = 'none';
                 }
+                if (companyLoginsTab) {
+                    companyLoginsTab.classList.add('active');
+                    companyLoginsTab.setAttribute('aria-selected', 'true');
+                }
+                if (customersLoginTab) {
+                    customersLoginTab.classList.remove('active');
+                    customersLoginTab.setAttribute('aria-selected', 'false');
+                }
                 loadUsers().then(() => {
                     // Use setTimeout to ensure DOM is fully ready
                     setTimeout(() => {
                         loadUserManagementTable();
                         // Initialize Bootstrap tabs for User Management
                         initializeUserManagementTabs();
+                        // Initialize sub-tabs
+                        initializeUserManagementSubTabs();
                     }, 100);
                 });
             }
@@ -9832,6 +9846,41 @@ function initializeUserManagementTabs() {
     }, 150);
 }
 
+// Initialize User Management sub-tabs (Company Logins / Customers Logins)
+function initializeUserManagementSubTabs() {
+    // Get all sub-tab buttons
+    const subTabButtons = document.querySelectorAll('#userManagementSubTabs .nav-link');
+    
+    subTabButtons.forEach((button) => {
+        // Remove data-bs-toggle to prevent Bootstrap conflicts
+        button.removeAttribute('data-bs-toggle');
+        
+        // Get the target ID
+        const targetId = button.getAttribute('data-bs-target');
+        const buttonId = button.getAttribute('id');
+        const onclick = button.getAttribute('onclick');
+        
+        // Clone to remove existing listeners
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        // Restore attributes
+        if (targetId) newButton.setAttribute('data-bs-target', targetId);
+        if (buttonId) newButton.setAttribute('id', buttonId);
+        if (onclick) newButton.setAttribute('onclick', onclick);
+        
+        // Add click handler
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Call the switch function
+            const tabType = this.id === 'companyLoginsTab' ? 'company' : 'customers';
+            switchUserManagementTab(tabType);
+        }, true);
+    });
+}
+
 function loadUserManagementTable(activeTab = 'company') {
     if (currentUser.role !== 'admin') return;
     
@@ -9963,23 +10012,38 @@ function loadUserManagementTable(activeTab = 'company') {
     });
     
     // Update active tab if specified
+    const companyTab = document.getElementById('companyLoginsTab');
+    const customersTab = document.getElementById('customersLoginTab');
+    const companyContent = document.getElementById('companyLoginsContent');
+    const customersContent = document.getElementById('customersLoginContent');
+    
     if (activeTab === 'company') {
-        const companyTab = document.getElementById('companyLoginsTab');
-        const customersTab = document.getElementById('customersLoginTab');
-        if (companyTab && customersTab) {
+        if (companyTab && customersTab && companyContent && customersContent) {
+            // Update button states
             customersTab.classList.remove('active');
+            customersTab.setAttribute('aria-selected', 'false');
             companyTab.classList.add('active');
-            document.getElementById('customersLoginContent').classList.remove('show', 'active');
-            document.getElementById('companyLoginsContent').classList.add('show', 'active');
+            companyTab.setAttribute('aria-selected', 'true');
+            
+            // Update content visibility
+            customersContent.classList.remove('show', 'active');
+            customersContent.style.display = 'none';
+            companyContent.classList.add('show', 'active');
+            companyContent.style.display = 'block';
         }
     } else {
-        const companyTab = document.getElementById('companyLoginsTab');
-        const customersTab = document.getElementById('customersLoginTab');
-        if (companyTab && customersTab) {
+        if (companyTab && customersTab && companyContent && customersContent) {
+            // Update button states
             companyTab.classList.remove('active');
+            companyTab.setAttribute('aria-selected', 'false');
             customersTab.classList.add('active');
-            document.getElementById('companyLoginsContent').classList.remove('show', 'active');
-            document.getElementById('customersLoginContent').classList.add('show', 'active');
+            customersTab.setAttribute('aria-selected', 'true');
+            
+            // Update content visibility
+            companyContent.classList.remove('show', 'active');
+            companyContent.style.display = 'none';
+            customersContent.classList.add('show', 'active');
+            customersContent.style.display = 'block';
         }
     }
 }
