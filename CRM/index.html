@@ -818,33 +818,51 @@
             color: var(--text-color);
             border-bottom: 1px solid var(--border-color);
             line-height: 1.2 !important;
-            height: auto !important;
-            min-height: auto !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            min-height: 32px !important;
         }
         
         .assign-work-table .table tbody tr {
             line-height: 1.2 !important;
             margin: 0 !important;
             padding: 0 !important;
-            height: auto !important;
-            min-height: auto !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            min-height: 32px !important;
         }
         
         /* Reduce spacing in comments column */
         .assign-work-table .table tbody td:last-child {
             line-height: 1.2 !important;
             padding: 4px 6px !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            min-height: 32px !important;
         }
         
         /* Override Bootstrap default table cell padding */
         .assign-work-table.table tbody td,
         .assign-work-table .table.table tbody td {
             padding: 4px 6px !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            min-height: 32px !important;
         }
         
         /* Ensure no extra spacing from Bootstrap table classes */
         .assign-work-table.table-hover tbody tr {
             line-height: 1.2 !important;
+            height: 32px !important;
+            max-height: 32px !important;
+            min-height: 32px !important;
+        }
+        
+        /* Ensure consistent row height for all table rows, regardless of content */
+        .assign-work-table .table tbody tr td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .assign-work-table .table tbody tr:hover {
@@ -855,6 +873,17 @@
         .assign-work-table .table tbody td {
             word-wrap: break-word;
             overflow-wrap: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Comments column can show truncated text but maintain fixed height */
+        .assign-work-table .table tbody td:last-child {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
         }
 
         /* Name column (3rd) - strong tag (after reordering: Checkbox, Action, Name) */
