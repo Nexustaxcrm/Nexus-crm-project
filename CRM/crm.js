@@ -8807,6 +8807,27 @@ function getChartOptions(chartType, dataType) {
 }
 
 // Reports Functions
+// Helper function to filter customers by current user (for employee/preparation users)
+function filterCustomersByCurrentUser(customersList) {
+    if (!currentUser) return customersList;
+    
+    // Admin can see all customers
+    if (currentUser.role === 'admin') {
+        return customersList;
+    }
+    
+    // Employee and preparation users can only see their assigned customers
+    const currentUsername = currentUser.username || currentUser.name;
+    if (currentUsername) {
+        return customersList.filter(c => {
+            const assignedTo = c.assignedTo || '';
+            return assignedTo === currentUsername;
+        });
+    }
+    
+    return customersList;
+}
+
 function generateReport(reportType) {
     // Open export filter modal instead of directly downloading
     showExportFilterModal(reportType);
@@ -8816,8 +8837,8 @@ function generateReport(reportType) {
 function exportCustomerReportWithFilters(startDate, endDate, selectedStatuses, format, includeCharts) {
     showNotification('info', 'Customer Report', 'Generating customer analysis report...');
     
-    // Filter customers
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by other filters
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
     
     // Filter by date range
     if (startDate && endDate) {
@@ -8886,8 +8907,8 @@ function exportCustomerReport() {
 function exportCallReportWithFilters(startDate, endDate, format, includeCharts) {
     showNotification('info', 'Call Report', 'Generating call activity report...');
     
-    // Filter customers by date range
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by date range
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
     if (startDate && endDate) {
         filteredCustomers = filteredCustomers.filter(c => {
             const dateField = c.created_at || c.createdAt || c.createdDate;
@@ -8950,8 +8971,16 @@ function exportCallReport() {
 function exportPerformanceReportWithFilters(startDate, endDate, selectedEmployees, format, includeCharts) {
     showNotification('info', 'Performance Report', 'Generating team performance report...');
     
-    // Filter customers
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by other filters
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
+    
+    // For employee/preparation users, force filter by current user only
+    if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
+        const currentUsername = currentUser.username || currentUser.name;
+        if (currentUsername) {
+            selectedEmployees = [currentUsername]; // Override to only show current user
+        }
+    }
     
     // Filter by date range
     if (startDate && endDate) {
@@ -9053,25 +9082,34 @@ function generateQuickReport(reportType) {
 function showEmployeePerformanceModal() {
     const modal = new bootstrap.Modal(document.getElementById('employeePerformanceModal'));
     
-    // Load employee checkboxes
-    loadEmployeeCheckboxes();
-    
-    // Expand both sections by default
-    setTimeout(() => {
+    // For employee/preparation users, hide employee selection and auto-select current user
+    if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
+        // Hide employee selection sections
         const prepSection = document.getElementById('preparationSection');
         const empSection = document.getElementById('employeeSection');
-        const prepChevron = document.getElementById('preparationChevron');
-        const empChevron = document.getElementById('employeeChevron');
+        if (prepSection) prepSection.style.display = 'none';
+        if (empSection) empSection.style.display = 'none';
+    } else {
+        // Load employee checkboxes for admin
+        loadEmployeeCheckboxes();
         
-        if (prepSection && prepChevron) {
-            prepSection.style.display = 'block';
-            prepChevron.className = 'fas fa-chevron-down';
-        }
-        if (empSection && empChevron) {
-            empSection.style.display = 'block';
-            empChevron.className = 'fas fa-chevron-down';
-        }
-    }, 100);
+        // Expand both sections by default
+        setTimeout(() => {
+            const prepSection = document.getElementById('preparationSection');
+            const empSection = document.getElementById('employeeSection');
+            const prepChevron = document.getElementById('preparationChevron');
+            const empChevron = document.getElementById('employeeChevron');
+            
+            if (prepSection && prepChevron) {
+                prepSection.style.display = 'block';
+                prepChevron.className = 'fas fa-chevron-down';
+            }
+            if (empSection && empChevron) {
+                empSection.style.display = 'block';
+                empChevron.className = 'fas fa-chevron-down';
+            }
+        }, 100);
+    }
     
     // Set default date range (last 30 days)
     const endDate = new Date();
@@ -9159,12 +9197,23 @@ function toggleAllEmployees(checked) {
 // Generate Employee Performance Report with filters
 function generateEmployeePerformanceReport() {
     // Get selected employees
-    const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked'))
-        .map(cb => cb.value);
+    let selectedEmployees = [];
     
-    if (selectedEmployees.length === 0) {
-        showNotification('error', 'Selection Required', 'Please select at least one employee.');
-        return;
+    // For employee/preparation users, auto-select current user
+    if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
+        const currentUsername = currentUser.username || currentUser.name;
+        if (currentUsername) {
+            selectedEmployees = [currentUsername];
+        }
+    } else {
+        // For admin, get from checkboxes
+        selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked'))
+            .map(cb => cb.value);
+        
+        if (selectedEmployees.length === 0) {
+            showNotification('error', 'Selection Required', 'Please select at least one employee.');
+            return;
+        }
     }
     
     // Get date range
@@ -9221,8 +9270,8 @@ function showExportFilterModal(reportType) {
         statusFilterContainer.style.display = 'none';
     }
     
-    // Show employee filter for performance reports
-    if (reportType === 'performance') {
+    // Show employee filter for performance reports (only for admin)
+    if (reportType === 'performance' && currentUser && currentUser.role === 'admin') {
         employeeFilterContainer.style.display = 'block';
         loadEmployeeFilters();
     } else {
@@ -9421,8 +9470,8 @@ function executeExport() {
 function exportStatusDistributionReportWithFilters(startDate, endDate, selectedStatuses, format, includeCharts) {
     showNotification('info', 'Status Report', 'Generating status distribution report...');
     
-    // Filter customers
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by other filters
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
     
     // Filter by date range
     if (startDate && endDate) {
@@ -9481,8 +9530,8 @@ function exportStatusDistributionReport() {
 function exportMonthlySummaryReportWithFilters(startDate, endDate, format, includeCharts) {
     showNotification('info', 'Monthly Report', 'Generating monthly summary report...');
     
-    // Filter customers by date range
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by date range
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
     if (startDate && endDate) {
         filteredCustomers = filteredCustomers.filter(c => {
             const dateField = c.created_at || c.createdAt || c.createdDate;
@@ -9541,8 +9590,16 @@ function exportMonthlySummaryReport() {
 function exportEmployeePerformanceReport(selectedEmployees = null, startDate = null, endDate = null) {
     showNotification('info', 'Employee Report', 'Generating employee performance report...');
     
-    // Filter customers based on selected employees and date range
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by other filters
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
+    
+    // For employee/preparation users, force filter by current user only
+    if (currentUser && (currentUser.role === 'employee' || currentUser.role === 'preparation')) {
+        const currentUsername = currentUser.username || currentUser.name;
+        if (currentUsername) {
+            selectedEmployees = [currentUsername]; // Override to only show current user
+        }
+    }
     
     // Filter by selected employees
     if (selectedEmployees && selectedEmployees.length > 0) {
@@ -9631,8 +9688,8 @@ function exportEmployeePerformanceReport(selectedEmployees = null, startDate = n
 function exportAllDataWithFilters(startDate, endDate, format, includeCharts) {
     showNotification('info', 'Data Export', 'Preparing data export...');
     
-    // Filter customers by date range
-    let filteredCustomers = [...customers];
+    // Filter customers - first by current user (if not admin), then by date range
+    let filteredCustomers = filterCustomersByCurrentUser([...customers]);
     if (startDate && endDate) {
         filteredCustomers = filteredCustomers.filter(c => {
             const dateField = c.created_at || c.createdAt || c.createdDate;
