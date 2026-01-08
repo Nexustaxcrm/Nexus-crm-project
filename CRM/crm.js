@@ -1046,11 +1046,14 @@ function showTab(tabName, clickedElement) {
         case 'userManagement':
             if (currentUser && currentUser.role === 'admin') {
                 document.getElementById('userManagementTab').style.display = 'block';
-                // Load team break table when User Management opens
+                // Load employee filters when User Management opens
+                loadTeamBreakEmployeeFilter();
+                loadTeamAttendanceEmployeeFilter();
+                // Load team break table when User Management opens (without filters initially)
                 loadTeamBreakTable();
-                // Start auto-refresh for Team Break table (every 5 seconds)
+                // Start auto-refresh for Team Break table (every 3 seconds)
                 startTeamBreakAutoRefresh();
-                // Load team attendance table when User Management opens
+                // Load team attendance table when User Management opens (without filters initially)
                 loadTeamAttendanceTable();
                 // Start auto-refresh for Team Attendance table
                 startTeamAttendanceAutoRefresh();
@@ -9914,12 +9917,25 @@ function initializeUserManagementTabs() {
                         
                         // If Team Break tab is opened, refresh the table and start auto-refresh
                         if (targetId === '#teamBreakMainContent') {
-                            loadTeamBreakTable();
+                            // Load employee filter dropdown
+                            loadTeamBreakEmployeeFilter();
+                            // Get current filter values
+                            const employeeFilter = document.getElementById('teamBreakEmployeeFilter');
+                            const dateFilter = document.getElementById('teamBreakDateFilter');
+                            const username = employeeFilter ? employeeFilter.value : null;
+                            const date = dateFilter ? dateFilter.value : null;
+                            loadTeamBreakTable(username, date);
                             startTeamBreakAutoRefresh();
                             stopTeamAttendanceAutoRefresh();
                         } else if (targetId === '#teamAttendanceMainContent') {
-                            // If Team Attendance tab is opened, refresh the table and start auto-refresh
-                            loadTeamAttendanceTable();
+                            // Load employee filter dropdown
+                            loadTeamAttendanceEmployeeFilter();
+                            // Get current filter values
+                            const employeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
+                            const dateFilter = document.getElementById('teamAttendanceDateFilter');
+                            const username = employeeFilter ? employeeFilter.value : null;
+                            const date = dateFilter ? dateFilter.value : null;
+                            loadTeamAttendanceTable(username, date);
                             startTeamAttendanceAutoRefresh();
                             stopTeamBreakAutoRefresh();
                         } else {
@@ -9942,6 +9958,60 @@ function initializeUserManagementTabs() {
         });
         
         userManagementTabsInitialized = true;
+        
+        // Add event listeners for Team Break filters
+        const teamBreakEmployeeFilter = document.getElementById('teamBreakEmployeeFilter');
+        const teamBreakDateFilter = document.getElementById('teamBreakDateFilter');
+        
+        if (teamBreakEmployeeFilter) {
+            teamBreakEmployeeFilter.addEventListener('change', function() {
+                const username = this.value || null;
+                const dateFilter = document.getElementById('teamBreakDateFilter');
+                const date = dateFilter && dateFilter.value ? dateFilter.value : null;
+                loadTeamBreakTable(username, date);
+            });
+        }
+        
+        if (teamBreakDateFilter) {
+            teamBreakDateFilter.addEventListener('change', function() {
+                // Clear table when date changes
+                const tbody = document.getElementById('teamBreakTable');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>';
+                }
+                
+                const username = teamBreakEmployeeFilter ? teamBreakEmployeeFilter.value || null : null;
+                const date = this.value || null;
+                loadTeamBreakTable(username, date);
+            });
+        }
+        
+        // Add event listeners for Team Attendance filters
+        const teamAttendanceEmployeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
+        const teamAttendanceDateFilter = document.getElementById('teamAttendanceDateFilter');
+        
+        if (teamAttendanceEmployeeFilter) {
+            teamAttendanceEmployeeFilter.addEventListener('change', function() {
+                const username = this.value || null;
+                const dateFilter = document.getElementById('teamAttendanceDateFilter');
+                const date = dateFilter && dateFilter.value ? dateFilter.value : null;
+                loadTeamAttendanceTable(username, date);
+            });
+        }
+        
+        if (teamAttendanceDateFilter) {
+            teamAttendanceDateFilter.addEventListener('change', function() {
+                // Clear table when date changes
+                const tbody = document.getElementById('teamAttendanceTable');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>';
+                }
+                
+                const username = teamAttendanceEmployeeFilter ? teamAttendanceEmployeeFilter.value || null : null;
+                const date = this.value || null;
+                loadTeamAttendanceTable(username, date);
+            });
+        }
     }, 150);
 }
 
@@ -13990,7 +14060,61 @@ async function loadBreakTimeHistory(selectedDate = null) {
 }
 
 // Load team break table for admin
-async function loadTeamBreakTable() {
+// Load employee dropdown for Team Break filter
+async function loadTeamBreakEmployeeFilter() {
+    const select = document.getElementById('teamBreakEmployeeFilter');
+    if (!select) return;
+    
+    // Ensure users are loaded
+    if (!users || users.length === 0) {
+        await loadUsers();
+    }
+    
+    // Get employee and preparation users
+    const employeeUsers = users.filter(u => 
+        (u.role === 'employee' || u.role === 'preparation') && !u.locked
+    );
+    
+    // Clear existing options except "All Employees"
+    select.innerHTML = '<option value="">All Employees</option>';
+    
+    // Add employee options
+    employeeUsers.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.username;
+        option.textContent = user.username;
+        select.appendChild(option);
+    });
+}
+
+// Load employee dropdown for Team Attendance filter
+async function loadTeamAttendanceEmployeeFilter() {
+    const select = document.getElementById('teamAttendanceEmployeeFilter');
+    if (!select) return;
+    
+    // Ensure users are loaded
+    if (!users || users.length === 0) {
+        await loadUsers();
+    }
+    
+    // Get employee and preparation users
+    const employeeUsers = users.filter(u => 
+        (u.role === 'employee' || u.role === 'preparation') && !u.locked
+    );
+    
+    // Clear existing options except "All Employees"
+    select.innerHTML = '<option value="">All Employees</option>';
+    
+    // Add employee options
+    employeeUsers.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.username;
+        option.textContent = user.username;
+        select.appendChild(option);
+    });
+}
+
+async function loadTeamBreakTable(username = null, date = null) {
     if (!currentUser || currentUser.role !== 'admin') return;
     
     try {
@@ -14003,7 +14127,23 @@ async function loadTeamBreakTable() {
             }
             return;
         }
-        const response = await fetch(API_BASE_URL + '/users/break-times', {
+        
+        // Build API URL with filters
+        let apiUrl = API_BASE_URL + '/users/break-times?';
+        const params = new URLSearchParams();
+        if (username) {
+            params.append('username', username);
+        }
+        if (date) {
+            params.append('date', date);
+        }
+        if (params.toString()) {
+            apiUrl += params.toString();
+        } else {
+            apiUrl = API_BASE_URL + '/users/break-times';
+        }
+        
+        const response = await fetch(apiUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -14067,7 +14207,7 @@ async function loadTeamBreakTable() {
     }
 }
 
-// Auto-refresh Team Break table for admin (polling every 5 seconds)
+// Auto-refresh Team Break table for admin (polling every 3 seconds)
 function startTeamBreakAutoRefresh() {
     // Clear any existing interval
     stopTeamBreakAutoRefresh();
@@ -14077,8 +14217,12 @@ function startTeamBreakAutoRefresh() {
         return;
     }
     
-    // Refresh immediately
-    loadTeamBreakTable();
+    // Refresh immediately with current filters
+    const employeeFilter = document.getElementById('teamBreakEmployeeFilter');
+    const dateFilter = document.getElementById('teamBreakDateFilter');
+    const username = employeeFilter ? employeeFilter.value || null : null;
+    const date = dateFilter ? dateFilter.value || null : null;
+    loadTeamBreakTable(username, date);
     
     // Set up polling every 3 seconds for faster updates
     teamBreakRefreshInterval = setInterval(() => {
@@ -14089,7 +14233,12 @@ function startTeamBreakAutoRefresh() {
             userManagementTab.style.display !== 'none' &&
             teamBreakContent.style.display !== 'none' && 
             teamBreakContent.classList.contains('active')) {
-            loadTeamBreakTable();
+            // Get current filter values
+            const employeeFilter = document.getElementById('teamBreakEmployeeFilter');
+            const dateFilter = document.getElementById('teamBreakDateFilter');
+            const username = employeeFilter ? employeeFilter.value || null : null;
+            const date = dateFilter ? dateFilter.value || null : null;
+            loadTeamBreakTable(username, date);
         } else {
             // Stop polling if tab is not visible
             stopTeamBreakAutoRefresh();
@@ -14379,7 +14528,7 @@ async function loadAttendanceHistory() {
 }
 
 // Load team attendance table for admin
-async function loadTeamAttendanceTable() {
+async function loadTeamAttendanceTable(username = null, date = null) {
     if (!currentUser || currentUser.role !== 'admin') return;
     
     try {
@@ -14392,7 +14541,23 @@ async function loadTeamAttendanceTable() {
             }
             return;
         }
-        const response = await fetch(API_BASE_URL + '/users/attendance', {
+        
+        // Build API URL with filters
+        let apiUrl = API_BASE_URL + '/users/attendance?';
+        const params = new URLSearchParams();
+        if (username) {
+            params.append('username', username);
+        }
+        if (date) {
+            params.append('date', date);
+        }
+        if (params.toString()) {
+            apiUrl += params.toString();
+        } else {
+            apiUrl = API_BASE_URL + '/users/attendance';
+        }
+        
+        const response = await fetch(apiUrl, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -14474,8 +14639,12 @@ function startTeamAttendanceAutoRefresh() {
         return;
     }
     
-    // Refresh immediately
-    loadTeamAttendanceTable();
+    // Refresh immediately with current filters
+    const employeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
+    const dateFilter = document.getElementById('teamAttendanceDateFilter');
+    const username = employeeFilter ? employeeFilter.value || null : null;
+    const date = dateFilter ? dateFilter.value || null : null;
+    loadTeamAttendanceTable(username, date);
     
     // Set up polling every 3 seconds
     teamAttendanceRefreshInterval = setInterval(() => {
@@ -14486,7 +14655,12 @@ function startTeamAttendanceAutoRefresh() {
             userManagementTab.style.display !== 'none' &&
             teamAttendanceContent.style.display !== 'none' && 
             teamAttendanceContent.classList.contains('active')) {
-            loadTeamAttendanceTable();
+            // Get current filter values
+            const employeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
+            const dateFilter = document.getElementById('teamAttendanceDateFilter');
+            const username = employeeFilter ? employeeFilter.value || null : null;
+            const date = dateFilter ? dateFilter.value || null : null;
+            loadTeamAttendanceTable(username, date);
         } else {
             // Stop polling if tab is not visible
             stopTeamAttendanceAutoRefresh();
