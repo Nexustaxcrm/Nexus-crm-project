@@ -1049,12 +1049,22 @@ function showTab(tabName, clickedElement) {
                 // Load employee filters when User Management opens
                 loadTeamBreakEmployeeFilter();
                 loadTeamAttendanceEmployeeFilter();
-                // Load team break table when User Management opens (without filters initially)
-                loadTeamBreakTable();
+                // Set default dates to today for both filters
+                const today = new Date().toISOString().split('T')[0];
+                const teamBreakDateFilter = document.getElementById('teamBreakDateFilter');
+                const teamAttendanceDateFilter = document.getElementById('teamAttendanceDateFilter');
+                if (teamBreakDateFilter) {
+                    teamBreakDateFilter.value = today;
+                }
+                if (teamAttendanceDateFilter) {
+                    teamAttendanceDateFilter.value = today;
+                }
+                // Load team break table when User Management opens (with today's date by default)
+                loadTeamBreakTable(null, today);
                 // Start auto-refresh for Team Break table (every 3 seconds)
                 startTeamBreakAutoRefresh();
-                // Load team attendance table when User Management opens (without filters initially)
-                loadTeamAttendanceTable();
+                // Load team attendance table when User Management opens (with today's date by default)
+                loadTeamAttendanceTable(null, today);
                 // Start auto-refresh for Team Attendance table
                 startTeamAttendanceAutoRefresh();
                 // Ensure initial tab state is correct
@@ -9919,22 +9929,32 @@ function initializeUserManagementTabs() {
                         if (targetId === '#teamBreakMainContent') {
                             // Load employee filter dropdown
                             loadTeamBreakEmployeeFilter();
+                            // Set default date to today if not set
+                            const dateFilter = document.getElementById('teamBreakDateFilter');
+                            if (dateFilter && !dateFilter.value) {
+                                const today = new Date();
+                                dateFilter.value = today.toISOString().split('T')[0];
+                            }
                             // Get current filter values
                             const employeeFilter = document.getElementById('teamBreakEmployeeFilter');
-                            const dateFilter = document.getElementById('teamBreakDateFilter');
-                            const username = employeeFilter ? employeeFilter.value : null;
-                            const date = dateFilter ? dateFilter.value : null;
+                            const username = employeeFilter ? employeeFilter.value || null : null;
+                            const date = dateFilter ? dateFilter.value || null : null;
                             loadTeamBreakTable(username, date);
                             startTeamBreakAutoRefresh();
                             stopTeamAttendanceAutoRefresh();
                         } else if (targetId === '#teamAttendanceMainContent') {
                             // Load employee filter dropdown
                             loadTeamAttendanceEmployeeFilter();
+                            // Set default date to today if not set
+                            const dateFilter = document.getElementById('teamAttendanceDateFilter');
+                            if (dateFilter && !dateFilter.value) {
+                                const today = new Date();
+                                dateFilter.value = today.toISOString().split('T')[0];
+                            }
                             // Get current filter values
                             const employeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
-                            const dateFilter = document.getElementById('teamAttendanceDateFilter');
-                            const username = employeeFilter ? employeeFilter.value : null;
-                            const date = dateFilter ? dateFilter.value : null;
+                            const username = employeeFilter ? employeeFilter.value || null : null;
+                            const date = dateFilter ? dateFilter.value || null : null;
                             loadTeamAttendanceTable(username, date);
                             startTeamAttendanceAutoRefresh();
                             stopTeamBreakAutoRefresh();
@@ -10000,6 +10020,12 @@ function initializeUserManagementTabs() {
         }
         
         if (teamAttendanceDateFilter) {
+            // Set default to today if not set
+            if (!teamAttendanceDateFilter.value) {
+                const today = new Date().toISOString().split('T')[0];
+                teamAttendanceDateFilter.value = today;
+            }
+            
             teamAttendanceDateFilter.addEventListener('change', function() {
                 // Clear table when date changes
                 const tbody = document.getElementById('teamAttendanceTable');
@@ -14128,20 +14154,27 @@ async function loadTeamBreakTable(username = null, date = null) {
             return;
         }
         
-        // Build API URL with filters
+        // If no date is provided, default to today's date
+        if (!date) {
+            const today = new Date();
+            date = today.toISOString().split('T')[0];
+            // Update the date filter to show today's date
+            const dateFilter = document.getElementById('teamBreakDateFilter');
+            if (dateFilter) {
+                dateFilter.value = date;
+            }
+        }
+        
+        // Build API URL with filters (always include date now)
         let apiUrl = API_BASE_URL + '/users/break-times?';
         const params = new URLSearchParams();
         if (username) {
             params.append('username', username);
         }
-        if (date) {
-            params.append('date', date);
-        }
-        if (params.toString()) {
-            apiUrl += params.toString();
-        } else {
-            apiUrl = API_BASE_URL + '/users/break-times';
-        }
+        // Always include date (defaults to today if not provided)
+        params.append('date', date);
+        
+        apiUrl += params.toString();
         
         const response = await fetch(apiUrl, {
             headers: {
@@ -14221,7 +14254,14 @@ function startTeamBreakAutoRefresh() {
     const employeeFilter = document.getElementById('teamBreakEmployeeFilter');
     const dateFilter = document.getElementById('teamBreakDateFilter');
     const username = employeeFilter ? employeeFilter.value || null : null;
-    const date = dateFilter ? dateFilter.value || null : null;
+    let date = dateFilter ? dateFilter.value || null : null;
+    // Default to today if no date is set
+    if (!date) {
+        date = new Date().toISOString().split('T')[0];
+        if (dateFilter) {
+            dateFilter.value = date;
+        }
+    }
     loadTeamBreakTable(username, date);
     
     // Set up polling every 3 seconds for faster updates
@@ -14237,7 +14277,14 @@ function startTeamBreakAutoRefresh() {
             const employeeFilter = document.getElementById('teamBreakEmployeeFilter');
             const dateFilter = document.getElementById('teamBreakDateFilter');
             const username = employeeFilter ? employeeFilter.value || null : null;
-            const date = dateFilter ? dateFilter.value || null : null;
+            let date = dateFilter ? dateFilter.value || null : null;
+            // Default to today if no date is set
+            if (!date) {
+                date = new Date().toISOString().split('T')[0];
+                if (dateFilter) {
+                    dateFilter.value = date;
+                }
+            }
             loadTeamBreakTable(username, date);
         } else {
             // Stop polling if tab is not visible
@@ -14542,20 +14589,27 @@ async function loadTeamAttendanceTable(username = null, date = null) {
             return;
         }
         
-        // Build API URL with filters
+        // If no date is provided, default to today's date
+        if (!date) {
+            const today = new Date();
+            date = today.toISOString().split('T')[0];
+            // Update the date filter to show today's date
+            const dateFilter = document.getElementById('teamAttendanceDateFilter');
+            if (dateFilter) {
+                dateFilter.value = date;
+            }
+        }
+        
+        // Build API URL with filters (always include date now)
         let apiUrl = API_BASE_URL + '/users/attendance?';
         const params = new URLSearchParams();
         if (username) {
             params.append('username', username);
         }
-        if (date) {
-            params.append('date', date);
-        }
-        if (params.toString()) {
-            apiUrl += params.toString();
-        } else {
-            apiUrl = API_BASE_URL + '/users/attendance';
-        }
+        // Always include date (defaults to today if not provided)
+        params.append('date', date);
+        
+        apiUrl += params.toString();
         
         const response = await fetch(apiUrl, {
             headers: {
@@ -14643,7 +14697,14 @@ function startTeamAttendanceAutoRefresh() {
     const employeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
     const dateFilter = document.getElementById('teamAttendanceDateFilter');
     const username = employeeFilter ? employeeFilter.value || null : null;
-    const date = dateFilter ? dateFilter.value || null : null;
+    let date = dateFilter ? dateFilter.value || null : null;
+    // Default to today if no date is set
+    if (!date) {
+        date = new Date().toISOString().split('T')[0];
+        if (dateFilter) {
+            dateFilter.value = date;
+        }
+    }
     loadTeamAttendanceTable(username, date);
     
     // Set up polling every 3 seconds
@@ -14659,7 +14720,14 @@ function startTeamAttendanceAutoRefresh() {
             const employeeFilter = document.getElementById('teamAttendanceEmployeeFilter');
             const dateFilter = document.getElementById('teamAttendanceDateFilter');
             const username = employeeFilter ? employeeFilter.value || null : null;
-            const date = dateFilter ? dateFilter.value || null : null;
+            let date = dateFilter ? dateFilter.value || null : null;
+            // Default to today if no date is set
+            if (!date) {
+                date = new Date().toISOString().split('T')[0];
+                if (dateFilter) {
+                    dateFilter.value = date;
+                }
+            }
             loadTeamAttendanceTable(username, date);
         } else {
             // Stop polling if tab is not visible
